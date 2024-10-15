@@ -1,0 +1,63 @@
+{
+  "name": "@bigmi/core",
+  "version": "0.0.0",
+  "description": "TypeScript library for Bitcoin apps.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "watch": "tsc -w -p ./tsconfig.json",
+    "build": "pnpm clean && pnpm build:esm && pnpm build:cjs && pnpm build:types && pnpm build:clean",
+    "build:cjs": "tsc --project ./tsconfig.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
+    "build:esm": "tsc --project ./tsconfig.json --module es2015 --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
+    "build:types": "tsc --project ./tsconfig.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
+    "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../*.md' .",
+    "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
+    "build:clean": "rm -rf tsconfig.tsbuildinfo ./dist/tsconfig.tsbuildinfo",
+    "release:build": "pnpm build",
+    "clean": "pnpm build:clean && rm -rf dist",
+    "check:types": "tsc --noEmit",
+    "check:circular-deps": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx')",
+    "check:circular-deps-graph": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx') --image graph.svg"
+  },
+  "author": "Eugene Chybisov <eugene@li.finance>",
+  "homepage": "https://github.com/lifinance/bigmi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lifinance/bigmi.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/lifinance/bigmi/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "bitcoin",
+    "bitcoinjs",
+    "btc",
+    "utxo",
+    "web3",
+    "dapp",
+    "typescript"
+  ],
+  "dependencies": {
+    "@noble/curves": "^1.6.0",
+    "@noble/hashes": "^1.5.0",
+    "bech32": "^2.0.0",
+    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "bs58": "^6.0.0",
+    "viem": "^2.21.25"
+  },
+  "devDependencies": {
+    "cpy-cli": "^5.0.0",
+    "madge": "^8.0.0",
+    "typescript": "^5.6.3"
+  },
+  "peerDependencies": {
+    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "bs58": "^6.0.0",
+    "viem": "^2.21.0"
+  },
+  "files": ["dist/**", "src/**", "!tsconfig.json"]
+}
