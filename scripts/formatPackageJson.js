@@ -1,5 +1,5 @@
-import fsExtra from 'fs-extra'
 import { resolve } from 'node:path'
+import fsExtra from 'fs-extra'
 const { readFile, writeFile, copy, remove } = fsExtra
 
 export async function formatPackageFile() {
