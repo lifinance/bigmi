@@ -3,7 +3,7 @@
 <h1 align="center">Bigmi</h1>
 <p align="center"><strong>TypeScript library and reactive primitives for Bitcoin apps.</strong></p>
 
-[![license](https://img.shields.io/npm/l/@bigmi/core)](/LICENSE.md)
+[![license](https://img.shields.io/github/license/lifinance/bigmi)](/LICENSE.md)
 [![npm latest package](https://img.shields.io/npm/v/@bigmi/core/latest.svg)](https://www.npmjs.com/package/@bigmi/core)
 [![npm downloads](https://img.shields.io/npm/dm/@bigmi/core.svg)](https://www.npmjs.com/package/@bigmi/core)
 
