@@ -3,8 +3,8 @@
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "quickfix.biome": "explicit",
-    "source.organizeImports.biome": "explicit",
-    "source.organizeImports": "explicit"
+    "source.organizeImports.biome": "explicit"
+    // "source.organizeImports": "explicit"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
   "typescript.updateImportsOnFileMove.enabled": "always",
