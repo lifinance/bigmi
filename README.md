@@ -43,6 +43,7 @@ pnpm add @bigmi/client
 Here is an example of a basic usage:
 
 ```tsx
+import { useConfig } from '@bigmi/react'
 import {
   type UTXOAPISchema,
   bitcoin,
@@ -53,6 +54,8 @@ import {
   waitForTransaction,
 } from '@bigmi/core'
 import { createClient, fallback, rpcSchema } from 'viem'
+import { useAccount } from 'wagmi'
+
 
 // Create a public client for interactions with the Bitcoin
 const publicClient = createClient({
@@ -104,11 +107,17 @@ const transaction = await waitForTransaction(publicClient, {
 });
 
 console.log('Transaction confirmed:', transaction);
+
+// Getting account information inside the React application
+const bigmiConfig = useConfig()
+const account = useAccount({ config: bigmiConfig })
+
+console.log('Bitcoin account address:', account.address);
 ```
 
 ## Examples
 
-We are working on examples to showcase Bigmi's capabilities. Stay tuned!
+We are working on more examples to showcase Bigmi's capabilities. Stay tuned!
 
 In the meantime, explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for inspiration.
 
