@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 0.0.2 (2024-10-17)
+
+
+### Bug Fixes
+
+* add createConfig export ([dec450a](https://github.com/lifinance/bigmi/commit/dec450a7e5a071e67e259be78c0b9a8b616c7183))
+
 ### 0.0.1 (2024-10-15)
 
 
