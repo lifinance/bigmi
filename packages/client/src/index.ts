@@ -25,3 +25,4 @@ export type {
   XverseBitcoinEventMap,
   XverseBitcoinEvents,
 } from './connectors/xverse.js'
+export { createConfig } from './createConfig.js'
