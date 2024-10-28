@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.4](https://github.com/lifinance/bigmi/compare/v0.0.3...v0.0.4) (2024-10-28)
+
+
+### Features
+
+* add okx wallet ([58b93b5](https://github.com/lifinance/bigmi/commit/58b93b5f8839bbbb0340ff7ac77f03617325c506))
+
 ### [0.0.3](https://github.com/lifinance/bigmi/compare/v0.0.2...v0.0.3) (2024-10-23)
 
 ### 0.0.2 (2024-10-17)
