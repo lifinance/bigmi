@@ -5,6 +5,7 @@ export { getConnectorClient } from './actions/getConnectorClient.js'
 export { reconnect } from './actions/reconnect.js'
 export { watchAccount } from './actions/watchAccount.js'
 export { ctrl } from './connectors/ctrl.js'
+export { okx } from './connectors/okx.js'
 export type {
   CtrlBitcoinEventMap,
   CtrlBitcoinEvents,
