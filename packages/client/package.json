@@ -43,14 +43,14 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:^",
-    "@wagmi/core": "^2.14.1",
-    "viem": "^2.21.35",
-    "wagmi": "^2.12.25"
+    "@wagmi/core": "^2.15.2",
+    "viem": "^2.21.54",
+    "wagmi": "^2.13.3"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "viem": "^2.21.0",

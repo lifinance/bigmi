@@ -42,16 +42,16 @@
     "typescript"
   ],
   "dependencies": {
-    "@noble/hashes": "^1.5.0",
+    "@noble/hashes": "^1.6.1",
     "bech32": "^2.0.0",
     "bitcoinjs-lib": "^7.0.0-rc.0",
     "bs58": "^6.0.0",
-    "viem": "^2.21.35"
+    "viem": "^2.21.54"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
     "bitcoinjs-lib": "^7.0.0-rc.0",
