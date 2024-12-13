@@ -43,9 +43,9 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:^",
-    "@wagmi/core": "^2.15.2",
-    "viem": "^2.21.54",
-    "wagmi": "^2.13.3"
+    "@wagmi/core": "^2.16.0",
+    "viem": "^2.21.55",
+    "wagmi": "^2.14.1"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
