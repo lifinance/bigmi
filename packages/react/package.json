@@ -45,8 +45,7 @@
     "@bigmi/client": "workspace:^",
     "@bigmi/core": "workspace:^",
     "use-sync-external-store": "^1.4.0",
-    "viem": "^2.21.55",
-    "wagmi": "^2.14.1"
+    "viem": "^2.21.55"
   },
   "devDependencies": {
     "@types/use-sync-external-store": "^0.0.6",
@@ -57,8 +56,7 @@
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18",
-    "viem": "^2.21.0",
-    "wagmi": "^2.12.0"
+    "wagmi": "^2.14.0"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }
