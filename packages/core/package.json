@@ -54,9 +54,7 @@
     "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "bitcoinjs-lib": "^7.0.0-rc.0",
-    "bs58": "^6.0.0",
-    "viem": "^2.21.0"
+    "bs58": "^6.0.0"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }
