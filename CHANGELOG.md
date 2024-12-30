@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.8](https://github.com/lifinance/bigmi/compare/v0.0.7...v0.0.8) (2024-12-30)
+
+
+### Features
+
+* add Leather and OneKey wallets ([#7](https://github.com/lifinance/bigmi/issues/7)) ([ac93f66](https://github.com/lifinance/bigmi/commit/ac93f665c8baa24752fd0ad4e2c513b72587060f))
+
 ### [0.0.7](https://github.com/lifinance/bigmi/compare/v0.0.6...v0.0.7) (2024-12-20)
 
 
