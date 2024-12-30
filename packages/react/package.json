@@ -45,7 +45,7 @@
     "@bigmi/client": "workspace:^",
     "@bigmi/core": "workspace:^",
     "use-sync-external-store": "^1.4.0",
-    "viem": "^2.21.55"
+    "viem": "^2.21.59"
   },
   "devDependencies": {
     "@types/use-sync-external-store": "^0.0.6",
