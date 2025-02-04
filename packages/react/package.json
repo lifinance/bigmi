@@ -45,13 +45,13 @@
     "@bigmi/client": "workspace:^",
     "@bigmi/core": "workspace:^",
     "use-sync-external-store": "^1.4.0",
-    "viem": "^2.21.59"
+    "viem": "^2.22.21"
   },
   "devDependencies": {
     "@types/use-sync-external-store": "^0.0.6",
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   },
   "peerDependencies": {
     "react": ">=18",
