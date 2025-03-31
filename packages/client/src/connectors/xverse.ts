@@ -141,6 +141,21 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
           }
           return signedPsbt
         }
+        case 'addressInfo': {
+          const accounts: GetAccountsResponse = await this.request(
+            'getAddresses',
+            {
+              purposes: ['payment'],
+            }
+          )
+          if (!accounts.result) {
+            throw new UserRejectedRequestError({
+              name: UserRejectedRequestError.name,
+              message: accounts.error?.message!,
+            })
+          }
+          return accounts.result.addresses
+        }
         default:
           throw new MethodNotSupportedRpcError(
             new Error(MethodNotSupportedRpcError.name),
@@ -210,9 +225,12 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.request('getAddresses', {
-        purposes: ['payment'],
-      })
+      const accounts: GetAccountsResponse = await provider.request(
+        'getAddresses',
+        {
+          purposes: ['payment'],
+        }
+      )
       if (!accounts.result) {
         throw new UserRejectedRequestError({
           name: UserRejectedRequestError.name,

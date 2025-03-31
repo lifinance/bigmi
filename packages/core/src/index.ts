@@ -23,6 +23,7 @@ export type {
   SendUTXOTransactionReturnType,
 } from './actions/sendUTXOTransaction.js'
 export { signPsbt } from './actions/signPsbt.js'
+export { getAddressInfo } from './actions/getAccountInfo.js'
 export { waitForTransaction } from './actions/waitForTransaction.js'
 export type {
   ReplacementReason,

@@ -6,6 +6,10 @@ export type UTXOWalletSchema = readonly [
     Parameters: SignPsbtParameters
     ReturnType: SignPsbtReturnType
   },
+  {
+    Method: 'addressInfo'
+    ReturnType: BtcAccount
+  },
 ]
 
 export type SignPsbtParameters = {
@@ -42,7 +46,7 @@ export type UTXOWalletProvider = {
 
 export type BtcAccount = {
   address: string
-  addressType: 'p2tr' | 'p2wpkh' | 'p2wsh' | 'p2sh' | 'p2pkh'
+  addressType?: 'p2tr' | 'p2wpkh' | 'p2wsh' | 'p2sh' | 'p2pkh'
   publicKey: string
-  purpose: 'payment' | 'ordinals'
+  purpose?: 'payment' | 'ordinals'
 }
