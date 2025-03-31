@@ -105,6 +105,10 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
           ).join('')
           return signedPsbtHex
         }
+        case 'addressInfo': {
+          const accounts: BtcAccount[] = await this.requestAccounts()
+          return accounts.filter((account) => account.purpose === 'payment')
+        }
         default:
           throw new MethodNotSupportedRpcError(
             new Error(MethodNotSupportedRpcError.name),
@@ -164,7 +168,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.requestAccounts()
+      const accounts: BtcAccount[] = await provider.requestAccounts()
       return accounts
         .filter((account) => account.purpose === 'payment')
         .map((account) => account.address as Address)

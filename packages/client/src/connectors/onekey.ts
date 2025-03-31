@@ -43,6 +43,7 @@ type OneKeyBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
+  getPublicKey(): Promise<string>
 } & OneKeyBitcoinEvents
 
 onekey.type = 'UTXO' as const
@@ -99,6 +100,13 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
             autoFinalized: options.finalize,
           })
           return signedPsbt
+        }
+        case 'addressInfo': {
+          const account = await this.getPublicKey()
+          return {
+            address: account,
+            purpose: 'payment',
+          }
         }
         default:
           throw new MethodNotSupportedRpcError(

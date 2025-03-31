@@ -101,6 +101,17 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
           }
           return signedPsbt
         }
+        case 'addressInfo': {
+          const accounts: GetAccountsResponse =
+            await this.request('getAddresses')
+          if (!accounts.result) {
+            throw new UserRejectedRequestError({
+              name: UserRejectedRequestError.name,
+              message: accounts.error?.message!,
+            })
+          }
+          return accounts.result.addresses
+        }
         default:
           throw new MethodNotSupportedRpcError(
             new Error(MethodNotSupportedRpcError.name),
@@ -148,7 +159,8 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.request('getAddresses')
+      const accounts: GetAccountsResponse =
+        await provider.request('getAddresses')
       if (!accounts.result) {
         throw new UserRejectedRequestError({
           name: UserRejectedRequestError.name,

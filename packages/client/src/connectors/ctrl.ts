@@ -1,4 +1,8 @@
-import type { SignPsbtParameters, UTXOWalletProvider } from '@bigmi/core'
+import type {
+  BtcAccount,
+  SignPsbtParameters,
+  UTXOWalletProvider,
+} from '@bigmi/core'
 import {
   type Address,
   MethodNotSupportedRpcError,
@@ -32,6 +36,10 @@ type CtrlBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   signPsbt(psbtHex: string, finalise?: boolean): Promise<string>
+  request(
+    method: 'request_accounts_and_keys',
+    params: { purposes: string[] }
+  ): Promise<BtcAccount[]>
 } & CtrlBitcoinEvents
 
 ctrl.type = 'UTXO' as const
@@ -74,6 +82,12 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
           const { psbt, ...options } = params as SignPsbtParameters
           const signedPsbt = await this.signPsbt(psbt, options.finalize)
           return signedPsbt
+        }
+        case 'addressInfo': {
+          const accounts = await this.request('request_accounts_and_keys', {
+            purposes: ['payment'],
+          })
+          return accounts
         }
         default:
           throw new MethodNotSupportedRpcError(

@@ -43,6 +43,7 @@ type UnisatBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
+  getPublicKey(): Promise<string>
 } & UnisatBitcoinEvents
 
 unisat.type = 'UTXO' as const
@@ -99,6 +100,13 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
             autoFinalized: options.finalize,
           })
           return signedPsbt
+        }
+        case 'addressInfo': {
+          const account = await this.getPublicKey()
+          return {
+            address: account,
+            purpose: 'payment',
+          }
         }
         default:
           throw new MethodNotSupportedRpcError(

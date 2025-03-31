@@ -25,6 +25,7 @@ export type OKXBitcoinEvents = {
 
 type OKXConnectorProperties = {
   getAccounts(): Promise<readonly Address[]>
+  getPublicKey(): Promise<string>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<OKXBitcoinProvider>
 } & UTXOWalletProvider
@@ -43,6 +44,7 @@ type OKXBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
+  getPublicKey(): Promise<string>
 } & OKXBitcoinEvents
 
 okx.type = 'UTXO' as const
@@ -101,6 +103,13 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
           })
           return signedPsbt
         }
+        case 'addressInfo': {
+          const account = await this.getPublicKey()
+          return {
+            address: account,
+            purpose: 'payment',
+          }
+        }
         default:
           throw new MethodNotSupportedRpcError(
             new Error(MethodNotSupportedRpcError.name),
@@ -110,6 +119,14 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
           )
       }
     },
+    async getPublicKey() {
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
+      }
+      return provider.getPublicKey()
+    },
+
     async connect() {
       const provider = await this.getInternalProvider()
       if (!provider) {
