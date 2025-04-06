@@ -8,6 +8,7 @@ export { ctrl } from './connectors/ctrl.js'
 export { okx } from './connectors/okx.js'
 export { leather } from './connectors/leather.js'
 export { onekey } from './connectors/onekey.js'
+export { dynamic } from './connectors/dynamic.js'
 export type {
   CtrlBitcoinEventMap,
   CtrlBitcoinEvents,
