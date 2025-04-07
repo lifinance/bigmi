@@ -27,20 +27,43 @@ export type DynamicWalletConnector = {
   providerId: string
   name: string
   id: string
-  signPsbt(parameters: {
-    unsignedPsbtBase64: string
-    allowedSighash: number[]
-  }): Promise<any>
+
   getAddress(): string
   _metadata: {
     icon?: string
   }
 } & DynamicWalletConnectorEvents
 
+type BitcoinAddress = {
+  address: string
+  type: 'ordinals' | 'payment'
+  publicKey: string
+}
+
+export type BitcoinSignPsbtRequestSignature = {
+  address: string
+  signingIndexes: number[] | undefined
+  disableAddressValidation?: boolean
+}
+
+type BitcoinSignPsbtRequest = {
+  allowedSighash: number[]
+  unsignedPsbtBase64: string
+  signature?: BitcoinSignPsbtRequestSignature[]
+}
+
+type BitcoinSignPsbtResponse = {
+  signedPsbt: string
+}
+
 type DynamicBitcoinWallet = {
   connector: DynamicWalletConnector
+  additionalAddresses: BitcoinAddress[]
   address: string
   isAuthenticated: boolean
+  signPsbt(
+    parameters: BitcoinSignPsbtRequest
+  ): Promise<BitcoinSignPsbtResponse | undefined>
 }
 
 type DynamicConnectorProperties = {
@@ -81,11 +104,24 @@ export function dynamic(parameters: DynamicConnectorParameters) {
           const allowedSighash: number[] = options.inputsToSign.map((input) =>
             Number(input.sigHash)
           )
-          const signedPsbt = await wallet.connector.signPsbt({
-            unsignedPsbtBase64: psbt,
+          const psbtBase64 = Buffer.from(psbt, 'hex').toString('base64')
+
+          const response = await wallet.signPsbt({
             allowedSighash,
+            unsignedPsbtBase64: psbtBase64,
+            signature: options.inputsToSign,
           })
-          return signedPsbt
+          if (!response) {
+            throw new Error('Error signing the transaction')
+          }
+
+          const { signedPsbt } = response
+
+          const signedPsbtHex = Buffer.from(signedPsbt, 'base64').toString(
+            'hex'
+          )
+
+          return signedPsbtHex
         }
         default:
           throw new MethodNotSupportedRpcError(
@@ -156,7 +192,13 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       }
     },
     async getAccounts() {
-      return [wallet.address] as Address[]
+      const paymentAdress = wallet.additionalAddresses.find(
+        (wallet) => wallet.type === 'payment'
+      )
+      if (!paymentAdress) {
+        throw new Error('Please connect a wallet with a segwit address')
+      }
+      return [paymentAdress.address] as Address[]
     },
     async getChainId() {
       return chainId!
