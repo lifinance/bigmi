@@ -92,6 +92,7 @@ export { isUTXOAddress } from './utils/isUTXOAddress.js'
 export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'
 export { poll } from './utils/poll.js'
+export { base64ToHex, hexToBase64 } from './utils/converter.js'
 
 // Exporting chains
 export { bitcoin } from './chains/bitcoin.js'

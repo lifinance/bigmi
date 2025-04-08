@@ -1,7 +1,8 @@
-import type {
-  BtcAccount,
-  SignPsbtParameters,
-  UTXOWalletProvider,
+import {
+  type BtcAccount,
+  type SignPsbtParameters,
+  type UTXOWalletProvider,
+  hexToBase64,
 } from '@bigmi/core'
 import {
   type Address,
@@ -112,14 +113,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       switch (method) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
-          const psbtBase64 = btoa(
-            psbt
-              .match(/.{1,2}/g)!
-              .map((byte: string) =>
-                String.fromCharCode(Number.parseInt(byte, 16))
-              )
-              .join('')
-          )
+          const psbtBase64 = hexToBase64(psbt)
           const signInputs = options.inputsToSign.reduce(
             (signInputs, input) => {
               if (!signInputs[input.address]) {

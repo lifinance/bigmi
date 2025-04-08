@@ -1,11 +1,12 @@
 import type { SignPsbtParameters, UTXOWalletProvider } from '@bigmi/core'
+import { base64ToHex, hexToBase64 } from '@bigmi/core'
 
 import {
   type Address,
   MethodNotSupportedRpcError,
   UserRejectedRequestError,
 } from 'viem'
-import { type Connection, ProviderNotFoundError, createConnector } from 'wagmi'
+import { ProviderNotFoundError, createConnector } from 'wagmi'
 import type { UTXOConnectorParameters } from './types.js'
 
 export type DynamicWalletConnectorEventMap = {
@@ -104,8 +105,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
           const allowedSighash: number[] = options.inputsToSign.map((input) =>
             Number(input.sigHash)
           )
-          const psbtBase64 = Buffer.from(psbt, 'hex').toString('base64')
-
+          const psbtBase64 = hexToBase64(psbt)
           const response = await wallet.signPsbt({
             allowedSighash,
             unsignedPsbtBase64: psbtBase64,
@@ -117,9 +117,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
 
           const { signedPsbt } = response
 
-          const signedPsbtHex = Buffer.from(signedPsbt, 'base64').toString(
-            'hex'
-          )
+          const signedPsbtHex = base64ToHex(signedPsbt)
 
           return signedPsbtHex
         }
