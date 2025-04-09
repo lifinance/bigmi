@@ -101,25 +101,33 @@ export function dynamic(parameters: DynamicConnectorParameters) {
     ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
-          const { psbt, ...options } = params as SignPsbtParameters
-          const allowedSighash: number[] = options.inputsToSign.map((input) =>
-            Number(input.sigHash)
-          )
-          const psbtBase64 = hexToBase64(psbt)
-          const response = await wallet.signPsbt({
-            allowedSighash,
-            unsignedPsbtBase64: psbtBase64,
-            signature: options.inputsToSign,
-          })
-          if (!response) {
-            throw new Error('Error signing the transaction')
+          try {
+            const { psbt, ...options } = params as SignPsbtParameters
+            const allowedSighash: number[] = options.inputsToSign.map((input) =>
+              Number(input.sigHash)
+            )
+            const psbtBase64 = hexToBase64(psbt)
+
+            const response = await wallet.signPsbt({
+              allowedSighash,
+              unsignedPsbtBase64: psbtBase64,
+              signature: options.inputsToSign,
+            })
+            if (!response) {
+              throw new Error('Error signing the transaction')
+            }
+
+            const { signedPsbt } = response
+
+            const signedPsbtHex = base64ToHex(signedPsbt)
+
+            return signedPsbtHex
+          } catch (error: any) {
+            throw new UserRejectedRequestError({
+              name: UserRejectedRequestError.name,
+              message: error.message,
+            })
           }
-
-          const { signedPsbt } = response
-
-          const signedPsbtHex = base64ToHex(signedPsbt)
-
-          return signedPsbtHex
         }
         default:
           throw new MethodNotSupportedRpcError(
