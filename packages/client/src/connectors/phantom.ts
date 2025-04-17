@@ -1,15 +1,16 @@
 import type {
+  Address,
   BtcAccount,
   SignPsbtParameters,
   UTXOWalletProvider,
 } from '@bigmi/core'
 import {
-  type Address,
   MethodNotSupportedRpcError,
+  ProviderNotFoundError,
   UserRejectedRequestError,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+  createConnector,
+} from '@bigmi/core'
+import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type PhantomBitcoinEventMap = {
   accountsChanged(accounts: BtcAccount[]): void
@@ -88,7 +89,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
     },
     async request(
       this: PhantomBitcoinProvider,
-      { method, params }
+      { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
@@ -106,12 +107,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
           return signedPsbtHex
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError(method)
       }
     },
     async connect() {
@@ -137,10 +133,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: error.message,
-        })
+        throw new UserRejectedRequestError(error.message)
       }
     },
     async disconnect() {

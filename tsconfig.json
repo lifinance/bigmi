@@ -19,5 +19,9 @@
     "strict": true,
     "target": "ES2020"
   },
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/client" }
+  ],
   "exclude": ["**/.*/", "**/build", "**/dist", "node_modules"]
 }

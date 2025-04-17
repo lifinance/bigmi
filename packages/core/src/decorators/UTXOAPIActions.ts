@@ -1,9 +1,12 @@
-import type { Account, Chain, Client, Transport } from 'viem'
 import {
   type GetBalanceParameters,
   type GetBalanceReturnType,
   getBalance,
 } from '../actions/getBalance.js'
+import type { Transport } from '../factories/createTransport.js'
+import type { Account } from '../types/account.js'
+import type { Chain } from '../types/chain.js'
+import type { Client } from '../types/client.js'
 
 export type UTXOAPIActions = {
   getBalance: (args: GetBalanceParameters) => Promise<GetBalanceReturnType>

@@ -1,4 +1,4 @@
-import { defineChain } from 'viem'
+import { defineChain } from './defineChain.js'
 
 export const bitcoin = /*#__PURE__*/ defineChain({
   id: 20000000000001,

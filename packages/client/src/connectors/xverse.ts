@@ -1,16 +1,17 @@
-import {
-  type BtcAccount,
-  type SignPsbtParameters,
-  type UTXOWalletProvider,
-  hexToBase64,
+import type {
+  Address,
+  BtcAccount,
+  SignPsbtParameters,
+  UTXOWalletProvider,
 } from '@bigmi/core'
 import {
-  type Address,
   MethodNotSupportedRpcError,
+  ProviderNotFoundError,
   UserRejectedRequestError,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+  createConnector,
+  hexToBase64,
+} from '@bigmi/core'
+import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type XverseBitcoinEventMap = {
   accountChange(accounts: BtcAccount[]): void
@@ -108,7 +109,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
     },
     async request(
       this: XverseBitcoinProvider | any,
-      { method, params }
+      { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
@@ -136,12 +137,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
           return signedPsbt
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError(method)
       }
     },
     async connect({ isReconnecting } = {}) {
@@ -154,10 +150,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         const connected = await provider.request('wallet_requestPermissions')
 
         if (connected.error) {
-          throw new UserRejectedRequestError({
-            name: UserRejectedRequestError.name,
-            message: connected.error.message,
-          })
+          throw new UserRejectedRequestError(connected.error.message)
         }
       }
 
@@ -208,10 +201,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         purposes: ['payment'],
       })
       if (!accounts.result) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: accounts.error?.message!,
-        })
+        throw new UserRejectedRequestError(accounts.error?.message!)
       }
       return accounts.result.addresses.map(
         (account) => account.address as Address

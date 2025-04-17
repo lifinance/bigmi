@@ -1,17 +1,19 @@
 import { Transaction, address } from 'bitcoinjs-lib'
+
 import {
-  type Chain,
-  type Client,
   TransactionNotFoundError,
   TransactionReceiptNotFoundError,
-  type Transport,
   WaitForTransactionReceiptTimeoutError,
-  stringify,
-  withRetry,
-} from 'viem'
-import { getAction } from 'viem/utils'
+} from '../errors/transaction.js'
+
+import type { Transport } from '../factories/createTransport.js'
+import type { Chain } from '../types/chain.js'
+import type { Client } from '../types/client.js'
 import type { UTXOTransaction } from '../types/transaction.js'
+import { getAction } from '../utils/getAction.js'
 import { observe } from '../utils/observe.js'
+import { stringify } from '../utils/stringify.js'
+import { withRetry } from '../utils/withRetry.js'
 import { getBlock } from './getBlock.js'
 import { getBlockStats } from './getBlockStats.js'
 import { getUTXOTransaction } from './getUTXOTransaction.js'

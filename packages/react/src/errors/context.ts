@@ -1,4 +1,4 @@
-import { BaseError } from 'wagmi'
+import { BaseError } from '@bigmi/core'
 
 export type BigmiProviderNotFoundErrorType = BigmiProviderNotFoundError & {
   name: 'BigmiProviderNotFoundError'

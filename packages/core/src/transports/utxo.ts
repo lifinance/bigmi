@@ -1,12 +1,9 @@
-import {
-  type HttpTransport,
-  type HttpTransportConfig,
-  RpcRequestError,
-  UrlRequiredError,
-  createTransport,
-} from 'viem'
+import { RpcRequestError } from '../errors/request.js'
+import { UrlRequiredError } from '../errors/transport.js'
+import { createTransport } from '../factories/createTransport.js'
 import { getHttpRpcClient } from './getHttpRpcClient.js'
 import { getRpcProviderMethods } from './getRpcProviderMethods.js'
+import type { HttpTransport, HttpTransportConfig } from './http.js'
 import type { UTXOAPIMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {

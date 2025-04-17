@@ -42,17 +42,12 @@
     "hooks"
   ],
   "dependencies": {
-    "@bigmi/core": "workspace:^",
-    "@wagmi/core": "^2.16.4",
-    "viem": "^2.23.2"
+    "@bigmi/core": "workspace:^"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
     "typescript": "^5.7.3"
-  },
-  "peerDependencies": {
-    "wagmi": "^2.14.0"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }

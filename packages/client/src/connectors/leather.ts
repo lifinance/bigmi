@@ -1,15 +1,17 @@
 import type {
+  Address,
   BtcAccount,
   SignPsbtParameters,
   UTXOWalletProvider,
 } from '@bigmi/core'
 import {
-  type Address,
   MethodNotSupportedRpcError,
+  ProviderNotFoundError,
   UserRejectedRequestError,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+  createConnector,
+} from '@bigmi/core'
+
+import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type LeatherBitcoinEventMap = {
   accountChange(accounts: BtcAccount[]): void
@@ -87,7 +89,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
     },
     async request(
       this: LeatherBitcoinProvider | any,
-      { method, params }
+      { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
@@ -102,12 +104,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
           return signedPsbt
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError(method)
       }
     },
     async connect() {
@@ -150,10 +147,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       }
       const accounts = await provider.request('getAddresses')
       if (!accounts.result) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: accounts.error?.message!,
-        })
+        throw new UserRejectedRequestError(accounts.error?.message!)
       }
       return accounts.result.addresses.map(
         (account) => account.address as Address

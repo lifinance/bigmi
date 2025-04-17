@@ -1,11 +1,14 @@
-import type { SignPsbtParameters, UTXOWalletProvider } from '@bigmi/core'
 import {
   type Address,
   MethodNotSupportedRpcError,
+  ProviderNotFoundError,
+  type SignPsbtParameters,
+  type UTXOWalletProvider,
   UserRejectedRequestError,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+  createConnector,
+} from '@bigmi/core'
+
+import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type CtrlBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -68,7 +71,10 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       }
       return provider
     },
-    async request(this: CtrlBitcoinProvider, { method, params }): Promise<any> {
+    async request(
+      this: CtrlBitcoinProvider,
+      { method, params }: ProviderRequestParams
+    ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
@@ -76,12 +82,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
           return signedPsbt
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError(method)
       }
     },
     async connect() {
@@ -107,10 +108,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: error.message,
-        })
+        throw new UserRejectedRequestError(error.message)
       }
     },
     async disconnect() {

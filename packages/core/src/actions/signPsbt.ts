@@ -1,9 +1,12 @@
-import type { Account, Chain, Client, Transport } from 'viem'
+import type { Transport } from '../factories/createTransport.js'
+import type { Account } from '../types/account.js'
+import type { Chain } from '../types/chain.js'
+import type { Client } from '../types/client.js'
 import type {
   SignPsbtParameters,
   SignPsbtReturnType,
   UTXOWalletSchema,
-} from '../clients/types.js'
+} from '../types/client.js'
 
 export async function signPsbt<
   C extends Chain | undefined,

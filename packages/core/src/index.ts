@@ -41,12 +41,11 @@ export type {
 
 // Exporting clients
 export type {
-  BtcAccount,
   SignPsbtParameters,
   SignPsbtReturnType,
   UTXOWalletProvider,
   UTXOWalletSchema,
-} from './clients/types.js'
+} from './types/client.js'
 
 // Exporting decorators
 export { UTXOActions } from './decorators/UTXOActions.js'
@@ -75,10 +74,48 @@ export type {
   UTXOSchema,
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
+export { custom } from './transports/custom.js'
 
 // Exporting types
+export type { Account } from './types/account.js'
+export type { Address } from './types/address.js'
+export type { BlockTag } from './types/block.js'
 export type { BlockStats, BlockStatsKeys } from './types/blockStats.js'
+export type {
+  Chain,
+  ChainConfig,
+  ChainFormatter,
+  ChainFormatters,
+} from './types/chain.js'
+export type {
+  Client,
+  ClientConfig,
+  CreateClientErrorType,
+  MulticallBatchOptions,
+} from './types/client.js'
+export type { Hash } from './types/hash.js'
+export type {
+  BtcRpcRequestFn,
+  BtcRpcRequestOptions,
+  RpcParameters,
+  RpcSchema,
+  RpcSchemaOverride,
+} from './types/request.js'
+export type {
+  BitcoinRpcMethods,
+  WalletRpcSchema,
+} from './types/rpc.js'
 export type { UTXOTransaction } from './types/transaction.js'
+export type {
+  Assign,
+  Compute,
+  ExactPartial,
+  IsNarrowable,
+  IsNever,
+  IsUnknown,
+  LooseOmit,
+} from './types/utils.js'
+export type { BtcAccount } from './types/account.js'
 
 // Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
@@ -93,6 +130,63 @@ export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'
 export { poll } from './utils/poll.js'
 export { base64ToHex, hexToBase64 } from './utils/converter.js'
+export { withRetry } from './utils/withRetry.js'
+export { parseAccount } from './utils/parseAccount.js'
+export { deepEqual } from './utils/deepEqual.js'
+
+// Exporting factories
+export { createConnector } from './factories/createConnector.js'
+export { createEmitter } from './factories/createEmitter.js'
+export {
+  type Storage,
+  createStorage,
+  noopStorage,
+} from './factories/createStorage.js'
+export type {
+  Connection,
+  Connector,
+  State,
+  Config,
+} from './factories/createConfig.js'
+export { createClient } from './factories/createClient.js'
+export { createConfig } from './factories/createConfig.js'
 
 // Exporting chains
 export { bitcoin } from './chains/bitcoin.js'
+export { defineChain } from './chains/defineChain.js'
+
+// Exporting errors
+export {
+  InvalidAddressError,
+  type InvalidAddressErrorType,
+} from './errors/address.js'
+export { BaseError, type BaseErrorType } from './errors/base.js'
+export { BlockNotFoundError } from './errors/block.js'
+export {
+  ChainNotConfiguredError,
+  ConnectorAccountNotFoundError,
+  ConnectorAlreadyConnectedError,
+  ConnectorChainMismatchError,
+  ConnectorNotConnectedError,
+  ConnectorNotFoundError,
+} from './errors/config.js'
+export { ProviderNotFoundError } from './errors/provider.js'
+export {
+  HttpRequestError,
+  RpcRequestError,
+  SocketClosedError,
+  TimeoutError,
+} from './errors/request.js'
+export {
+  MethodNotSupportedRpcError,
+  ParseError,
+  RpcErrorCode,
+  UserRejectedRequestError,
+} from './errors/rpc.js'
+export {
+  TransactionNotFoundError,
+  TransactionReceiptNotFoundError,
+  WaitForTransactionReceiptTimeoutError,
+} from './errors/transaction.js'
+export { UrlRequiredError } from './errors/transport.js'
+export type { ErrorType } from './errors/utils.js'

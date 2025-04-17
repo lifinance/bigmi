@@ -5,9 +5,10 @@ import {
   type Address,
   MethodNotSupportedRpcError,
   UserRejectedRequestError,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+  createConnector,
+} from '@bigmi/core'
+import { ProviderNotFoundError } from '../errors/connectors.js'
+import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type DynamicWalletConnectorEventMap = {
   accountChange(props: { accounts: string[] }): void
@@ -97,10 +98,10 @@ export function dynamic(parameters: DynamicConnectorParameters) {
     },
     async request(
       this: DynamicBitcoinWallet,
-      { method, params }
+      { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
-        case 'signPsbt': {
+        case 'signPsbt ': {
           try {
             const { psbt, ...options } = params as SignPsbtParameters
             const allowedSighash: number[] = options.inputsToSign.map((input) =>
@@ -123,19 +124,11 @@ export function dynamic(parameters: DynamicConnectorParameters) {
 
             return signedPsbtHex
           } catch (error: any) {
-            throw new UserRejectedRequestError({
-              name: UserRejectedRequestError.name,
-              message: error.message,
-            })
+            throw new UserRejectedRequestError(error.message)
           }
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError()
       }
     },
     async setup() {
@@ -175,10 +168,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
         }
         return { accounts, chainId }
       } catch (error: any) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: error.message,
-        })
+        throw new UserRejectedRequestError(error.message)
       }
     },
     async disconnect() {

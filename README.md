@@ -52,9 +52,11 @@ import {
   sendUTXOTransaction,
   utxo,
   waitForTransaction,
+  createClient, 
+  fallback, 
+  rpcSchema
 } from '@bigmi/core'
-import { createClient, fallback, rpcSchema } from 'viem'
-import { useAccount } from 'wagmi'
+import { useAccount } from '@bigmi/react'
 
 
 // Create a public client for interactions with the Bitcoin

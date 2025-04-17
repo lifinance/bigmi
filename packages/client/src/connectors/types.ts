@@ -7,3 +7,8 @@ export type UTXOConnectorParameters = {
   shimDisconnect?: boolean
   chainId?: number
 }
+
+export type ProviderRequestParams = {
+  method: string
+  params: any
+}

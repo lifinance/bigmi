@@ -1,13 +1,13 @@
 import {
+  createConfig as createBigmiConfig,
   createStorage,
-  createConfig as createWagmiConfig,
   noopStorage,
-} from 'wagmi'
+} from '@bigmi/core'
 
 export function createConfig(
-  parameters: Parameters<typeof createWagmiConfig>[0]
+  parameters: Parameters<typeof createBigmiConfig>[0]
 ) {
-  return createWagmiConfig({
+  return createBigmiConfig({
     storage: createStorage({
       key: 'bigmi',
       storage:
