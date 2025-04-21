@@ -133,6 +133,7 @@ export { base64ToHex, hexToBase64 } from './utils/converter.js'
 export { withRetry } from './utils/withRetry.js'
 export { parseAccount } from './utils/parseAccount.js'
 export { deepEqual } from './utils/deepEqual.js'
+export { withTimeout } from './utils/withTimeout.js'
 
 // Exporting factories
 export { createConnector } from './factories/createConnector.js'
@@ -148,7 +149,7 @@ export type {
   State,
   Config,
 } from './factories/createConfig.js'
-export { createClient } from './factories/createClient.js'
+export { createClient, rpcSchema } from './factories/createClient.js'
 export { createConfig } from './factories/createConfig.js'
 
 // Exporting chains
@@ -190,3 +191,19 @@ export {
 } from './errors/transaction.js'
 export { UrlRequiredError } from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'
+
+export {
+  http,
+  type HttpTransport,
+  type HttpTransportConfig,
+  type HttpTransportErrorType,
+} from './transports/http.js'
+
+export {
+  fallback,
+  type FallbackTransport,
+  type FallbackTransportConfig,
+  type FallbackTransportErrorType,
+} from './transports/fallback.js'
+
+export type { Transport } from './types/transport.js'

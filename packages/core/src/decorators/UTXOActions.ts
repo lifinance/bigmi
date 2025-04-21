@@ -17,14 +17,8 @@ import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
 import type { Client } from '../types/client.js'
 
-export type UTXOActions<
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  account extends Account | undefined = Account | undefined,
-> = {
-  getBlockCount: (
-    client: Client<transport, chain, account>
-  ) => Promise<GetBlockCountReturnType>
+export type UTXOActions = {
+  getBlockCount: () => Promise<GetBlockCountReturnType>
   sendUTXOTransaction: (
     args: SendUTXOTransactionParameters
   ) => Promise<SendUTXOTransactionReturnType>
@@ -37,11 +31,9 @@ export function UTXOActions<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,
   account extends Account | undefined = Account | undefined,
->(
-  client: Client<transport, chain, account>
-): UTXOActions<transport, chain, account> {
+>(client: Client<transport, chain, account>): UTXOActions {
   return {
-    getBlockCount: (client) => getBlockCount(client),
+    getBlockCount: () => getBlockCount(client),
     sendUTXOTransaction: (args) => sendUTXOTransaction(client, args),
     getUTXOTransaction: (args) => getUTXOTransaction(client, args),
   }

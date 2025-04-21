@@ -8,6 +8,7 @@ import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
+  base64ToHex,
   createConnector,
   hexToBase64,
 } from '@bigmi/core'
@@ -131,10 +132,11 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
             signInputs: signInputs,
             broadcast: options.finalize,
           })
+
           if (signedPsbt?.error) {
             throw signedPsbt?.error
           }
-          return signedPsbt
+          return base64ToHex(signedPsbt?.result?.psbt)
         }
         default:
           throw new MethodNotSupportedRpcError(method)

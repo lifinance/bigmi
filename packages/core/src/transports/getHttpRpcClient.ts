@@ -127,7 +127,6 @@ export function getHttpRpcClient(
             url,
           })
         }
-
         return data
       } catch (err) {
         if (err instanceof HttpRequestError) {

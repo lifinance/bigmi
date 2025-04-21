@@ -75,7 +75,7 @@ export type RpcRequestErrorType = RpcRequestError & {
   name: 'RpcRequestError'
 }
 export class RpcRequestError extends BaseError {
-  code: number
+  override code: number
   data?: unknown
 
   constructor({

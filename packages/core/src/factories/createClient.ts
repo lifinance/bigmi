@@ -2,7 +2,7 @@ import type { Address } from '../types/address.js'
 
 import type { ErrorType } from '../errors/utils.js'
 import type { Transport } from '../factories/createTransport.js'
-import type { Account, BtcAccount } from '../types/account.js'
+import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
 
 import type { BtcRpcRequestFn, RpcSchema } from '../types/request.js'
@@ -138,7 +138,7 @@ export function createClient<
   Client<
     transport,
     chain,
-    accountOrAddress extends Address ? Prettify<BtcAccount> : accountOrAddress,
+    accountOrAddress extends Address ? Prettify<Account> : accountOrAddress,
     rpcSchema
   >
 >

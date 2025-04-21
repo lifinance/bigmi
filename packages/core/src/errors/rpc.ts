@@ -42,7 +42,7 @@ export enum RpcErrorCode {
 }
 
 export class UserRejectedRequestError extends BaseError {
-  public code = RpcErrorCode.USER_REJECTION
+  override code = RpcErrorCode.USER_REJECTION
   constructor(message?: string) {
     const name = 'UserRejectedRequestError'
     const errMessage =
@@ -54,7 +54,7 @@ export class UserRejectedRequestError extends BaseError {
 }
 
 export class MethodNotSupportedRpcError extends BaseError {
-  public code = RpcErrorCode.METHOD_NOT_SUPPORTED
+  override code = RpcErrorCode.METHOD_NOT_SUPPORTED
   constructor(method?: string) {
     const name = 'MethodNotSupportedError'
     const message = `The method ${method} you are calling is not supported`
@@ -65,7 +65,7 @@ export class MethodNotSupportedRpcError extends BaseError {
 }
 
 export class ParseError extends BaseError {
-  public code = RpcErrorCode.PARSE_ERROR
+  override code = RpcErrorCode.PARSE_ERROR
   constructor(message?: string) {
     const name = 'ParseError'
     const errMessage =
