@@ -87,7 +87,7 @@ export function getHttpRpcClient(
                   : undefined),
                 ...headers,
               },
-              method: method,
+              method: method || 'POST',
               signal: signal_ || (timeout > 0 ? signal : null),
             }
             const request = new Request(params.url ?? url, init)
