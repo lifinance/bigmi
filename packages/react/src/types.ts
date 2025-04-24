@@ -1,4 +1,4 @@
-import type { Config } from '@bigmi/core'
+import type { Config } from '@bigmi/client'
 
 // biome-ignore lint/complexity/noBannedTypes: <explanation>
 export type Register = {}

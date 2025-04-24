@@ -1,4 +1,6 @@
-import type { Address, Chain, Config, Connector } from '@bigmi/core'
+import type { Address, Chain } from '@bigmi/core'
+import type { Config } from '../core/createConfig.js'
+import type { Connector } from '../types/connector.js'
 
 export type GetAccountReturnType<
   config extends Config = Config,

@@ -1,6 +1,6 @@
-import type { Chain } from './chain.js'
+import type { Chain } from '@bigmi/core'
+import type { Compute, ExactPartial } from '@bigmi/core'
 import type { Connection } from './connection.js'
-import type { Compute, ExactPartial } from './utils.js'
 
 export type State<
   chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],

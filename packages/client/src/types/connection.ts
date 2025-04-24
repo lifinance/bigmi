@@ -1,5 +1,5 @@
-import type { Address } from './address.ts'
-import type { Connector } from './connector.ts'
+import type { Address } from '@bigmi/core'
+import type { Connector } from './connector.js'
 
 export type Connection = {
   accounts: readonly [Address, ...Address[]]

@@ -3,13 +3,16 @@ import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
-  type UTXOWalletProvider,
   UserRejectedRequestError,
-  createConnector,
   withRetry,
 } from '@bigmi/core'
 
-import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
+import { createConnector } from '../core/createConnector.js'
+import type {
+  ProviderRequestParams,
+  UTXOConnectorParameters,
+  UTXOWalletProvider,
+} from './types.js'
 
 export type UnisatBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void

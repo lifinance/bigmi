@@ -39,14 +39,6 @@ export type {
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
 
-// Exporting clients
-export type {
-  SignPsbtParameters,
-  SignPsbtReturnType,
-  UTXOWalletProvider,
-  UTXOWalletSchema,
-} from './types/client.js'
-
 // Exporting decorators
 export { UTXOActions } from './decorators/UTXOActions.js'
 export { UTXOAPIActions } from './decorators/UTXOAPIActions.js'
@@ -72,6 +64,9 @@ export type {
   UTXOAPIMethod,
   UTXOAPISchema,
   UTXOSchema,
+  UTXOWalletSchema,
+  SignPsbtParameters,
+  SignPsbtReturnType,
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
 export { custom } from './transports/custom.js'
@@ -136,21 +131,7 @@ export { deepEqual } from './utils/deepEqual.js'
 export { withTimeout } from './utils/withTimeout.js'
 
 // Exporting factories
-export { createConnector } from './factories/createConnector.js'
-export { createEmitter } from './factories/createEmitter.js'
-export {
-  type Storage,
-  createStorage,
-  noopStorage,
-} from './factories/createStorage.js'
-export type {
-  Connection,
-  Connector,
-  State,
-  Config,
-} from './factories/createConfig.js'
 export { createClient, rpcSchema } from './factories/createClient.js'
-export { createConfig } from './factories/createConfig.js'
 
 // Exporting chains
 export { bitcoin } from './chains/bitcoin.js'
@@ -207,3 +188,7 @@ export {
 } from './transports/fallback.js'
 
 export type { Transport } from './types/transport.js'
+
+export type { OneOf, RemoveUndefined } from './types/utils.js'
+export { uid } from './utils/uid.js'
+export { version } from './version.js'

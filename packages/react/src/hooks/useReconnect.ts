@@ -1,5 +1,5 @@
-import { reconnect } from '@bigmi/client'
-import type { Config } from '@bigmi/core'
+import { type Config, reconnect } from '@bigmi/client'
+
 import { useEffect } from 'react'
 
 export const useReconnect = (config: Config) => {

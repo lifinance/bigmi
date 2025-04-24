@@ -1,8 +1,5 @@
 import {
   type Address,
-  type Config,
-  type Connection,
-  type Connector,
   ConnectorAccountNotFoundError,
   createClient,
   custom,
@@ -16,6 +13,9 @@ import {
 } from '@bigmi/core'
 import type { Client } from '@bigmi/core'
 import type { Account } from '@bigmi/core'
+import type { Config } from '../core/createConfig.js'
+import type { Connection } from '../types/connection.js'
+import type { Connector } from '../types/connector.js'
 import { getAddress } from './getAddress.js'
 
 export type ChainIdParameter<

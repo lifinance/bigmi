@@ -1,7 +1,7 @@
 'use client'
 
-import { reconnect } from '@bigmi/client'
-import type { Config, State } from '@bigmi/core'
+import { type Config, type State, reconnect } from '@bigmi/client'
+
 import { type ReactElement, useEffect, useRef } from 'react'
 
 import type { ResolvedRegister } from './types.js'

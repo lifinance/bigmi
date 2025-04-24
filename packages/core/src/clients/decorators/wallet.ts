@@ -8,11 +8,11 @@ import type { Transport } from '../../factories/createTransport.js'
 import type { Account } from '../../types/account.js'
 import type { Client } from '../../types/client.js'
 
-import type { Chain } from '../../types/chain.js'
 import type {
   SignPsbtParameters,
   SignPsbtReturnType,
-} from '../../types/client.js'
+} from '../../transports/types.js'
+import type { Chain } from '../../types/chain.js'
 
 export type WalletActions = {
   /**

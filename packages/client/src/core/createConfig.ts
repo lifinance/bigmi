@@ -1,32 +1,26 @@
+import {
+  type Address,
+  type BtcRpcRequestFn,
+  type Chain,
+  ChainNotConfiguredError,
+  type Client,
+  type Compute,
+  type ExactPartial,
+  type LooseOmit,
+  type OneOf,
+  type RemoveUndefined,
+  type ClientConfig as base_ClientConfig,
+  type Transport as base_Transport,
+  createClient,
+  uid,
+  version,
+} from '@bigmi/core'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
-import type { Address } from '../types/address.js'
-import type { Chain } from '../types/chain.js'
-import {
-  type Client,
-  type ClientConfig as base_ClientConfig,
-  createClient,
-} from './createClient.js'
-
-import { ChainNotConfiguredError } from '../errors/config.js'
-import type { BtcRpcRequestFn } from '../types/request.js'
-import type {
-  Compute,
-  ExactPartial,
-  LooseOmit,
-  OneOf,
-  RemoveUndefined,
-} from '../types/utils.js'
-import { uid } from '../utils/uid.js'
-import { version } from '../version.js'
+import type { Storage } from '../types/storage.js'
 import type { ConnectorEventMap, CreateConnectorFn } from './createConnector.js'
 import { type Emitter, type EventData, createEmitter } from './createEmitter.js'
-import {
-  type Storage,
-  createStorage,
-  getDefaultStorage,
-} from './createStorage.js'
-import type { Transport as base_Transport } from './createTransport.js'
+import { createStorage, getDefaultStorage } from './createStorage.js'
 
 export function createConfig<
   const chains extends readonly [Chain, ...Chain[]],

@@ -1,11 +1,12 @@
 'use client'
 
 import {
+  type Config,
   type GetAccountReturnType,
   getAccount,
   watchAccount,
 } from '@bigmi/client'
-import type { Config } from '@bigmi/core'
+
 import type { ResolvedRegister } from '../types.js'
 import { type ConfigParameter, useConfig } from './useConfig.js'
 import { useSyncExternalStoreWithTracked } from './useSyncExternalStoreWithTracked.js'

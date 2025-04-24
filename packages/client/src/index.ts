@@ -30,3 +30,5 @@ export type {
   XverseBitcoinEvents,
 } from './connectors/xverse.js'
 export { createConfig } from './createConfig.js'
+export type { State } from './types/state.js'
+export type { Config } from './core/createConfig.js'

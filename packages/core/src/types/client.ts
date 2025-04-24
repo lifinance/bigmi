@@ -8,46 +8,6 @@ import type { BitcoinRpcMethods } from './rpc.js'
 import type { Transport } from './transport.js'
 import type { Prettify } from './utils.js'
 
-export type UTXOWalletSchema = readonly [
-  {
-    Method: 'signPsbt'
-    Parameters: SignPsbtParameters
-    ReturnType: SignPsbtReturnType
-  },
-]
-
-export type SignPsbtParameters = {
-  /** The PSBT encoded as a hexadecimal string */
-  psbt: string
-  /**
-   * Array of objects specifying details about the inputs to be signed
-   */
-  inputsToSign: {
-    /**
-     * The SigHash type to use for signing (e.g., SIGHASH_ALL).
-     * If not specified, a default value is used.
-     */
-    sigHash?: number
-    /** The Bitcoin address associated with the input that will be signed */
-    address: string
-    /** An array of indexes in the PSBT corresponding to the inputs that need to be signed */
-    signingIndexes: number[]
-  }[]
-  /**
-   * Whether to finalize the PSBT after signing.
-   * If `true`, the PSBT will be completed and ready for broadcasting.
-   * If `false` or omitted, the PSBT remains partially signed.
-   * Some wallets does not support it.
-   */
-  finalize?: boolean
-}
-
-export type SignPsbtReturnType = string
-
-export type UTXOWalletProvider = {
-  request: BtcRpcRequestFn<UTXOWalletSchema>
-}
-
 export type ClientConfig<
   transport extends Transport = Transport,
   chain extends Chain | undefined = Chain | undefined,

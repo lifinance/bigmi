@@ -1,5 +1,5 @@
 'use client'
-import type { State } from '@bigmi/core'
+import type { State } from '@bigmi/client'
 import { type PropsWithChildren, createContext, createElement } from 'react'
 
 import { Hydrate } from './hydrate.js'

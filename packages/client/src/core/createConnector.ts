@@ -1,10 +1,12 @@
-import type { HttpRpcClient } from '../transports/getHttpRpcClient.js'
-import type { Address } from '../types/address.js'
-import type { Chain } from '../types/chain.js'
-import type { Compute } from '../types/utils.js'
-import type { Client } from './createClient.js'
+import type {
+  Address,
+  Chain,
+  Client,
+  Compute,
+  HttpRpcClient,
+} from '@bigmi/core'
+import type { Storage } from '../types/storage.js'
 import type { Emitter } from './createEmitter.js'
-import type { Storage } from './createStorage.js'
 
 interface ProviderConnectInfo {
   readonly chainId: string

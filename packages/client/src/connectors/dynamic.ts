@@ -1,12 +1,12 @@
-import type { SignPsbtParameters, UTXOWalletProvider } from '@bigmi/core'
-import { base64ToHex, hexToBase64 } from '@bigmi/core'
+import { type SignPsbtParameters, base64ToHex, hexToBase64 } from '@bigmi/core'
+import type { UTXOWalletProvider } from './types.js'
 
 import {
   type Address,
   MethodNotSupportedRpcError,
   UserRejectedRequestError,
-  createConnector,
 } from '@bigmi/core'
+import { createConnector } from '../core/createConnector.js'
 import { ProviderNotFoundError } from '../errors/connectors.js'
 import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 

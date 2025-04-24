@@ -42,7 +42,9 @@
     "hooks"
   ],
   "dependencies": {
-    "@bigmi/core": "workspace:^"
+    "@bigmi/core": "workspace:^",
+    "eventemitter3": "^5.0.1",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",

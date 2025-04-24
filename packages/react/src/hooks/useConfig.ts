@@ -1,7 +1,7 @@
 'use client'
 import { useContext } from 'react'
 
-import type { Config } from '@bigmi/core'
+import type { Config } from '@bigmi/client'
 import { BigmiContext } from '../context.js'
 import { BigmiProviderNotFoundError } from '../errors/context.js'
 import type { ResolvedRegister } from '../types.js'

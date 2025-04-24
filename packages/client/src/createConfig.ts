@@ -1,8 +1,5 @@
-import {
-  createConfig as createBigmiConfig,
-  createStorage,
-  noopStorage,
-} from '@bigmi/core'
+import { createConfig as createBigmiConfig } from './core/createConfig.js'
+import { createStorage, noopStorage } from './core/createStorage.js'
 
 export function createConfig(
   parameters: Parameters<typeof createBigmiConfig>[0]

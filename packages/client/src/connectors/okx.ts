@@ -1,17 +1,17 @@
-import type {
-  Address,
-  SignPsbtParameters,
-  UTXOWalletProvider,
-} from '@bigmi/core'
+import type { Address, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
-  createConnector,
   withRetry,
 } from '@bigmi/core'
 
-import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
+import { createConnector } from '../core/createConnector.js'
+import type {
+  ProviderRequestParams,
+  UTXOConnectorParameters,
+  UTXOWalletProvider,
+} from './types.js'
 
 export type OKXBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void

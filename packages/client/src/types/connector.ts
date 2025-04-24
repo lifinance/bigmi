@@ -1,10 +1,12 @@
-import type { Emitter } from '../factories/createEmitter.js'
-import type { HttpRpcClient } from '../transports/getHttpRpcClient.js'
-import type { Address } from './address.js'
-import type { Chain } from './chain.js'
-import type { Client } from './client.js'
+import type {
+  Address,
+  Chain,
+  Client,
+  Compute,
+  HttpRpcClient,
+} from '@bigmi/core'
+import type { Emitter } from '../core/createEmitter.js'
 import type { Storage } from './storage.js'
-import type { Compute } from './utils.js'
 
 export type Connector<
   createConnectorFn extends CreateConnectorFn = CreateConnectorFn,
