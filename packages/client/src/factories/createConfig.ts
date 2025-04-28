@@ -32,6 +32,7 @@ export function createConfig<
   const {
     multiInjectedProviderDiscovery = true,
     storage = createStorage({
+      key: 'bigmi',
       storage: getDefaultStorage(),
     }),
     syncConnectedChain = true,
@@ -155,7 +156,6 @@ export function createConfig<
       client = createClient({
         ...properties,
         chain,
-        batch: properties.batch ?? { multicall: true },
         transport: (parameters) =>
           rest.transports[chainId]({ ...parameters, connectors }),
       })

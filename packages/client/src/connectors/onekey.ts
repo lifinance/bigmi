@@ -6,7 +6,7 @@ import {
   UserRejectedRequestError,
   withRetry,
 } from '@bigmi/core'
-import { createConnector } from '../core/createConnector.js'
+import { createConnector } from '../factories/createConnector.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,

@@ -33,9 +33,6 @@ export type UTXOSchema = [
     Parameters: [string, boolean, string?]
     ReturnType: UTXOTransaction
   },
-]
-
-export type UTXOAPISchema = [
   {
     Method: 'getBalance'
     Parameters: { address: string }
@@ -79,7 +76,7 @@ export type UTXOWalletSchema = readonly [
   },
 ]
 
-export type UTXOAPIMethod = UTXOAPISchema[number]['Method']
+export type UTXOMethod = UTXOSchema[number]['Method']
 
 export type SuccessResult<result> = {
   method?: undefined
@@ -103,5 +100,5 @@ export type RpcMethodHandler = (
 ) => Promise<RpcResponse>
 
 export type RpcMethods = {
-  [key in UTXOAPIMethod]: RpcMethodHandler
+  [key in UTXOMethod]?: RpcMethodHandler
 }

@@ -19,13 +19,6 @@ export type ClientConfig<
 > = {
   /** The Account to use for the Client. This will be used for Actions that require an account as an argument. */
   account?: accountOrAddress | Account | Address | undefined
-  /** Flags for batch settings. */
-  batch?:
-    | {
-        /** Toggle to enable `eth_call` multicall aggregation. */
-        multicall?: boolean | Prettify<MulticallBatchOptions> | undefined
-      }
-    | undefined
   /**
    * Time (in ms) that cached data will remain in memory.
    * @default 4_000
@@ -83,8 +76,6 @@ type Client_Base<
 > = {
   /** The Account of the Client. */
   account: account
-  /** Flags for batch settings. */
-  batch?: ClientConfig['batch'] | undefined
   /** Time (in ms) that cached data will remain in memory. */
   cacheTime: number
   /** Chain for the client. */
@@ -113,12 +104,5 @@ type Extended = Prettify<
     [key: string]: unknown
   }
 >
-
-export type MulticallBatchOptions = {
-  /** The maximum size (in bytes) for each calldata chunk. @default 1_024 */
-  batchSize?: number | undefined
-  /** The maximum number of milliseconds to wait before sending a batch. @default 0 */
-  wait?: number | undefined
-}
 
 export type CreateClientErrorType = ErrorType

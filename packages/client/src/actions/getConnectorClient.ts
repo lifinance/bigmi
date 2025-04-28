@@ -13,7 +13,7 @@ import {
 } from '@bigmi/core'
 import type { Client } from '@bigmi/core'
 import type { Account } from '@bigmi/core'
-import type { Config } from '../core/createConfig.js'
+import type { Config } from '../factories/createConfig.js'
 import type { Connection } from '../types/connection.js'
 import type { Connector } from '../types/connector.js'
 import { getAddress } from './getAddress.js'
@@ -82,7 +82,7 @@ export async function getConnectorClient<
       connector.getChainId(),
     ])
     connection = {
-      accounts: accounts as unknown as [Address, ...Address[]],
+      accounts: accounts as readonly [Address, ...Address[]],
       chainId,
       connector,
     }
@@ -128,7 +128,7 @@ export async function getConnectorClient<
     )
   ) {
     throw new ConnectorAccountNotFoundError({
-      address: account.address as Address,
+      address: account.address,
       connector: connector.name,
     })
   }

@@ -25,6 +25,7 @@ import {
 
 import type { Client } from '../../factories/createClient.js'
 import type { Transport } from '../../factories/createTransport.js'
+import type { UTXOSchema } from '../../transports/types.js'
 import type { Account } from '../../types/account.js'
 
 import type { Chain } from '../../types/chain.js'
@@ -49,7 +50,8 @@ export function PublicActions<
   transport extends Transport,
   chain extends Chain | undefined = Chain | undefined,
   account extends Account | undefined = Account | undefined,
->(client: Client<transport, chain, account>): PublicActions {
+  schema extends UTXOSchema = UTXOSchema,
+>(client: Client<transport, chain, account, schema>): PublicActions {
   return {
     getBlock: (args) => getBlock(client, args),
     getBalance: (args) => getBalance(client, args),

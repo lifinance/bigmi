@@ -1,5 +1,5 @@
 import type { Address, Chain } from '@bigmi/core'
-import type { Config } from '../core/createConfig.js'
+import type { Config } from '../factories/createConfig.js'
 import type { Connector } from '../types/connector.js'
 
 export type GetAccountReturnType<

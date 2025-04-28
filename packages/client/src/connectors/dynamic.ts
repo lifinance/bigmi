@@ -6,8 +6,8 @@ import {
   MethodNotSupportedRpcError,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { createConnector } from '../core/createConnector.js'
 import { ProviderNotFoundError } from '../errors/connectors.js'
+import { createConnector } from '../factories/createConnector.js'
 import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
 
 export type DynamicWalletConnectorEventMap = {

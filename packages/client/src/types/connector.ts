@@ -5,7 +5,7 @@ import type {
   Compute,
   HttpRpcClient,
 } from '@bigmi/core'
-import type { Emitter } from '../core/createEmitter.js'
+import type { Emitter } from '../factories/createEmitter.js'
 import type { Storage } from './storage.js'
 
 export type Connector<

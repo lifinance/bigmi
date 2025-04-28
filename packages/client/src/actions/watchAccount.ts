@@ -1,5 +1,5 @@
 import { deepEqual } from '@bigmi/core'
-import type { Config } from '../core/createConfig.js'
+import type { Config } from '../factories/createConfig.js'
 import { type GetAccountReturnType, getAccount } from './getAccount.js'
 
 export type WatchAccountParameters<config extends Config = Config> = {

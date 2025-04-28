@@ -2,7 +2,7 @@ import type { Address } from '@bigmi/core'
 import type { ErrorType } from '@bigmi/core/src/errors/utils.js'
 
 import type { Compute } from '@bigmi/core/src/types/utils.js'
-import type { Config } from '../core/createConfig.js'
+import type { Config } from '../factories/createConfig.js'
 import type { Connection } from '../types/connection.js'
 import type { Connector, CreateConnectorFn } from '../types/connector.js'
 

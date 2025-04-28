@@ -39,10 +39,6 @@ export type {
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
 
-// Exporting decorators
-export { UTXOActions } from './decorators/UTXOActions.js'
-export { UTXOAPIActions } from './decorators/UTXOAPIActions.js'
-
 // Exporting transports
 export { ankrMethods } from './transports/ankr.js'
 export { blockchairMethods } from './transports/blockchair.js'
@@ -61,8 +57,6 @@ export type {
   RpcMethods,
   RpcResponse,
   SuccessResult,
-  UTXOAPIMethod,
-  UTXOAPISchema,
   UTXOSchema,
   UTXOWalletSchema,
   SignPsbtParameters,
@@ -86,7 +80,6 @@ export type {
   Client,
   ClientConfig,
   CreateClientErrorType,
-  MulticallBatchOptions,
 } from './types/client.js'
 export type { Hash } from './types/hash.js'
 export type {
