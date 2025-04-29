@@ -46,7 +46,7 @@ export type PublicActions = {
   getBlock: (args: GetBlockParameters) => Promise<GetBlockReturnType>
 }
 
-export function PublicActions<
+export function publicActions<
   transport extends Transport,
   chain extends Chain | undefined = Chain | undefined,
   account extends Account | undefined = Account | undefined,

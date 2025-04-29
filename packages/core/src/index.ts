@@ -39,6 +39,16 @@ export type {
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
 
+// Exporting clients
+export {
+  type PublicActions,
+  publicActions,
+} from './clients/decorators/public.js'
+export {
+  type WalletActions,
+  walletActions,
+} from './clients/decorators/wallet.js'
+
 // Exporting transports
 export { ankrMethods } from './transports/ankr.js'
 export { blockchairMethods } from './transports/blockchair.js'

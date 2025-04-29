@@ -143,7 +143,6 @@ export function createClient<
 
 export function createClient(parameters: ClientConfig): Client {
   const {
-    batch,
     cacheTime = parameters.pollingInterval ?? 4_000,
 
     key = 'base',
