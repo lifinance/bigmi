@@ -43,7 +43,6 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:^",
-    "@tanstack/query-core": "^5.74.9",
     "eventemitter3": "^5.0.1",
     "zustand": "^5.0.3"
   },
@@ -51,6 +50,9 @@
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
     "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "@tanstack/query-core": "^5.74.9"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }

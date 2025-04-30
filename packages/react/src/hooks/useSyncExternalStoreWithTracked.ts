@@ -1,66 +1,76 @@
 'use client'
 import { deepEqual } from '@bigmi/core'
-import { useRef } from 'react'
-import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/shim/with-selector.js'
+import { useMemo, useRef, useSyncExternalStore } from 'react'
 
-const isPlainObject = (obj: unknown) =>
+const isPlainObject = (obj: unknown): obj is Record<string, any> =>
   typeof obj === 'object' && !Array.isArray(obj)
 
 export function useSyncExternalStoreWithTracked<
-  snapshot extends selection,
-  selection = snapshot,
+  Snapshot extends Selection,
+  Selection = Snapshot,
 >(
   subscribe: (onStoreChange: () => void) => () => void,
-  getSnapshot: () => snapshot,
-  getServerSnapshot: undefined | null | (() => snapshot) = getSnapshot,
-  isEqual: (a: selection, b: selection) => boolean = deepEqual
+  getSnapshot: () => Snapshot,
+  getServerSnapshot: (() => Snapshot) | null | undefined = getSnapshot,
+  isEqual: (a: Selection, b: Selection) => boolean = deepEqual
 ) {
-  const trackedKeys = useRef<string[]>([])
-  const result = useSyncExternalStoreWithSelector(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-    (x) => x,
-    (a, b) => {
-      if (isPlainObject(a) && isPlainObject(b) && trackedKeys.current.length) {
-        for (const key of trackedKeys.current) {
-          const equal = isEqual(
-            (a as { [_a: string]: any })[key],
-            (b as { [_b: string]: any })[key]
-          )
-          if (!equal) {
-            return false
-          }
-        }
-        return true
-      }
-      return isEqual(a, b)
-    }
+  const trackedKeys = useRef<Set<string>>(new Set())
+  const previousResult = useRef<Selection | undefined>(undefined)
+  const snapshotCache = useRef(getSnapshot())
+
+  const snapshot = useSyncExternalStore(
+    (onChange) =>
+      subscribe(() => {
+        snapshotCache.current = getSnapshot()
+        onChange()
+      }),
+    () => snapshotCache.current!,
+    getServerSnapshot || undefined
   )
 
-  if (isPlainObject(result)) {
-    const trackedResult = { ...result }
-    let properties = {}
-    for (const [key, value] of Object.entries(
-      trackedResult as { [key: string]: any }
-    )) {
-      properties = {
-        ...properties,
-        [key]: {
-          configurable: false,
-          enumerable: true,
-          get: () => {
-            if (!trackedKeys.current.includes(key)) {
-              trackedKeys.current.push(key)
-            }
-            return value
-          },
-        },
-      }
+  const result = useMemo(() => {
+    if (!isPlainObject(snapshot)) {
+      return snapshot
     }
-    Object.defineProperties(trackedResult, properties)
-    return trackedResult
-  }
 
-  return result
+    const trackedResult = { ...snapshot }
+    Object.defineProperties(
+      trackedResult,
+      Object.fromEntries(
+        Object.entries(trackedResult).map(([key, value]) => [
+          key,
+          {
+            configurable: false,
+            enumerable: true,
+            get: () => {
+              trackedKeys.current.add(key)
+              return value
+            },
+          },
+        ])
+      )
+    )
+    return trackedResult
+  }, [snapshot])
+
+  return useMemo(() => {
+    if (!trackedKeys.current.size || !previousResult.current) {
+      previousResult.current = result
+      return result
+    }
+
+    const hasChanged = Array.from(trackedKeys.current).some(
+      (key) =>
+        !isEqual(
+          (result as Record<string, Selection>)[key],
+          (previousResult.current as Record<string, Selection>)[key]
+        )
+    )
+
+    if (!hasChanged) {
+      return previousResult.current
+    }
+    previousResult.current = result
+    return result
+  }, [result, isEqual])
 }
