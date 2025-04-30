@@ -11,7 +11,7 @@ export function useSyncExternalStoreWithTracked<
 >(
   subscribe: (onStoreChange: () => void) => () => void,
   getSnapshot: () => Snapshot,
-  getServerSnapshot: (() => Snapshot) | null | undefined = getSnapshot,
+  getServerSnapshot: (() => Snapshot) | undefined = getSnapshot,
   isEqual: (a: Selection, b: Selection) => boolean = deepEqual
 ) {
   const trackedKeys = useRef<Set<string>>(new Set())
@@ -25,7 +25,7 @@ export function useSyncExternalStoreWithTracked<
         onChange()
       }),
     () => snapshotCache.current!,
-    getServerSnapshot || undefined
+    getServerSnapshot
   )
 
   const result = useMemo(() => {
