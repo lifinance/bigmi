@@ -44,6 +44,7 @@
   "dependencies": {
     "@bigmi/client": "workspace:^",
     "@bigmi/core": "workspace:^",
+    "@tanstack/react-query": "^5.74.11",
     "use-sync-external-store": "^1.4.0"
   },
   "devDependencies": {

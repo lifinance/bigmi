@@ -112,6 +112,7 @@ export type {
   IsNever,
   IsUnknown,
   LooseOmit,
+  UnionStrictOmit,
 } from './types/utils.js'
 export type { BtcAccount } from './types/account.js'
 

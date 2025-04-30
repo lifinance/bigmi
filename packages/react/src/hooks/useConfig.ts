@@ -15,7 +15,6 @@ export type UseConfigParameters<config extends Config = Config> =
 
 export type UseConfigReturnType<config extends Config = Config> = config
 
-/** https://wagmi.sh/react/api/hooks/useConfig */
 export function useConfig<C extends Config = ResolvedRegister['config']>(
   parameters: UseConfigParameters<C> = {}
 ): UseConfigReturnType<C> {

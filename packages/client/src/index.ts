@@ -9,12 +9,22 @@ export {
   connect,
   type ConnectParameters,
   type ConnectReturnType,
+  type ConnectErrorType,
 } from './actions/connect.js'
 export {
   disconnect,
   type DisconnectParameters,
   type DisconnectReturnType,
 } from './actions/disconnect.js'
+export {
+  type GetConnectorsReturnType,
+  getConnectors,
+} from './actions/getConnectors.js'
+export {
+  type WatchConnectorsParameters,
+  type WatchConnectorsReturnType,
+  watchConnectors,
+} from './actions/watchConnectors.js'
 
 export { ctrl } from './connectors/ctrl.js'
 export { okx } from './connectors/okx.js'
@@ -45,3 +55,13 @@ export type {
 export type { State } from './types/state.js'
 export { type Config, createConfig } from './factories/createConfig.js'
 export type { CreateConnectorFn, Connector } from './types/connector.js'
+
+// queries
+export { hashFn } from './query/utils.js'
+export type {
+  ConnectData,
+  ConnectMutate,
+  ConnectMutateAsync,
+  ConnectVariables,
+} from './query/connect.js'
+export { connectMutationOptions } from './query/connect.js'

@@ -1,7 +1,10 @@
 import {
   type Address,
+  type BaseErrorType,
   type Compute,
   ConnectorAlreadyConnectedError,
+  type ErrorType,
+  type UserRejectedRequestError,
 } from '@bigmi/core'
 
 import type { Config } from '../factories/createConfig.js'
@@ -40,6 +43,14 @@ export type ConnectReturnType<config extends Config = Config> = {
     | config['chains'][number]['id']
     | (number extends config['chains'][number]['id'] ? number : number & {})
 }
+
+export type ConnectErrorType =
+  | ConnectorAlreadyConnectedError
+  // connector.connect()
+  | UserRejectedRequestError
+  // base
+  | BaseErrorType
+  | ErrorType
 
 export async function connect<
   config extends Config,
