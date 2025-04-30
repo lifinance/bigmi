@@ -1,9 +1,21 @@
+// Actions
 export { getAccount } from './actions/getAccount.js'
 export type { GetAccountReturnType } from './actions/getAccount.js'
 export { getAddress } from './actions/getAddress.js'
 export { getConnectorClient } from './actions/getConnectorClient.js'
 export { reconnect } from './actions/reconnect.js'
 export { watchAccount } from './actions/watchAccount.js'
+export {
+  connect,
+  type ConnectParameters,
+  type ConnectReturnType,
+} from './actions/connect.js'
+export {
+  disconnect,
+  type DisconnectParameters,
+  type DisconnectReturnType,
+} from './actions/disconnect.js'
+
 export { ctrl } from './connectors/ctrl.js'
 export { okx } from './connectors/okx.js'
 export { leather } from './connectors/leather.js'
@@ -32,4 +44,4 @@ export type {
 
 export type { State } from './types/state.js'
 export { type Config, createConfig } from './factories/createConfig.js'
-export type { CreateConnectorFn } from './types/connector.js'
+export type { CreateConnectorFn, Connector } from './types/connector.js'
