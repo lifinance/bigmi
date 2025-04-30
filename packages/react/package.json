@@ -43,15 +43,15 @@
   ],
   "dependencies": {
     "@bigmi/client": "workspace:^",
-    "@bigmi/core": "workspace:^",
-    "@tanstack/react-query": "^5.74.11",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "@bigmi/core": "workspace:^"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@tanstack/react-query": "^5.74.11"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
