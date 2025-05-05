@@ -1,5 +1,5 @@
 import type { ErrorType } from '../errors/utils.js'
-import type { OneOf, Prettify } from './utils.js'
+import type { OneOf } from './utils.js'
 
 export type RpcSchema = readonly {
   Method: string
@@ -9,27 +9,18 @@ export type RpcSchema = readonly {
 
 export type RpcSchemaOverride = Omit<RpcSchema[number], 'Method'>
 
-type DerivedRpcSchema<
-  rpcSchema extends RpcSchema | undefined,
-  rpcSchemaOverride extends RpcSchemaOverride | undefined,
-> = rpcSchemaOverride extends RpcSchemaOverride
-  ? [rpcSchemaOverride & { Method: string }]
-  : rpcSchema
+type DerivedRpcSchema<rpcSchema extends RpcSchema | undefined> =
+  rpcSchema extends RpcSchema ? rpcSchema : never
 
 export type RpcParameters<rpcSchema extends RpcSchema | undefined = undefined> =
   rpcSchema extends RpcSchema
     ? {
-        [K in keyof rpcSchema]: Prettify<
-          {
-            method: rpcSchema[K] extends rpcSchema[number]
-              ? rpcSchema[K]['Method']
-              : never
-          } & (rpcSchema[K] extends rpcSchema[number]
-            ? rpcSchema[K]['Parameters'] extends undefined
-              ? { params?: undefined }
-              : { params: rpcSchema[K]['Parameters'] }
-            : never)
-        >
+        [K in keyof rpcSchema]: rpcSchema[K] extends RpcSchema[number]
+          ? {
+              method: rpcSchema[K]['Method']
+              params: rpcSchema[K]['Parameters']
+            }
+          : never
       }[number]
     : {
         method: string
@@ -62,23 +53,22 @@ export type BtcRpcRequestFn<
   rpcSchema extends RpcSchema | undefined = undefined,
   raw extends boolean = false,
 > = <
-  rpcSchemaOverride extends RpcSchemaOverride | undefined = undefined,
   _parameters extends RpcParameters<
-    DerivedRpcSchema<rpcSchema, rpcSchemaOverride>
-  > = RpcParameters<DerivedRpcSchema<rpcSchema, rpcSchemaOverride>>,
-  _returnType = DerivedRpcSchema<rpcSchema, rpcSchemaOverride> extends RpcSchema
+    DerivedRpcSchema<rpcSchema>
+  > = RpcParameters<DerivedRpcSchema<rpcSchema>>,
+  _returnType = DerivedRpcSchema<rpcSchema> extends RpcSchema
     ? raw extends true
       ? OneOf<
           | {
               result: Extract<
-                DerivedRpcSchema<rpcSchema, rpcSchemaOverride>[number],
+                DerivedRpcSchema<rpcSchema>[number],
                 { Method: _parameters['method'] }
               >['ReturnType']
             }
           | { error: ErrorType }
         >
       : Extract<
-          DerivedRpcSchema<rpcSchema, rpcSchemaOverride>[number],
+          DerivedRpcSchema<rpcSchema>[number],
           { Method: _parameters['method'] }
         >['ReturnType']
     : raw extends true

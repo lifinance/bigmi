@@ -1,4 +1,9 @@
-import type { BtcRpcRequestFn, UTXOWalletSchema } from '@bigmi/core'
+import type {
+  BtcRpcRequestFn,
+  RpcParameters,
+  UTXOSchema,
+  UTXOWalletSchema,
+} from '@bigmi/core'
 
 export type UTXOConnectorParameters = {
   /**
@@ -10,11 +15,9 @@ export type UTXOConnectorParameters = {
   chainId?: number
 }
 
-export type ProviderRequestParams = {
-  method: string
-  params: any
-}
-
+export type ProviderRequestParams = RpcParameters<
+  [...UTXOWalletSchema, ...UTXOSchema]
+>
 export type UTXOWalletProvider = {
   request: BtcRpcRequestFn<UTXOWalletSchema>
 }

@@ -6,7 +6,11 @@ import {
   UserRejectedRequestError,
 } from '../errors/rpc.js'
 import type { ErrorType } from '../errors/utils.js'
-import type { BtcRpcRequestFn, BtcRpcRequestOptions } from '../types/request.js'
+import type {
+  BtcRpcRequestFn,
+  BtcRpcRequestOptions,
+  RpcSchema,
+} from '../types/request.js'
 import { stringToHex } from './converter.js'
 import { stringify } from './stringify.js'
 import { withDedupe } from './withDedupe.js'
@@ -14,7 +18,7 @@ import { withRetry } from './withRetry.js'
 
 export type RequestErrorType = ErrorType
 
-export function buildRequest<request extends (args: any) => Promise<any>>(
+export function buildRequest<request extends BtcRpcRequestFn<RpcSchema>>(
   request: request,
   options: BtcRpcRequestOptions = {}
 ): BtcRpcRequestFn {
@@ -51,7 +55,7 @@ export function buildRequest<request extends (args: any) => Promise<any>>(
               const err = err_ as unknown as BaseError
               switch (err.code) {
                 case RpcErrorCode.METHOD_NOT_SUPPORTED:
-                  throw new MethodNotSupportedRpcError(args.method)
+                  throw new MethodNotSupportedRpcError(method)
 
                 case RpcErrorCode.USER_REJECTION:
                   throw new UserRejectedRequestError(err.message)

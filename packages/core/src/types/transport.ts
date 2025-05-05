@@ -1,6 +1,6 @@
 import type { ErrorType } from '../errors/utils.js'
 import type { Chain } from './chain.js'
-import type { BtcRpcRequestFn } from './request.js'
+import type { BtcRpcRequestFn, RpcSchema } from './request.js'
 import type { OneOf } from './utils.js'
 
 export type TransportConfig<
@@ -37,7 +37,7 @@ export type TransportConfig<
 export type Transport<
   type extends string = string,
   rpcAttributes = Record<string, any>,
-  rpcRequestFn extends BtcRpcRequestFn = BtcRpcRequestFn,
+  rpcRequestFn extends BtcRpcRequestFn = BtcRpcRequestFn<RpcSchema>,
 > = <chain extends Chain | undefined = Chain>({
   chain,
 }: {

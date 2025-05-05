@@ -74,10 +74,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       }
       return provider
     },
-    async request(
-      this: CtrlBitcoinProvider,
-      { method, params }: ProviderRequestParams
-    ): Promise<any> {
+    async request(this: CtrlBitcoinProvider, { method, params }): Promise<any> {
       switch (method) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters

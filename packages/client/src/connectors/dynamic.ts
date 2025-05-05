@@ -101,7 +101,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
-        case 'signPsbt ': {
+        case 'signPsbt': {
           try {
             const { psbt, ...options } = params as SignPsbtParameters
             const allowedSighash: number[] = options.inputsToSign.map((input) =>

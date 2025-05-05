@@ -134,7 +134,7 @@ export function fallback<const transports extends readonly Transport[]>(
               const response = await transport.request({
                 method,
                 params,
-              } as any)
+              })
 
               onResponse({
                 method,
@@ -268,7 +268,10 @@ export function rankTransports({
         try {
           await (ping
             ? ping({ transport: transport_ })
-            : transport_.request({ method: 'net_listening' }))
+            : transport_.request({
+                method: 'net_listening',
+                params: undefined,
+              }))
           success = 1
         } catch {
           success = 0
