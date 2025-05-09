@@ -46,7 +46,7 @@
     "@bigmi/core": "workspace:^"
   },
   "devDependencies": {
-    "@tanstack/react-query": "^5.75.4",
+    "@tanstack/react-query": "^5.75.7",
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
     "react": "^19.1.0",
