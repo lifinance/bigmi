@@ -4,7 +4,6 @@ import {
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
-
 import { createConnector } from '../factories/createConnector.js'
 import type {
   ProviderRequestParams,
@@ -43,12 +42,12 @@ type LeatherBitcoinProvider = {
   request(
     method: 'signPsbt',
     options: {
-      psbt: string
+      hex: string
       allowedSignHash: number
-      signInputs: Record<string, number[]>
+      signAtIndex?: number | number[]
       broadcast: boolean
     }
-  ): Promise<string>
+  ): Promise<{ result: { hex: string } }>
   request(method: 'getAddresses'): Promise<GetAccountsResponse>
 } & LeatherBitcoinEvents
 
@@ -94,13 +93,16 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
           const signedPsbt = await this.request('signPsbt', {
-            psbt: psbt,
+            hex: psbt,
             broadcast: options.finalize,
           })
           if (signedPsbt?.error) {
             throw signedPsbt?.error
           }
-          return signedPsbt
+          if (!signedPsbt?.result?.hex) {
+            throw new Error('Missing hex result from signed PSBT')
+          }
+          return signedPsbt.result.hex
         }
         default:
           throw new MethodNotSupportedRpcError(method)

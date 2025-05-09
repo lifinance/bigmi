@@ -112,7 +112,7 @@ console.log('Transaction confirmed:', transaction);
 
 // Getting account information inside the React application
 const bigmiConfig = useConfig()
-const account = useAccount({ config: bigmiConfig })
+const account = useAccount()
 
 console.log('Bitcoin account address:', account.address);
 ```
