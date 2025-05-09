@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/core",
-  "version": "0.1.1",
+  "version": "0.2.0-beta.0",
   "description": "TypeScript library for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -42,12 +42,12 @@
     "typescript"
   ],
   "dependencies": {
-    "@noble/hashes": "^1.7.1",
+    "@noble/hashes": "^1.8.0",
     "bech32": "^2.0.0",
     "bitcoinjs-lib": "^7.0.0-rc.0",
     "bs58": "^6.0.0",
     "eventemitter3": "^5.0.1",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
