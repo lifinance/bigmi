@@ -57,7 +57,7 @@ importers:
         specifier: workspace:^
         version: link:../core
       '@tanstack/query-core':
-        specifier: ^5.75.7
+        specifier: '>=5.68.0'
         version: 5.75.7
       eventemitter3:
         specifier: ^5.0.1
@@ -116,7 +116,7 @@ importers:
         specifier: workspace:^
         version: link:../core
       '@tanstack/react-query':
-        specifier: ^5.75.7
+        specifier: '>=5.68.0'
         version: 5.75.7(react@19.1.0)
     devDependencies:
       cpy-cli:

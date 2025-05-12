@@ -52,7 +52,7 @@
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
-    "@tanstack/query-core": "^5.75.7"
+    "@tanstack/query-core": ">=5.68.0"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }
