@@ -124,5 +124,5 @@ export type RpcMethodHandler<M extends UTXOMethod = UTXOMethod> = (
 >
 
 export type RpcMethods = {
-  [M in UTXOMethod]?: RpcMethodHandler<M>
+  [key in UTXOMethod]?: RpcMethodHandler<key>
 }

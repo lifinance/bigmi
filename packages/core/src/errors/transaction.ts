@@ -1,4 +1,3 @@
-import { Account } from '../types/account.js'
 import type { BlockTag } from '../types/block.js'
 import type { Hash } from '../types/hash.js'
 import { BaseError } from './base.js'
