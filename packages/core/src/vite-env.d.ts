@@ -2,10 +2,10 @@
 
 interface ImportMetaEnv {
   readonly VITE_TEST_ADDRESS: string
+  readonly VITE_TEST_ANKR_KEY: string
   // more env variables...
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: <explanation>
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }

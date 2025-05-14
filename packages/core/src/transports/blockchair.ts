@@ -26,9 +26,15 @@ type BlockchairResponse<T = any> = {
   context: { code: number; error: string }
 }
 
+const withAPIKey = (url: string, apiKey?: string) =>
+  apiKey ? `${url}&key=${apiKey}` : url
+
 export const blockchairMethods: RpcMethods = {
   getBalance: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = `${baseUrl}/addresses/balances/?addresses=${address}${apiKey ? `&key=${apiKey}` : ''}`
+    const apiUrl = withAPIKey(
+      `${baseUrl}/addresses/balances/?addresses=${address}`,
+      apiKey
+    )
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },
@@ -45,8 +51,11 @@ export const blockchairMethods: RpcMethods = {
       result: BigInt(response.data[address]),
     }
   },
-  getUTXOs: async (client, { baseUrl }, { address }) => {
-    const apiUrl = `${baseUrl}/outputs?q=is_spent(false)&recipient(${address})`
+  getUTXOs: async (client, { baseUrl, apiKey }, { address }) => {
+    const apiUrl = withAPIKey(
+      `${baseUrl}/outputs?q=is_spent(false)&recipient(${address})`,
+      apiKey
+    )
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },

@@ -4,9 +4,9 @@ import { blockcypherMethods } from './blockcypher.js'
 import { mempoolMethods } from './mempool.js'
 import type { RpcMethods } from './types.js'
 
-export function getRpcProviderMethods(
-  key: 'blockchair' | 'ankr' | 'blockcypher' | 'mempool' | string
-): RpcMethods | null {
+type providers = 'blockchair' | 'ankr' | 'blockcypher' | 'mempool' | string
+
+export function getRpcProviderMethods(key: providers): RpcMethods | null {
   switch (key) {
     case 'blockchair':
       return blockchairMethods

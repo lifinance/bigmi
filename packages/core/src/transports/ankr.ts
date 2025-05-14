@@ -21,8 +21,9 @@ type AnkrUTXOResponse = {
 }[]
 
 export const ankrMethods: RpcMethods = {
-  getBalance: async (client, baseUrl, { address }) => {
+  getBalance: async (client, { baseUrl }, { address }) => {
     const apiUrl = `${baseUrl}/address/${address}?details=basic`
+
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },
