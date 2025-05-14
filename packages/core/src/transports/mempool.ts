@@ -18,8 +18,56 @@ type MempoolBalanceResponse = {
   }
 }
 
+type MempoolVin = {
+  txid: string
+  vout: number
+  prevout: MempoolVout
+  scriptsig: string
+  scriptsig_asm: string
+  witness: string[]
+  is_coinbase: boolean
+  sequence: number
+}
+
+type MempoolVout = {
+  scriptpubkey: string
+  scriptpubkey_asm: string
+  scriptpubkey_type: string
+  scriptpubkey_address: string
+  value: number
+}
+
+type MempoolUTXOResponse = {
+  txid: string
+  vout: number
+  status: {
+    confirmed: boolean
+    block_height: number
+    block_hash: string
+    block_time: number
+  }
+  value: number
+}[]
+
+type MempoolUTXOTransactionsResponse = {
+  txid: string
+  version: number
+  locktime: number
+  vin: MempoolVin[]
+  vout: MempoolVout[]
+  size: number
+  weight: number
+  fee: number
+  status: {
+    confirmed: boolean
+    block_height: number
+    block_hash: string
+    block_time: number
+  }
+}[]
+
 export const mempoolMethods: RpcMethods = {
-  getBalance: async (client, baseUrl, { address }) => {
+  getBalance: async (client, { baseUrl }, { address }) => {
     const apiUrl = `${baseUrl}/address/${address}`
     const response = (await client.request({
       url: apiUrl,
@@ -29,6 +77,68 @@ export const mempoolMethods: RpcMethods = {
       response.chain_stats.funded_txo_sum - response.chain_stats.spent_txo_sum
     return {
       result: BigInt(balance),
+    }
+  },
+  getTransactions: async (client, { baseUrl }, { address }) => {
+    const apiUrl = `${baseUrl}/address/${address}/txs`
+    const apiUrlAddress = `${baseUrl}/address/${address}`
+    const balanceResponse = (await client.request({
+      url: apiUrlAddress,
+      fetchOptions: { method: 'GET' },
+    })) as unknown as MempoolBalanceResponse
+    const response = (await client.request({
+      url: apiUrl,
+      fetchOptions: { method: 'GET' },
+    })) as unknown as MempoolUTXOTransactionsResponse
+    const totalTxns =
+      balanceResponse.chain_stats.tx_count +
+      balanceResponse.mempool_stats.tx_count
+    return {
+      result: {
+        transactions: response.map((utxo) => ({
+          hash: utxo.txid,
+          txid: utxo.txid,
+          vout: utxo.vout.map((vout) => ({
+            n: 0,
+            scriptPubKey: {
+              address: vout.scriptpubkey_address,
+              asm: vout.scriptpubkey_asm,
+              type: vout.scriptpubkey_type,
+              desc: vout.scriptpubkey,
+              hex: vout.scriptpubkey,
+            },
+            value: vout.value,
+          })),
+          vin: utxo.vin.map((vin) => ({
+            scriptSig: {
+              asm: vin.scriptsig_asm,
+              hex: vin.scriptsig,
+            },
+            sequence: vin.sequence,
+            txinwitness: vin.witness,
+            txid: vin.txid,
+            vout: vin.vout,
+          })),
+        })),
+        total: totalTxns,
+        hasMore: totalTxns - response.length > 0,
+      },
+    }
+  },
+  getUTXOs: async (client, { baseUrl }, { address }) => {
+    const apiUrl = `${baseUrl}/address/${address}/utxo`
+    const response = (await client.request({
+      url: apiUrl,
+      fetchOptions: { method: 'GET' },
+    })) as unknown as MempoolUTXOResponse
+    return {
+      result: response.map((utxo) => ({
+        block_height: utxo.status.block_height,
+        isConfirmed: Boolean(utxo.status.confirmed),
+        txid: utxo.txid,
+        value: utxo.value,
+        vout: utxo.vout,
+      })),
     }
   },
 }

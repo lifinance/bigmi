@@ -14,7 +14,7 @@ type BlockcypherBalanceResponse = {
 }
 
 export const blockcypherMethods: RpcMethods = {
-  getBalance: async (client, baseUrl, { address }) => {
+  getBalance: async (client, { baseUrl }, { address }) => {
     const apiUrl = `${baseUrl}/addrs/${address}`
     const response = (await client.request({
       url: apiUrl,

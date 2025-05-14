@@ -11,6 +11,15 @@ type AnkrBalanceResponse = {
   error: string
 }
 
+type AnkrUTXOResponse = {
+  txid: string
+  vout: number
+  value: string
+  height: number
+  confirmations: number
+  coinbase: boolean
+}[]
+
 export const ankrMethods: RpcMethods = {
   getBalance: async (client, baseUrl, { address }) => {
     const apiUrl = `${baseUrl}/address/${address}?details=basic`
@@ -25,6 +34,23 @@ export const ankrMethods: RpcMethods = {
     }
     return {
       result: BigInt(response.balance),
+    }
+  },
+  getUTXOs: async (client, { baseUrl }, { address }) => {
+    const apiUrl = `${baseUrl}/utxo/${address}`
+    const response = (await client.request({
+      url: apiUrl,
+      fetchOptions: { method: 'GET' },
+    })) as unknown as AnkrUTXOResponse
+
+    return {
+      result: response.map((utxo) => ({
+        block_height: utxo.height,
+        isConfirmed: Boolean(utxo.confirmations),
+        txid: utxo.txid,
+        value: Number(utxo.value),
+        vout: Number(utxo.vout),
+      })),
     }
   },
 }

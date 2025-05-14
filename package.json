@@ -25,7 +25,8 @@
     "unlink:sdk": "pnpm -r --parallel unlink:sdk",
     "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
     "prepare": "husky",
-    "postinstall": "husky"
+    "postinstall": "husky",
+    "test": "pnpm -r --parallel test"
   },
   "lint-staged": {
     "*": ["pnpm pre-commit"]

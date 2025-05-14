@@ -8,6 +8,7 @@ import type { UTXOMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {
   includeChainToURL?: boolean
+  API_KEY?: string
 }
 
 export function utxo(
@@ -21,7 +22,19 @@ export function utxo(
     onFetchRequest,
     onFetchResponse,
     retryDelay,
+    API_KEY,
   } = config
+
+  const fetchOptionsWithApiKey = API_KEY
+    ? {
+        ...fetchOptions,
+        headers: {
+          ...fetchOptions?.headers,
+          'X-API-Key': API_KEY,
+        },
+      }
+    : fetchOptions
+
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
     const retryCount = config.retryCount ?? retryCount_
     const timeout = timeout_ ?? config.timeout ?? 10_000
@@ -35,7 +48,7 @@ export function utxo(
     }
 
     const client = getHttpRpcClient(url_, {
-      fetchOptions,
+      fetchOptions: fetchOptionsWithApiKey,
       onRequest: onFetchRequest,
       onResponse: onFetchResponse,
       timeout,
@@ -52,7 +65,7 @@ export function utxo(
           const methodHandler = rpcMethods?.[method as UTXOMethod]
           const { error, result } = await (methodHandler?.(
             client,
-            url_,
+            { baseUrl: url_, apiKey: API_KEY },
             params
           ) ??
             client.request({
@@ -73,7 +86,7 @@ export function utxo(
         type: 'http',
       },
       {
-        fetchOptions,
+        fetchOptions: fetchOptionsWithApiKey,
         url: url_,
       }
     )

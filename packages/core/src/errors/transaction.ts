@@ -1,3 +1,4 @@
+import { Account } from '../types/account.js'
 import type { BlockTag } from '../types/block.js'
 import type { Hash } from '../types/hash.js'
 import { BaseError } from './base.js'
@@ -62,6 +63,19 @@ export class WaitForTransactionReceiptTimeoutError extends BaseError {
     super(
       `Timed out while waiting for transaction with hash "${hash}" to be confirmed.`,
       { name: 'WaitForTransactionReceiptTimeoutError' }
+    )
+  }
+}
+
+export type TransactionsFetchErrorType = TransactionsFetchError & {
+  name: 'TransactionsFetchError'
+}
+
+export class TransactionsFetchError extends BaseError {
+  constructor({ address }: { address: string }) {
+    super(
+      `There was a problem fetching transactions for address: ${address}.`,
+      { name: 'TransactionsFetchError' }
     )
   }
 }
