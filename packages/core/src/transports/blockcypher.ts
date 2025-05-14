@@ -30,9 +30,19 @@ type BlockcypherUTXOsResponse = BlockcypherBalanceResponse & {
   txrefs: BlockcypherUTXO[]
 }
 
+const withApiKey = (url: string, apiKey?: string) => {
+  if (!apiKey) {
+    return url
+  }
+  if (url.includes('?')) {
+    return `${url}&token=${apiKey}`
+  }
+  return `${url}?token=${apiKey}`
+}
+
 export const blockcypherMethods: RpcMethods = {
-  getBalance: async (client, { baseUrl }, { address }) => {
-    const apiUrl = `${baseUrl}/addrs/${address}`
+  getBalance: async (client, { baseUrl, apiKey }, { address }) => {
+    const apiUrl = withApiKey(`${baseUrl}/addrs/${address}`, apiKey)
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },
@@ -46,8 +56,11 @@ export const blockcypherMethods: RpcMethods = {
       result: BigInt(response.balance),
     }
   },
-  getUTXOs: async (client, { baseUrl }, { address }) => {
-    const apiUrl = `${baseUrl}/addrs/${address}?unspentOnly=true`
+  getUTXOs: async (client, { baseUrl, apiKey }, { address }) => {
+    const apiUrl = withApiKey(
+      `${baseUrl}/addrs/${address}?unspentOnly=true`,
+      apiKey
+    )
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },

@@ -8,7 +8,7 @@ import type { UTXOMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {
   includeChainToURL?: boolean
-  API_KEY?: string
+  apiKey?: string
 }
 
 export function utxo(
@@ -22,7 +22,7 @@ export function utxo(
     onFetchRequest,
     onFetchResponse,
     retryDelay,
-    API_KEY,
+    apiKey,
   } = config
 
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
@@ -55,7 +55,7 @@ export function utxo(
           const methodHandler = rpcMethods?.[method as UTXOMethod]
           const { error, result } = await (methodHandler?.(
             client,
-            { baseUrl: url_, apiKey: API_KEY },
+            { baseUrl: url_, apiKey },
             params
           ) ??
             client.request({

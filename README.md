@@ -68,7 +68,7 @@ const publicClient = createClient({
       key: 'blockchair',
       includeChainToURL: true,
     }),
-    utxo('https://rpc.ankr.com/http/btc_blockbook/api/v2', {
+    utxo('https://rpc.ankr.com/premium-http/btc_blockbook/${YOUR_ANKR_KEY}/api/v2', {
       key: 'ankr',
     }),
     utxo('https://api.blockcypher.com/v1/btc/main', {

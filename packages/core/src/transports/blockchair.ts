@@ -26,12 +26,19 @@ type BlockchairResponse<T = any> = {
   context: { code: number; error: string }
 }
 
-const withAPIKey = (url: string, apiKey?: string) =>
-  apiKey ? `${url}&key=${apiKey}` : url
+const withApiKey = (url: string, apiKey?: string) => {
+  if (!apiKey) {
+    return url
+  }
+  if (url.includes('?')) {
+    return `${url}&token=${apiKey}`
+  }
+  return `${url}?token=${apiKey}`
+}
 
 export const blockchairMethods: RpcMethods = {
   getBalance: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withAPIKey(
+    const apiUrl = withApiKey(
       `${baseUrl}/addresses/balances/?addresses=${address}`,
       apiKey
     )
@@ -52,7 +59,7 @@ export const blockchairMethods: RpcMethods = {
     }
   },
   getUTXOs: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withAPIKey(
+    const apiUrl = withApiKey(
       `${baseUrl}/outputs?q=is_spent(false)&recipient(${address})`,
       apiKey
     )
