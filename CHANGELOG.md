@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/lifinance/bigmi/compare/v0.1.1...v0.2.0) (2025-05-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove viem dependencies (#14)
+
+* remove viem dependencies ([#14](https://github.com/lifinance/bigmi/issues/14)) ([3c3461f](https://github.com/lifinance/bigmi/commit/3c3461f8b646253df0c1614706f4dd5027d53930))
+
 ### [0.1.1](https://github.com/lifinance/bigmi/compare/v0.0.8...v0.1.1) (2025-02-04)
 
 ### [0.0.8](https://github.com/lifinance/bigmi/compare/v0.0.7...v0.0.8) (2024-12-30)

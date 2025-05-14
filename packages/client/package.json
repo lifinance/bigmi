@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/client",
-  "version": "0.2.0-beta.2",
+  "version": "0.2.0",
   "description": "Reactive primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
