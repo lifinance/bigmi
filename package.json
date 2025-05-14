@@ -21,11 +21,11 @@
     "check:write:unsafe": "biome check --write --unsafe",
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
-    "link:sdk": "pnpm -r --parallel link:sdk",
-    "unlink:sdk": "pnpm -r --parallel unlink:sdk",
     "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
     "prepare": "husky",
-    "postinstall": "husky"
+    "postinstall": "husky",
+    "link:all": "pnpm -r exec pnpm link --global",
+    "unlink:all": "pnpm -r exec pnpm unlink --global"
   },
   "lint-staged": {
     "*": ["pnpm pre-commit"]
