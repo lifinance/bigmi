@@ -13,3 +13,15 @@ export class UrlRequiredError extends BaseError {
     )
   }
 }
+
+export type TransportMethodNotSupportedErrorType =
+  TransportMethodNotSupportedError & {
+    name: 'TransportMethodNotSupportedError'
+  }
+export class TransportMethodNotSupportedError extends BaseError {
+  constructor({ method }: { method: string }) {
+    super(`No transport found that supports the method: ${method}`, {
+      name: 'TransportMethodNotSupportedError',
+    })
+  }
+}
