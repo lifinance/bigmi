@@ -1,4 +1,5 @@
 import { RpcErrorCode } from '../errors/rpc.js'
+import { TransportMethodNotSupportedError } from '../errors/transport.js'
 import type { ErrorType } from '../errors/utils.js'
 import { createTransport } from '../factories/createTransport.js'
 import type { Chain } from '../types/chain.js'
@@ -121,10 +122,25 @@ export function fallback<const transports extends readonly Transport[]>(
         key,
         name,
         async request({ method, params }) {
-          let includes: boolean | undefined
+          // Filter transports to only those that support the requested method
+          const supportedTransports = transports.filter((transport) => {
+            const { include, exclude } =
+              transport({ chain }).config.methods || {}
+            if (include) {
+              return include.includes(method)
+            }
+            if (exclude) {
+              return !exclude.includes(method)
+            }
+            return true
+          })
+
+          if (!supportedTransports.length) {
+            throw new TransportMethodNotSupportedError({ method })
+          }
 
           const fetch = async (i = 0): Promise<any> => {
-            const transport = transports[i]({
+            const transport = supportedTransports[i]({
               ...rest,
               chain,
               retryCount: 0,
@@ -160,22 +176,6 @@ export function fallback<const transports extends readonly Transport[]>(
 
               // If we've reached the end of the fallbacks, throw the error.
               if (i === transports.length - 1) {
-                throw err
-              }
-
-              // Check if at least one other transport includes the method
-              includes ??= transports.slice(i + 1).some((transport) => {
-                const { include, exclude } =
-                  transport({ chain }).config.methods || {}
-                if (include) {
-                  return include.includes(method)
-                }
-                if (exclude) {
-                  return !exclude.includes(method)
-                }
-                return true
-              })
-              if (!includes) {
                 throw err
               }
 

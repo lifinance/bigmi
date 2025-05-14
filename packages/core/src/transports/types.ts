@@ -2,6 +2,38 @@ import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
+export const UTXOAPISchemaMethods = ['getBalance']
+
+export type UTXOAPISchema = [
+  {
+    Method: 'getBalance'
+    Parameters: { address: string }
+    ReturnType: bigint
+  },
+  {
+    Method: 'getTransactions'
+    Parameters: {
+      address: string
+      limit?: number
+      offset?: number
+      minConfirmations?: number
+    }
+    ReturnType: {
+      transactions: Array<Partial<UTXOTransaction>>
+      total: number
+      hasMore: boolean
+      nextOffset?: number
+    }
+  },
+  {
+    Method: 'getUTXOs'
+    Parameters: {
+      address: string
+    }
+    ReturnType: Array<UTXO>
+  },
+]
+
 export type UTXOSchema = [
   {
     Method: 'getblockcount'
@@ -38,29 +70,10 @@ export type UTXOSchema = [
     Parameters: { address: string }
     ReturnType: bigint
   },
-  {
-    Method: 'getTransactions'
-    Parameters: {
-      address: string
-      limit?: number
-      offset?: number
-      minConfirmations?: number
-    }
-    ReturnType: {
-      transactions: Array<Partial<UTXOTransaction>>
-      total: number
-      hasMore: boolean
-      nextOffset?: number
-    }
-  },
-  {
-    Method: 'getUTXOs'
-    Parameters: {
-      address: string
-    }
-    ReturnType: Array<UTXO>
-  },
+  ...UTXOAPISchema,
 ]
+
+export type UTXOMethod = UTXOSchema[number]['Method']
 
 export type SignPsbtParameters = {
   /** The PSBT encoded as a hexadecimal string */
@@ -97,8 +110,6 @@ export type UTXOWalletSchema = readonly [
     ReturnType: SignPsbtReturnType
   },
 ]
-
-export type UTXOMethod = UTXOSchema[number]['Method']
 
 export type SuccessResult<result> = {
   method?: undefined

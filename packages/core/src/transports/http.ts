@@ -17,6 +17,7 @@ import {
   type RpcRequest,
   getHttpRpcClient,
 } from './getHttpRpcClient.js'
+import { UTXOAPISchemaMethods } from './types.js'
 
 export type HttpTransportConfig<
   rpcSchema extends RpcSchema | undefined = undefined,
@@ -94,7 +95,7 @@ export function http<
     batch,
     fetchOptions,
     key = 'http',
-    methods,
+    methods = { exclude: UTXOAPISchemaMethods },
     name = 'HTTP JSON-RPC',
     onFetchRequest,
     onFetchResponse,

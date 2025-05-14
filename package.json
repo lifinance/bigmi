@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0-beta.0",
+  "version": "0.2.1",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -21,12 +21,12 @@
     "check:write:unsafe": "biome check --write --unsafe",
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
-    "link:sdk": "pnpm -r --parallel link:sdk",
-    "unlink:sdk": "pnpm -r --parallel unlink:sdk",
     "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
     "prepare": "husky",
     "postinstall": "husky",
-    "test": "pnpm -r --parallel test"
+    "test": "pnpm -r --parallel test",
+    "link:all": "pnpm -r exec pnpm link --global",
+    "unlink:all": "pnpm -r exec pnpm unlink --global"
   },
   "lint-staged": {
     "*": ["pnpm pre-commit"]
@@ -42,7 +42,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@types/events": "^3.0.3",
-    "@types/node": "^22.15.17",
+    "@types/node": "^22.15.18",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
     "cpy-cli": "^5.0.0",
