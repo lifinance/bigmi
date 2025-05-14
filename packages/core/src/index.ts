@@ -114,7 +114,6 @@ export type {
   LooseOmit,
   UnionStrictOmit,
 } from './types/utils.js'
-export type { BtcAccount } from './types/account.js'
 
 // Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
