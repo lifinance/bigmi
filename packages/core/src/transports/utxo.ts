@@ -25,16 +25,6 @@ export function utxo(
     API_KEY,
   } = config
 
-  const fetchOptionsWithApiKey = API_KEY
-    ? {
-        ...fetchOptions,
-        headers: {
-          ...fetchOptions?.headers,
-          'X-API-Key': API_KEY,
-        },
-      }
-    : fetchOptions
-
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
     const retryCount = config.retryCount ?? retryCount_
     const timeout = timeout_ ?? config.timeout ?? 10_000
@@ -48,7 +38,7 @@ export function utxo(
     }
 
     const client = getHttpRpcClient(url_, {
-      fetchOptions: fetchOptionsWithApiKey,
+      fetchOptions,
       onRequest: onFetchRequest,
       onResponse: onFetchResponse,
       timeout,
@@ -86,7 +76,7 @@ export function utxo(
         type: 'http',
       },
       {
-        fetchOptions: fetchOptionsWithApiKey,
+        fetchOptions,
         url: url_,
       }
     )
