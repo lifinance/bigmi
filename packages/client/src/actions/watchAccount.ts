@@ -1,10 +1,15 @@
-import type { Config } from 'wagmi'
-import { deepEqual } from 'wagmi'
-import type {
-  WatchAccountParameters,
-  WatchAccountReturnType,
-} from 'wagmi/actions'
-import { getAccount } from './getAccount.js'
+import { deepEqual } from '@bigmi/core'
+import type { Config } from '../factories/createConfig.js'
+import { type GetAccountReturnType, getAccount } from './getAccount.js'
+
+export type WatchAccountParameters<config extends Config = Config> = {
+  onChange(
+    account: GetAccountReturnType<config>,
+    prevAccount: GetAccountReturnType<config>
+  ): void
+}
+
+export type WatchAccountReturnType = () => void
 
 /** https://wagmi.sh/core/api/actions/watchAccount */
 export function watchAccount<C extends Config>(

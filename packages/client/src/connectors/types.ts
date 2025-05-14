@@ -1,3 +1,10 @@
+import type {
+  BtcRpcRequestFn,
+  RpcParameters,
+  UTXOSchema,
+  UTXOWalletSchema,
+} from '@bigmi/core'
+
 export type UTXOConnectorParameters = {
   /**
    * Some injected providers do not support programmatic disconnect.
@@ -6,4 +13,11 @@ export type UTXOConnectorParameters = {
    */
   shimDisconnect?: boolean
   chainId?: number
+}
+
+export type ProviderRequestParams = RpcParameters<
+  [...UTXOWalletSchema, ...UTXOSchema]
+>
+export type UTXOWalletProvider = {
+  request: BtcRpcRequestFn<UTXOWalletSchema>
 }

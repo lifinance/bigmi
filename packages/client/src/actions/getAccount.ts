@@ -1,5 +1,6 @@
-import type { Address, Chain } from 'viem'
-import type { Config, Connector } from 'wagmi'
+import type { Address, Chain } from '@bigmi/core'
+import type { Config } from '../factories/createConfig.js'
+import type { Connector } from '../types/connector.js'
 
 export type GetAccountReturnType<
   config extends Config = Config,

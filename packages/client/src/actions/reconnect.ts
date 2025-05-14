@@ -1,8 +1,21 @@
-import type { Address } from 'viem'
-import type { Config, Connection, Connector } from 'wagmi'
-import type { ReconnectParameters, ReconnectReturnType } from 'wagmi/actions'
+import type { Address } from '@bigmi/core'
+import type { ErrorType } from '@bigmi/core/src/errors/utils.js'
+
+import type { Compute } from '@bigmi/core/src/types/utils.js'
+import type { Config } from '../factories/createConfig.js'
+import type { Connection } from '../types/connection.js'
+import type { Connector, CreateConnectorFn } from '../types/connector.js'
 
 let isReconnecting = false
+
+export type ReconnectParameters = {
+  /** Connectors to attempt reconnect with */
+  connectors?: readonly (CreateConnectorFn | Connector)[] | undefined
+}
+
+export type ReconnectReturnType = Compute<Connection>[]
+
+export type ReconnectErrorType = ErrorType
 
 /** https://wagmi.sh/core/api/actions/reconnect */
 export async function reconnect(

@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/client",
-  "version": "0.1.1",
+  "version": "0.2.0-beta.2",
   "description": "Reactive primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -43,8 +43,8 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:^",
-    "@wagmi/core": "^2.16.4",
-    "viem": "^2.23.2"
+    "eventemitter3": "^5.0.1",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
@@ -52,7 +52,7 @@
     "typescript": "^5.7.3"
   },
   "peerDependencies": {
-    "wagmi": "^2.14.0"
+    "@tanstack/query-core": ">=5.68.0"
   },
   "files": ["dist/**", "src/**", "!tsconfig.json"]
 }

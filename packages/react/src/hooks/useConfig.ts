@@ -1,15 +1,20 @@
 'use client'
 import { useContext } from 'react'
-import type {
-  Config,
-  ResolvedRegister,
-  UseConfigParameters,
-  UseConfigReturnType,
-} from 'wagmi'
+
+import type { Config } from '@bigmi/client'
 import { BigmiContext } from '../context.js'
 import { BigmiProviderNotFoundError } from '../errors/context.js'
+import type { ResolvedRegister } from '../types.js'
 
-/** https://wagmi.sh/react/api/hooks/useConfig */
+export type ConfigParameter<config extends Config = Config> = {
+  config?: Config | config | undefined
+}
+
+export type UseConfigParameters<config extends Config = Config> =
+  ConfigParameter<config>
+
+export type UseConfigReturnType<config extends Config = Config> = config
+
 export function useConfig<C extends Config = ResolvedRegister['config']>(
   parameters: UseConfigParameters<C> = {}
 ): UseConfigReturnType<C> {

@@ -40,17 +40,14 @@ export type {
 } from './actions/watchBlockNumber.js'
 
 // Exporting clients
-export type {
-  BtcAccount,
-  SignPsbtParameters,
-  SignPsbtReturnType,
-  UTXOWalletProvider,
-  UTXOWalletSchema,
-} from './clients/types.js'
-
-// Exporting decorators
-export { UTXOActions } from './decorators/UTXOActions.js'
-export { UTXOAPIActions } from './decorators/UTXOAPIActions.js'
+export {
+  type PublicActions,
+  publicActions,
+} from './clients/decorators/public.js'
+export {
+  type WalletActions,
+  walletActions,
+} from './clients/decorators/wallet.js'
 
 // Exporting transports
 export { ankrMethods } from './transports/ankr.js'
@@ -70,15 +67,54 @@ export type {
   RpcMethods,
   RpcResponse,
   SuccessResult,
-  UTXOAPIMethod,
-  UTXOAPISchema,
   UTXOSchema,
+  UTXOWalletSchema,
+  SignPsbtParameters,
+  SignPsbtReturnType,
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
+export { custom } from './transports/custom.js'
 
 // Exporting types
+export type { Account } from './types/account.js'
+export type { Address } from './types/address.js'
+export type { BlockTag } from './types/block.js'
 export type { BlockStats, BlockStatsKeys } from './types/blockStats.js'
+export type {
+  Chain,
+  ChainConfig,
+  ChainFormatter,
+  ChainFormatters,
+} from './types/chain.js'
+export type {
+  Client,
+  ClientConfig,
+  CreateClientErrorType,
+} from './types/client.js'
+export type { Hash } from './types/hash.js'
+export type {
+  BtcRpcRequestFn,
+  BtcRpcRequestOptions,
+  RpcParameters,
+  RpcSchema,
+  RpcSchemaOverride,
+} from './types/request.js'
+export type {
+  BitcoinRpcMethods,
+  WalletRpcSchema,
+} from './types/rpc.js'
 export type { UTXOTransaction } from './types/transaction.js'
+export type {
+  Assign,
+  Compute,
+  ExactPartial,
+  IsNarrowable,
+  IsNever,
+  IsUnknown,
+  LooseOmit,
+  UnionStrictOmit,
+} from './types/utils.js'
+export type { BtcAccount } from './types/account.js'
 
 // Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
@@ -92,6 +128,71 @@ export { isUTXOAddress } from './utils/isUTXOAddress.js'
 export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'
 export { poll } from './utils/poll.js'
+export { base64ToHex, hexToBase64 } from './utils/converter.js'
+export { withRetry } from './utils/withRetry.js'
+export { parseAccount } from './utils/parseAccount.js'
+export { deepEqual } from './utils/deepEqual.js'
+export { withTimeout } from './utils/withTimeout.js'
+
+// Exporting factories
+export { createClient, rpcSchema } from './factories/createClient.js'
 
 // Exporting chains
 export { bitcoin } from './chains/bitcoin.js'
+export { defineChain } from './chains/defineChain.js'
+
+// Exporting errors
+export {
+  InvalidAddressError,
+  type InvalidAddressErrorType,
+} from './errors/address.js'
+export { BaseError, type BaseErrorType } from './errors/base.js'
+export { BlockNotFoundError } from './errors/block.js'
+export {
+  ChainNotConfiguredError,
+  ConnectorAccountNotFoundError,
+  ConnectorAlreadyConnectedError,
+  ConnectorChainMismatchError,
+  ConnectorNotConnectedError,
+  ConnectorNotFoundError,
+} from './errors/config.js'
+export { ProviderNotFoundError } from './errors/provider.js'
+export {
+  HttpRequestError,
+  RpcRequestError,
+  SocketClosedError,
+  TimeoutError,
+} from './errors/request.js'
+export {
+  MethodNotSupportedRpcError,
+  ParseError,
+  RpcErrorCode,
+  UserRejectedRequestError,
+} from './errors/rpc.js'
+export {
+  TransactionNotFoundError,
+  TransactionReceiptNotFoundError,
+  WaitForTransactionReceiptTimeoutError,
+} from './errors/transaction.js'
+export { UrlRequiredError } from './errors/transport.js'
+export type { ErrorType } from './errors/utils.js'
+
+export {
+  http,
+  type HttpTransport,
+  type HttpTransportConfig,
+  type HttpTransportErrorType,
+} from './transports/http.js'
+
+export {
+  fallback,
+  type FallbackTransport,
+  type FallbackTransportConfig,
+  type FallbackTransportErrorType,
+} from './transports/fallback.js'
+
+export type { Transport } from './types/transport.js'
+
+export type { OneOf, RemoveUndefined } from './types/utils.js'
+export { uid } from './utils/uid.js'
+export { version } from './version.js'

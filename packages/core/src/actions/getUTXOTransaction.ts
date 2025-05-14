@@ -1,11 +1,9 @@
-import {
-  type Account,
-  type Chain,
-  type Client,
-  TransactionNotFoundError,
-  type Transport,
-} from 'viem'
+import { TransactionNotFoundError } from '../errors/transaction.js'
+import type { Transport } from '../factories/createTransport.js'
 import type { UTXOSchema } from '../transports/types.js'
+import type { Account } from '../types/account.js'
+import type { Chain } from '../types/chain.js'
+import type { Client } from '../types/client.js'
 import type { UTXOTransaction } from '../types/transaction.js'
 
 export type GetUTXOTransactionParameters = {

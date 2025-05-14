@@ -1,7 +1,9 @@
 'use client'
+import type { State } from '@bigmi/client'
 import { type PropsWithChildren, createContext, createElement } from 'react'
-import type { ResolvedRegister, State } from 'wagmi'
-import { Hydrate } from 'wagmi'
+
+import { Hydrate } from './hydrate.js'
+import type { ResolvedRegister } from './types.js'
 
 export const BigmiContext = createContext<
   ResolvedRegister['config'] | undefined

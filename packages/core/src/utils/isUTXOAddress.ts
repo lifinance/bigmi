@@ -1,3 +1,4 @@
+import type { Address } from '../types/address.js'
 import { type UTXONetwork, getUTXOAddress } from './getUTXOAddress.js'
 
 export const isUTXOAddress = (
@@ -5,7 +6,7 @@ export const isUTXOAddress = (
   network?: UTXONetwork
 ): boolean => {
   try {
-    const utxoAddress = getUTXOAddress(address)
+    const utxoAddress = getUTXOAddress(address as Address)
 
     if (network) {
       return network === utxoAddress.network

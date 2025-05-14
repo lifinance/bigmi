@@ -1,15 +1,22 @@
 'use client'
-import type {
-  Config,
-  ResolvedRegister,
-  UseAccountParameters,
-  UseAccountReturnType,
-} from 'wagmi'
-import { getAccount, watchAccount } from 'wagmi/actions'
-import { useConfig } from './useConfig.js'
+
+import {
+  type Config,
+  type GetAccountReturnType,
+  getAccount,
+  watchAccount,
+} from '@bigmi/client'
+
+import type { ResolvedRegister } from '../types.js'
+import { type ConfigParameter, useConfig } from './useConfig.js'
 import { useSyncExternalStoreWithTracked } from './useSyncExternalStoreWithTracked.js'
 
-/** https://wagmi.sh/react/api/hooks/useAccount */
+export type UseAccountParameters<config extends Config = Config> =
+  ConfigParameter<config>
+
+export type UseAccountReturnType<config extends Config = Config> =
+  GetAccountReturnType<config>
+
 export function useAccount<C extends Config = ResolvedRegister['config']>(
   parameters: UseAccountParameters<C> = {}
 ): UseAccountReturnType<C> {

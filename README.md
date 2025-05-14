@@ -45,22 +45,24 @@ Here is an example of a basic usage:
 ```tsx
 import { useConfig } from '@bigmi/react'
 import {
-  type UTXOAPISchema,
+  type UTXOSchema,
   bitcoin,
   getBalance,
   getBlockCount,
   sendUTXOTransaction,
   utxo,
   waitForTransaction,
+  createClient, 
+  fallback, 
+  rpcSchema
 } from '@bigmi/core'
-import { createClient, fallback, rpcSchema } from 'viem'
-import { useAccount } from 'wagmi'
+import { useAccount } from '@bigmi/react'
 
 
 // Create a public client for interactions with the Bitcoin
 const publicClient = createClient({
   chain: bitcoin,
-  rpcSchema: rpcSchema<UTXOAPISchema>(),
+  rpcSchema: rpcSchema<UTXOSchema>(),
   transport: fallback([
     utxo('https://api.blockchair.com', {
       key: 'blockchair',
@@ -110,7 +112,7 @@ console.log('Transaction confirmed:', transaction);
 
 // Getting account information inside the React application
 const bigmiConfig = useConfig()
-const account = useAccount({ config: bigmiConfig })
+const account = useAccount()
 
 console.log('Bitcoin account address:', account.address);
 ```

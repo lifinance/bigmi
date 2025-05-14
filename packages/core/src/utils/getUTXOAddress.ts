@@ -1,6 +1,7 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { type Decoded, bech32, bech32m } from 'bech32'
 import bs58 from 'bs58'
+import type { Address } from '../types/address.ts'
 
 export enum UTXONetwork {
   Mainnet = 'mainnet',
@@ -19,7 +20,7 @@ export enum UTXOAddressType {
 export type UTXOAddress = {
   bech32: boolean
   network: UTXONetwork
-  address: string
+  address: Address
   type: UTXOAddressType
 }
 
@@ -44,7 +45,7 @@ const addressTypes: {
   },
 }
 
-const parseBech32 = (address: string): UTXOAddress => {
+const parseBech32 = (address: Address): UTXOAddress => {
   let decoded: Decoded
 
   try {
@@ -97,7 +98,7 @@ const parseBech32 = (address: string): UTXOAddress => {
   }
 }
 
-export const getUTXOAddress = (address: string): UTXOAddress => {
+export const getUTXOAddress = (address: Address): UTXOAddress => {
   let decoded: Uint8Array
   const prefix = address.substring(0, 2).toLowerCase()
 

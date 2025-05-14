@@ -1,16 +1,70 @@
 import {
+  type Address,
+  ConnectorAccountNotFoundError,
+  createClient,
+  custom,
+  parseAccount,
+} from '@bigmi/core'
+import type { Compute } from '@bigmi/core'
+
+import {
   ConnectorChainMismatchError,
   ConnectorNotConnectedError,
-} from '@wagmi/core'
-import { type Address, createClient, custom } from 'viem'
-import { parseAccount } from 'viem/utils'
-import type { Config, Connection } from 'wagmi'
-import { ConnectorAccountNotFoundError } from 'wagmi'
-import type {
-  GetConnectorClientParameters,
-  GetConnectorClientReturnType,
-} from 'wagmi/actions'
+} from '@bigmi/core'
+import type { Client } from '@bigmi/core'
+import type { Account } from '@bigmi/core'
+import type { Config } from '../factories/createConfig.js'
+import type { Connection } from '../types/connection.js'
+import type { Connector } from '../types/connector.js'
 import { getAddress } from './getAddress.js'
+
+export type ChainIdParameter<
+  config extends Config,
+  chainId extends
+    | config['chains'][number]['id']
+    | undefined = config['chains'][number]['id'],
+> = {
+  chainId?:
+    | (chainId extends config['chains'][number]['id'] ? chainId : undefined)
+    | config['chains'][number]['id']
+    | undefined
+}
+
+export type GetConnectorClientReturnType<
+  config extends Config = Config,
+  chainId extends
+    config['chains'][number]['id'] = config['chains'][number]['id'],
+> = Compute<
+  Client<
+    config['_internal']['transports'][chainId],
+    Extract<config['chains'][number], { id: chainId }>,
+    Account
+  >
+>
+
+export type ConnectorParameter = {
+  connector?: Connector | undefined
+}
+
+export type GetConnectorClientParameters<
+  config extends Config = Config,
+  chainId extends
+    config['chains'][number]['id'] = config['chains'][number]['id'],
+> = Compute<
+  ChainIdParameter<config, chainId> &
+    ConnectorParameter & {
+      /**
+       * Account to use for the client.
+       *
+       * - `Account | Address`: An Account MUST exist on the connector.
+       * - `null`: Account MAY NOT exist on the connector. This is useful for
+       *   actions that can infer the account from the connector (e.g. sending a
+       *   call without a connected account – the user will be prompted to select
+       *   an account within the wallet).
+       */
+      account?: Address | null | undefined
+    }
+>
 
 export async function getConnectorClient<
   C extends Config,
@@ -75,7 +129,7 @@ export async function getConnectorClient<
   ) {
     throw new ConnectorAccountNotFoundError({
       address: account.address,
-      connector,
+      connector: connector.name,
     })
   }
 

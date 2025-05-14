@@ -1,12 +1,17 @@
-import type { SignPsbtParameters, UTXOWalletProvider } from '@bigmi/core'
+import type { Address, SignPsbtParameters } from '@bigmi/core'
 import {
-  type Address,
   MethodNotSupportedRpcError,
+  ProviderNotFoundError,
   UserRejectedRequestError,
   withRetry,
-} from 'viem'
-import { ProviderNotFoundError, createConnector } from 'wagmi'
-import type { UTXOConnectorParameters } from './types.js'
+} from '@bigmi/core'
+
+import { createConnector } from '../factories/createConnector.js'
+import type {
+  ProviderRequestParams,
+  UTXOConnectorParameters,
+  UTXOWalletProvider,
+} from './types.js'
 
 export type OKXBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -83,7 +88,10 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
       }
       return provider
     },
-    async request(this: OKXBitcoinProvider, { method, params }): Promise<any> {
+    async request(
+      this: OKXBitcoinProvider,
+      { method, params }: ProviderRequestParams
+    ): Promise<any> {
       switch (method) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
@@ -102,12 +110,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
           return signedPsbt
         }
         default:
-          throw new MethodNotSupportedRpcError(
-            new Error(MethodNotSupportedRpcError.name),
-            {
-              method,
-            }
-          )
+          throw new MethodNotSupportedRpcError(method)
       }
     },
     async connect() {
@@ -133,10 +136,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
-        throw new UserRejectedRequestError({
-          name: UserRejectedRequestError.name,
-          message: error.message,
-        })
+        throw new UserRejectedRequestError(error.message)
       }
     },
     async disconnect() {

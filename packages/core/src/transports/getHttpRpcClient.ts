@@ -1,11 +1,36 @@
-import { HttpRequestError, TimeoutError, stringify, withTimeout } from 'viem'
-import type { HttpRequestReturnType, HttpRpcClientOptions } from 'viem/utils'
+import { HttpRequestError, TimeoutError } from '../errors/request.js'
+import type { RpcResponse } from '../types/rpc.js'
+import type { MaybePromise } from '../types/utils.js'
+import { stringify } from '../utils/stringify.js'
+import { withTimeout } from '../utils/withTimeout.js'
 
 export type RpcRequest = {
   jsonrpc?: '2.0'
   method: string
   params?: any
   id?: number
+}
+
+export type HttpRequestReturnType<
+  body extends RpcRequest | RpcRequest[] = RpcRequest,
+> = body extends RpcRequest[] ? RpcResponse[] : RpcResponse
+
+export type HttpRpcClientOptions = {
+  /** Request configuration to pass to `fetch`. */
+  fetchOptions?: Omit<RequestInit, 'body'> | undefined
+  /** A callback to handle the request. */
+  onRequest?:
+    | ((
+        request: Request,
+        init: RequestInit
+      ) => MaybePromise<
+        void | undefined | (RequestInit & { url?: string | undefined })
+      >)
+    | undefined
+  /** A callback to handle the response. */
+  onResponse?: ((response: Response) => Promise<void> | void) | undefined
+  /** The timeout (in ms) for the request. */
+  timeout?: number | undefined
 }
 
 export type HttpRequestParameters<
@@ -62,7 +87,7 @@ export function getHttpRpcClient(
                   : undefined),
                 ...headers,
               },
-              method: method,
+              method: method || 'POST',
               signal: signal_ || (timeout > 0 ? signal : null),
             }
             const request = new Request(params.url ?? url, init)
@@ -102,7 +127,6 @@ export function getHttpRpcClient(
             url,
           })
         }
-
         return data
       } catch (err) {
         if (err instanceof HttpRequestError) {
