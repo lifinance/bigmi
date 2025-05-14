@@ -48,7 +48,7 @@ export function utxo(
         key,
         name,
         methods: {
-          include: UTXOAPISchemaMethods as unknown as string[],
+          include: UTXOAPISchemaMethods,
         },
         async request({ method, params }) {
           const body = { method, params }

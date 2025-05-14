@@ -95,7 +95,7 @@ export function http<
     batch,
     fetchOptions,
     key = 'http',
-    methods = { exclude: UTXOAPISchemaMethods as unknown as string[] },
+    methods = { exclude: UTXOAPISchemaMethods },
     name = 'HTTP JSON-RPC',
     onFetchRequest,
     onFetchResponse,
