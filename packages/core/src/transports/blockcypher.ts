@@ -1,3 +1,4 @@
+import { urlWithApiKey } from '../utils/url.js'
 import type { RpcMethods } from './types.js'
 
 type BlockcypherBalanceResponse = {
@@ -30,19 +31,14 @@ type BlockcypherUTXOsResponse = BlockcypherBalanceResponse & {
   txrefs: BlockcypherUTXO[]
 }
 
-const withApiKey = (url: string, apiKey?: string) => {
-  if (!apiKey) {
-    return url
-  }
-  if (url.includes('?')) {
-    return `${url}&token=${apiKey}`
-  }
-  return `${url}?token=${apiKey}`
-}
+const BLOCKCYPHER_API_KEY_NAME = 'token'
 
 export const blockcypherMethods: RpcMethods = {
   getBalance: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withApiKey(`${baseUrl}/addrs/${address}`, apiKey)
+    const apiUrl = urlWithApiKey(`${baseUrl}/addrs/${address}`, {
+      name: BLOCKCYPHER_API_KEY_NAME,
+      value: apiKey,
+    })
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },
@@ -57,10 +53,10 @@ export const blockcypherMethods: RpcMethods = {
     }
   },
   getUTXOs: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withApiKey(
-      `${baseUrl}/addrs/${address}?unspentOnly=true`,
-      apiKey
-    )
+    const apiUrl = urlWithApiKey(`${baseUrl}/addrs/${address}`, {
+      name: BLOCKCYPHER_API_KEY_NAME,
+      value: apiKey,
+    })
     const response = (await client.request({
       url: apiUrl,
       fetchOptions: { method: 'GET' },

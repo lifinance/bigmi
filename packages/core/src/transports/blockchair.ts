@@ -1,3 +1,4 @@
+import { urlWithApiKey } from '../utils/url.js'
 import type { RpcMethods } from './types.js'
 
 type BlockchairUTXO = {
@@ -26,21 +27,13 @@ type BlockchairResponse<T = any> = {
   context: { code: number; error: string }
 }
 
-const withApiKey = (url: string, apiKey?: string) => {
-  if (!apiKey) {
-    return url
-  }
-  if (url.includes('?')) {
-    return `${url}&token=${apiKey}`
-  }
-  return `${url}?token=${apiKey}`
-}
+const BLOCKCHAIR_API_KEY_NAME = 'token'
 
 export const blockchairMethods: RpcMethods = {
   getBalance: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withApiKey(
+    const apiUrl = urlWithApiKey(
       `${baseUrl}/addresses/balances/?addresses=${address}`,
-      apiKey
+      { name: BLOCKCHAIR_API_KEY_NAME, value: apiKey }
     )
     const response = (await client.request({
       url: apiUrl,
@@ -59,9 +52,9 @@ export const blockchairMethods: RpcMethods = {
     }
   },
   getUTXOs: async (client, { baseUrl, apiKey }, { address }) => {
-    const apiUrl = withApiKey(
+    const apiUrl = urlWithApiKey(
       `${baseUrl}/outputs?q=is_spent(false)&recipient(${address})`,
-      apiKey
+      { name: BLOCKCHAIR_API_KEY_NAME, value: apiKey }
     )
     const response = (await client.request({
       url: apiUrl,

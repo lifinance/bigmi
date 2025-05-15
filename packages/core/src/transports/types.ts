@@ -2,7 +2,11 @@ import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
-export const UTXOAPISchemaMethods = ['getBalance']
+export const UTXOAPISchemaMethods = [
+  'getBalance',
+  'getTransactions',
+  'getUTXOs',
+]
 
 export type UTXOAPISchema = [
   {
@@ -18,12 +22,12 @@ export type UTXOAPISchema = [
       offset?: number
       minConfirmations?: number
     }
-    ReturnType: {
+    ReturnType: AsyncGenerator<{
       transactions: Array<Partial<UTXOTransaction>>
       total: number
-      hasMore: boolean
-      nextOffset?: number
-    }
+      page: number
+      itemsPerPage: number
+    }>
   },
   {
     Method: 'getUTXOs'
@@ -64,11 +68,6 @@ export type UTXOSchema = [
     Method: 'getrawtransaction'
     Parameters: [string, boolean, string?]
     ReturnType: UTXOTransaction
-  },
-  {
-    Method: 'getBalance'
-    Parameters: { address: string }
-    ReturnType: bigint
   },
   ...UTXOAPISchema,
 ]

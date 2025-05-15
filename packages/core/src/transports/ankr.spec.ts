@@ -22,19 +22,23 @@ const publicClient = createClient({
 })
 
 describe('Ankr Transport', () => {
-  // describe('getTransactions action', async () => {
-  //   const { transactions } = await getTransactions(publicClient, { address })
-  //   it('should return transactions', () => {
-  //     expect(transactions.length > 1)
-  //   })
-  // })
-
   describe('getBalance action', async () => {
     const balance = await getBalance(publicClient, { address })
     it('should fetch correct balance', () => {
       expect(balance).toBeTypeOf('bigint')
     })
   })
+
+  describe('getTransactions action', async () => {
+    it('should get transactions', async () => {
+      const result = await getTransactions(publicClient, { address })
+      const { transactions } = (await result.next()).value
+      expect(transactions.length > 0)
+      expect(transactions[0]).toHaveProperty('hash')
+      expect(transactions[0]).toHaveProperty('vout')
+      expect(transactions[0]).toHaveProperty('vin')
+    })
+  }, 50_000)
 
   describe('getUTXOs action', async () => {
     const utxos = await getUTXOs(publicClient, { address })

@@ -20,14 +20,12 @@ export async function getUTXOs<
   { address }: GetUTXOsParameters
 ): Promise<GetUTXOsReturnType> {
   try {
-    const data = await client.request({
+    return client.request({
       method: 'getUTXOs',
       params: {
         address,
       },
     })
-
-    return data
   } catch (error) {
     console.error(error)
     throw new TransactionsFetchError({ address })

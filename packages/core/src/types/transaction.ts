@@ -13,7 +13,7 @@ export type UTXOTransaction = {
   vsize: number
   weight: number
   vin: {
-    scriptSig: {
+    scriptSig?: {
       asm: string
       hex: string
     }
@@ -23,8 +23,8 @@ export type UTXOTransaction = {
     vout: number
   }[]
   vout: {
-    n: 0
-    scriptPubKey:
+    n: number
+    scriptPubKey?:
       | {
           address: string
           asm: string

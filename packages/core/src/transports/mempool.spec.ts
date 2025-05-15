@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
+import { getBalance } from '../actions/getBalance'
 import { getTransactions } from '../actions/getTransactions'
 import { getUTXOs } from '../actions/getUTXOs'
 import { bitcoin } from '../chains/bitcoin'
 import { createClient, rpcSchema } from '../factories/createClient'
 import type { UTXOSchema } from './types'
 import { utxo } from './utxo'
+
+const address = import.meta.env.VITE_TEST_ADDRESS
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -14,20 +17,29 @@ const publicClient = createClient({
   }),
 })
 
-const address = import.meta.env.VITE_TEST_ADDRESS
-
 describe('Mempool Transport', () => {
-  describe('getTransactions action', async () => {
-    const { transactions } = await getTransactions(publicClient, { address })
-    it('should return transactions', () => {
-      expect(transactions.length > 1)
+  describe('getBalance action', async () => {
+    const balance = await getBalance(publicClient, { address })
+    it('should fetch correct balance', () => {
+      expect(balance).toBeTypeOf('bigint')
     })
   })
+
+  describe('getTransactions action', async () => {
+    it('should get transactions', async () => {
+      const result = await getTransactions(publicClient, { address })
+      const { transactions } = (await result.next()).value
+      expect(transactions.length > 0)
+      expect(transactions[0]).toHaveProperty('hash')
+      expect(transactions[0]).toHaveProperty('vout')
+      expect(transactions[0]).toHaveProperty('vin')
+    })
+  }, 10_000)
 
   describe('getUTXOs action', async () => {
     const utxos = await getUTXOs(publicClient, { address })
     it('should return utxos', () => {
-      expect(utxos.length > 1)
+      expect(utxos.length > 0)
     })
   })
 })

@@ -10,12 +10,12 @@ export type GetTransactionsParameters = {
   address: string
 }
 
-export type GetTransactionsReturnType = {
+export type GetTransactionsReturnType = AsyncGenerator<{
   transactions: Array<Partial<UTXOTransaction>>
   total: number
-  hasMore: boolean
-  nextOffset?: number
-}
+  page: number
+  itemsPerPage: number
+}>
 
 export async function getTransactions<
   C extends Chain | undefined,
@@ -25,13 +25,12 @@ export async function getTransactions<
   { address }: GetTransactionsParameters
 ): Promise<GetTransactionsReturnType> {
   try {
-    const data = await client.request({
+    return client.request({
       method: 'getTransactions',
       params: {
         address,
       },
     })
-    return data
   } catch (_error) {
     console.error({ _error })
     throw new TransactionsFetchError({ address })

@@ -7,5 +7,6 @@
     "moduleResolution": "Node",
     "outDir": "./dist"
   },
-  "include": ["./src/**/*", "./src/**/*.json"]
+  "include": ["./src/**/*", "./src/**/*.json"],
+  "exclude": ["./src/**/*.spec.ts"]
 }
