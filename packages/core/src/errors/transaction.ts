@@ -65,3 +65,16 @@ export class WaitForTransactionReceiptTimeoutError extends BaseError {
     )
   }
 }
+
+export type TransactionsFetchErrorType = TransactionsFetchError & {
+  name: 'TransactionsFetchError'
+}
+
+export class TransactionsFetchError extends BaseError {
+  constructor({ address }: { address: string }) {
+    super(
+      `There was a problem fetching transactions for address: ${address}.`,
+      { name: 'TransactionsFetchError' }
+    )
+  }
+}

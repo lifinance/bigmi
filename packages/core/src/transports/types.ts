@@ -1,14 +1,40 @@
 import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
-import type { UTXOTransaction } from '../types/transaction.js'
+import type { UTXO, UTXOTransaction } from '../types/transaction.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
-export const UTXOAPISchemaMethods = ['getBalance']
+export const UTXOAPISchemaMethods = [
+  'getBalance',
+  'getTransactions',
+  'getUTXOs',
+]
 
 export type UTXOAPISchema = [
   {
     Method: 'getBalance'
     Parameters: { address: string }
     ReturnType: bigint
+  },
+  {
+    Method: 'getTransactions'
+    Parameters: {
+      address: string
+      limit?: number
+      offset?: number
+      minConfirmations?: number
+    }
+    ReturnType: AsyncGenerator<{
+      transactions: Array<Partial<UTXOTransaction>>
+      total: number
+      page: number
+      itemsPerPage: number
+    }>
+  },
+  {
+    Method: 'getUTXOs'
+    Parameters: {
+      address: string
+    }
+    ReturnType: Array<UTXO>
   },
 ]
 
@@ -99,12 +125,14 @@ export type RpcResponse<result = any, error = any> =
   | SuccessResult<result>
   | ErrorResult<error>
 
-export type RpcMethodHandler = (
+export type RpcMethodHandler<M extends UTXOMethod = UTXOMethod> = (
   client: HttpRpcClient,
-  baseUrl: string,
-  params: any
-) => Promise<RpcResponse>
+  config: { baseUrl: string; apiKey?: string },
+  params: Extract<UTXOSchema[number], { Method: M }>['Parameters']
+) => Promise<
+  RpcResponse<Extract<UTXOSchema[number], { Method: M }>['ReturnType']>
+>
 
 export type RpcMethods = {
-  [key in UTXOMethod]?: RpcMethodHandler
+  [key in UTXOMethod]?: RpcMethodHandler<key>
 }

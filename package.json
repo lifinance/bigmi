@@ -24,6 +24,7 @@
     "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
     "prepare": "husky",
     "postinstall": "husky",
+    "test": "pnpm -r --parallel test",
     "link:all": "pnpm -r exec pnpm link --global",
     "unlink:all": "pnpm -r exec pnpm unlink --global"
   },

@@ -8,6 +8,7 @@ import { UTXOAPISchemaMethods, type UTXOMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {
   includeChainToURL?: boolean
+  apiKey?: string
 }
 
 export function utxo(
@@ -21,7 +22,9 @@ export function utxo(
     onFetchRequest,
     onFetchResponse,
     retryDelay,
+    apiKey,
   } = config
+
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
     const retryCount = config.retryCount ?? retryCount_
     const timeout = timeout_ ?? config.timeout ?? 10_000
@@ -55,7 +58,7 @@ export function utxo(
           const methodHandler = rpcMethods?.[method as UTXOMethod]
           const { error, result } = await (methodHandler?.(
             client,
-            url_,
+            { baseUrl: url_, apiKey },
             params
           ) ??
             client.request({

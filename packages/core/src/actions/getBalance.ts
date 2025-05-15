@@ -18,12 +18,11 @@ export async function getBalance<
   client: Client<Transport, C, A, UTXOSchema>,
   params: GetBalanceParameters
 ): Promise<GetBalanceReturnType> {
-  const data = await client.request(
+  return client.request(
     {
       method: 'getBalance',
       params,
     },
     { dedupe: true }
   )
-  return data
 }
