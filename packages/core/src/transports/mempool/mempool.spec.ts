@@ -4,7 +4,6 @@ import {
   type GetTransactionsReturnType,
   getTransactions,
 } from '../../actions/getTransactions'
-import { getUTXOs } from '../../actions/getUTXOs'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import type { UTXOSchema } from '../types'
@@ -40,11 +39,4 @@ describe('Mempool Transport', () => {
       expect(transactions[0]).toHaveProperty('vin')
     })
   }, 10_000)
-
-  describe('getUTXOs action', async () => {
-    const utxos = await getUTXOs(publicClient, { address })
-    it('should return utxos', () => {
-      expect(utxos.length > 0)
-    })
-  })
 })

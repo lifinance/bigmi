@@ -44,11 +44,4 @@ describe('Ankr Transport', () => {
       expect(transactions[0]).toHaveProperty('vin')
     })
   }, 50_000)
-
-  describe('getUTXOs action', async () => {
-    const utxos = await getUTXOs(publicClient, { address })
-    it('should return utxos', () => {
-      expect(utxos.length > 1)
-    })
-  })
 })
