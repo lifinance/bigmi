@@ -43,9 +43,11 @@ export type UTXOTransaction = {
 }
 
 export type UTXO = {
-  txid: string
+  txId: string
   vout: number
   value: number
-  isConfirmed: boolean
-  block_height: number
+  isConfirmed?: boolean
+  confirmations?: number
+  blockHeight: number
+  scriptHex: string
 }

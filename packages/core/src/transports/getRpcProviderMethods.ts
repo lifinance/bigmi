@@ -1,7 +1,7 @@
-import { ankrMethods } from './ankr.js'
-import { blockchairMethods } from './blockchair.js'
-import { blockcypherMethods } from './blockcypher.js'
-import { mempoolMethods } from './mempool.js'
+import { ankrMethods } from './ankr/ankr.js'
+import { blockchairMethods } from './blockchair/blockchair.js'
+import { blockcypherMethods } from './blockcypher/blockcypher.js'
+import { mempoolMethods } from './mempool/mempool.js'
 import type { RpcMethods } from './types.js'
 
 type providers = 'blockchair' | 'ankr' | 'blockcypher' | 'mempool' | string

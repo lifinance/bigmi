@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getBalance } from '../actions/getBalance'
-import { getTransactions } from '../actions/getTransactions'
-import { getUTXOs } from '../actions/getUTXOs'
-import { bitcoin } from '../chains/bitcoin'
-import { createClient, rpcSchema } from '../factories/createClient'
-import type { UTXOSchema } from './types'
-import { utxo } from './utxo'
+import { getBalance } from '../../actions/getBalance'
+import { getTransactions } from '../../actions/getTransactions'
+import { getUTXOs } from '../../actions/getUTXOs'
+import { bitcoin } from '../../chains/bitcoin'
+import { createClient, rpcSchema } from '../../factories/createClient'
+import type { UTXOSchema } from '../types'
+import { utxo } from '../utxo'
 
 const apiKey = 'a44e810ba3974445811449cb8e7a22f3'
 
@@ -27,13 +27,6 @@ describe('Blockcypher Transport', () => {
       expect(balance).toBeTypeOf('bigint')
     })
   })
-
-  // describe('getTransactions action', async () => {
-  //   const { transactions } = await getTransactions(publicClient, { address })
-  //   it('should return transactions', () => {
-  //     expect(transactions.length > 1)
-  //   })
-  // })
 
   describe('getUTXOs action', async () => {
     const utxos = await getUTXOs(publicClient, { address })

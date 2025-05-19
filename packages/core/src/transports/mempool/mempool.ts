@@ -1,4 +1,4 @@
-import type { RpcMethods } from './types.js'
+import type { RpcMethods } from '../types.js'
 
 type MempoolBalanceResponse = {
   address: string
@@ -158,11 +158,12 @@ export const mempoolMethods: RpcMethods = {
 
     return {
       result: response.map((utxo) => ({
-        block_height: utxo.status.block_height,
+        blockHeight: utxo.status.block_height,
         isConfirmed: Boolean(utxo.status.confirmed),
-        txid: utxo.txid,
+        txId: utxo.txid,
         value: utxo.value,
         vout: utxo.vout,
+        scriptHex: '',
       })),
     }
   },

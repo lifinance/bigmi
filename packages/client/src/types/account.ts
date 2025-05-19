@@ -11,4 +11,5 @@ export interface BtcAccount extends Account {
   isDisconnected: boolean
   isReconnecting: boolean
   status: 'connected' | 'connecting' | 'disconnected' | 'reconnecting'
+  pubKey?: string
 }

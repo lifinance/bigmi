@@ -50,9 +50,9 @@ export {
 } from './clients/decorators/wallet.js'
 
 // Exporting transports
-export { ankrMethods } from './transports/ankr.js'
-export { blockchairMethods } from './transports/blockchair.js'
-export { blockcypherMethods } from './transports/blockcypher.js'
+export { ankrMethods } from './transports/ankr/ankr.js'
+export { blockchairMethods } from './transports/blockchair/blockchair.js'
+export { blockcypherMethods } from './transports/blockcypher/blockcypher.js'
 export { getHttpRpcClient } from './transports/getHttpRpcClient.js'
 export type {
   HttpRequestParameters,
@@ -60,7 +60,7 @@ export type {
   RpcRequest,
 } from './transports/getHttpRpcClient.js'
 export { getRpcProviderMethods } from './transports/getRpcProviderMethods.js'
-export { mempoolMethods } from './transports/mempool.js'
+export { mempoolMethods } from './transports/mempool/mempool.js'
 export type {
   ErrorResult,
   RpcMethodHandler,

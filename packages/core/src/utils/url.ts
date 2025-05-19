@@ -1,14 +1,12 @@
-export const urlWithApiKey = (
+export const urlWithParams = (
   url: string,
-  apiKey?: {
-    name: string
-    value?: string
-  }
+  params: Record<string, string | number | undefined>
 ) => {
   const _url = new URL(url)
-  if (apiKey?.value) {
-    const { name, value } = apiKey
-    _url.searchParams.append(name, value)
-  }
-  return _url.toString()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) {
+      _url.searchParams.set(key, String(value))
+    }
+  })
+  return decodeURIComponent(_url.toString())
 }

@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { getBalance } from '../actions/getBalance'
-import { getTransactions } from '../actions/getTransactions'
-import { getUTXOs } from '../actions/getUTXOs'
-import { bitcoin } from '../chains/bitcoin'
-import { createClient, rpcSchema } from '../factories/createClient'
-import type { UTXOSchema } from './types'
-import { utxo } from './utxo'
+import { getBalance } from '../../actions/getBalance'
+import {
+  type GetTransactionsReturnType,
+  getTransactions,
+} from '../../actions/getTransactions'
+import { getUTXOs } from '../../actions/getUTXOs'
+import { bitcoin } from '../../chains/bitcoin'
+import { createClient, rpcSchema } from '../../factories/createClient'
+import type { UTXOSchema } from '../types'
+import { utxo } from '../utxo'
 
 const ANKR_KEY = import.meta.env.VITE_TEST_ANKR_KEY
 const address = import.meta.env.VITE_TEST_ADDRESS
@@ -31,8 +34,10 @@ describe('Ankr Transport', () => {
 
   describe('getTransactions action', async () => {
     it('should get transactions', async () => {
-      const result = await getTransactions(publicClient, { address })
-      const { transactions } = (await result.next()).value
+      const resultGenerator = await getTransactions(publicClient, { address })
+      const results = (await resultGenerator.next())
+        .value as GetTransactionsReturnType
+      const { transactions } = results
       expect(transactions.length > 0)
       expect(transactions[0]).toHaveProperty('hash')
       expect(transactions[0]).toHaveProperty('vout')

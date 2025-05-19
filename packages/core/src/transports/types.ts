@@ -33,6 +33,7 @@ export type UTXOAPISchema = [
     Method: 'getUTXOs'
     Parameters: {
       address: string
+      minValue?: number
     }
     ReturnType: Array<UTXO>
   },

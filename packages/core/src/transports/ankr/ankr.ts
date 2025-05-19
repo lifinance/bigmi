@@ -1,5 +1,5 @@
-import type { UTXOTransaction } from '../types/transaction.js'
-import type { RpcMethods } from './types.js'
+import type { UTXOTransaction } from '../../types/transaction.js'
+import type { RpcMethods } from '../types.js'
 
 type AnkrBalanceResponse = {
   address: string
@@ -137,11 +137,13 @@ export const ankrMethods: RpcMethods = {
 
     return {
       result: response.map((utxo) => ({
-        block_height: utxo.height,
+        blockHeight: utxo.height,
+        confirmations: utxo.confirmations,
         isConfirmed: Boolean(utxo.confirmations),
-        txid: utxo.txid,
+        txId: utxo.txid,
         value: Number(utxo.value),
         vout: Number(utxo.vout),
+        scriptHex: '',
       })),
     }
   },
@@ -163,6 +165,12 @@ export const ankrMethods: RpcMethods = {
         })) as unknown as AnkrAddressWithTxnsResponse
 
         const page = Math.floor(currentOffset / limit) + 1
+
+        totalTxns = response.txs
+        currentOffset += response.transactions.length
+        lastBlock =
+          response.transactions[response.transactions.length - 1].blockHeight
+
         const data = {
           transactions: response.transactions.map(AnkrUTXOTxnAdapter),
           total: totalTxns,
@@ -170,11 +178,6 @@ export const ankrMethods: RpcMethods = {
           itemsPerPage: limit,
         }
         yield data
-
-        totalTxns = response.txs
-        currentOffset += response.transactions.length
-        lastBlock =
-          response.transactions[response.transactions.length - 1].blockHeight
 
         if (response.transactions.length < limit) {
           break
