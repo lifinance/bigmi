@@ -7,9 +7,9 @@ export type BlockchairUTXO = {
 }
 
 export type BlockChairDashboardAddressResponse = {
-  set: Array<BlockChairDashboardSet>
+  set: BlockChairDashboardSet
   addresses: Record<string, BlockchairDashboardAddress>
-  transctions: Array<string>
+  transactions: Array<string>
   utxo: Array<BlockchairUTXO>
 }
 

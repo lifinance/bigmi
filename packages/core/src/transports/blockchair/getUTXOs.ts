@@ -14,11 +14,12 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   { address, minValue }
 ) => {
   async function isAddressUTXOEnough(minValue: number): Promise<boolean> {
+    const apiUrl = urlWithParams(`${baseUrl}/addresses/balances`, {
+      key: apiKey,
+      addresses: address,
+    })
     const response = (await client.request({
-      url: urlWithParams(`${baseUrl}/addresses/balances`, {
-        key: apiKey,
-        addresses: address,
-      }),
+      url: apiUrl,
       fetchOptions: { method: 'GET' },
     })) as unknown as BlockchairResponse<BlockchairAddressBalanceData>
 
