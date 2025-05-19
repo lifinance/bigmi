@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { getBalance } from '../../actions/getBalance'
-import { getTransactions } from '../../actions/getTransactions'
-import { getUTXOs } from '../../actions/getUTXOs'
-import { bitcoin } from '../../chains/bitcoin'
-import { createClient, rpcSchema } from '../../factories/createClient'
-import type { UTXOSchema } from '../types'
-import { utxo } from '../utxo'
+import { getBalance } from '../../actions/getBalance.js'
+import { getUTXOs } from '../../actions/getUTXOs.js'
+import { bitcoin } from '../../chains/bitcoin.js'
+import { createClient, rpcSchema } from '../../factories/createClient.js'
+import type { UTXOSchema } from '../types.js'
+import { utxo } from '../utxo.js'
 
-const apiKey = 'a44e810ba3974445811449cb8e7a22f3'
+const apiKey = import.meta.env.VITE_TEST_BLOCKCYPHER_API_KEY
 
 const publicClient = createClient({
   chain: bitcoin,
