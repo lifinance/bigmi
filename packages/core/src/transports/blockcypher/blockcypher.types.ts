@@ -1,3 +1,7 @@
+export type BlockcypherErrorResponse = {
+  error: string
+}
+
 export type BlockcypherBalanceResponse = {
   address: string
   total_received: number
@@ -21,7 +25,7 @@ export type BlockcypherUTXO = {
   ref_balance: number
   spent: boolean
   confirmations: number
-  confirmed: Date
+  confirmed: string
   double_spend: boolean
   script: string
 }

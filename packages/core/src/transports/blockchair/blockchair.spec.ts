@@ -3,13 +3,14 @@ import { getBalance } from '../../actions/getBalance'
 import { getUTXOs } from '../../actions/getUTXOs'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
+import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 import { utxo } from '../utxo'
-import getInvalidBalanceReponse from './__mocks__/responses/getBalance/invalidAddress.json'
-import getBalanceReponse from './__mocks__/responses/getBalance/valid.json'
-import getUTXOsInvalidResponse from './__mocks__/responses/getUTXOs/invalidAddress.json'
-import getUTXOsResponse from './__mocks__/responses/getUTXOs/valid.json'
-import getUTXOsPaginatedResponse from './__mocks__/responses/getUTXOs/validPaginated.json'
+import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
+import getBalanceReponse from './__mocks__/getBalance/valid.json'
+import getUTXOsInvalidResponse from './__mocks__/getUTXOs/invalidAddress.json'
+import getUTXOsResponse from './__mocks__/getUTXOs/valid.json'
+import getUTXOsPaginatedResponse from './__mocks__/getUTXOs/validPaginated.json'
 import type {
   BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
@@ -30,34 +31,27 @@ const publicClient = createClient({
 })
 
 describe('Blockchair Transport', () => {
-  describe('getBalance action', async () => {
-    beforeEach(() => {
-      vi.resetAllMocks()
-    })
-    it('should fetch correct balance', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(getBalanceReponse as BlockchairAddressBalanceData),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  describe('getBalance', () => {
+    it('should fetch correct balance for valid address', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getBalanceReponse as BlockchairAddressBalanceData)
+      )
+
       const balance = await getBalance(publicClient, { address })
       expect(balance).toBeTypeOf('bigint')
     })
 
-    it('should handle non-existent address', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(
-            getInvalidBalanceReponse as BlockchairAddressBalanceData
-          ),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
+    it('should throw error for non-existent address', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(
+          getInvalidBalanceReponse as BlockchairAddressBalanceData
+        )
+      )
+
       const nonExistentAddress =
         '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNaNUIBNSUENopnoidsacn'
       await expect(
@@ -66,45 +60,33 @@ describe('Blockchair Transport', () => {
     })
   })
 
-  describe('getUTXOs action', async () => {
-    beforeEach(() => {
-      vi.resetAllMocks()
-    })
+  describe('getUTXOs', () => {
     it('should return utxos with correct structure', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(
-            getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
-          ),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(
+          getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+        )
+      )
 
-      const utxos = await getUTXOs(publicClient, {
-        address,
-      })
+      const utxos = await getUTXOs(publicClient, { address })
 
       expect(utxos.length).toBeGreaterThan(0)
-      expect(utxos[0]).toHaveProperty('blockHeight')
-      expect(utxos[0]).toHaveProperty('scriptHex')
-      expect(utxos[0]).toHaveProperty('txId')
-      expect(utxos[0]).toHaveProperty('value')
-      expect(utxos[0]).toHaveProperty('vout')
+      expect(utxos[0]).toMatchObject({
+        blockHeight: expect.any(Number),
+        scriptHex: expect.any(String),
+        txId: expect.any(String),
+        value: expect.any(Number),
+        vout: expect.any(Number),
+      })
     })
 
     it('should throw error when minValue exceeds balance', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(
-            getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
-          ),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(
+          getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+        )
+      )
+
       const hugeValue = 999999999999999999n
       await expect(
         getUTXOs(publicClient, {
@@ -115,105 +97,82 @@ describe('Blockchair Transport', () => {
     })
 
     it('should handle empty UTXO response', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () =>
-          Promise.resolve(getUTXOsInvalidResponse as BlockchairResponse<null>),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getUTXOsInvalidResponse as BlockchairResponse<null>)
+      )
+
       const emptyAddress = '12LRT14SgNFFQ3hMRThAyXNao24BBy5cyU'
       await expect(
         getUTXOs(publicClient, { address: emptyAddress })
       ).rejects.toThrow()
     })
 
-    it('should handle pagination correctly', async () => {
-      const createMockResponse = (offset: number, limit: number) => ({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            ...getUTXOsPaginatedResponse,
-            data: {
-              ...getUTXOsPaginatedResponse.data,
-              utxo: getUTXOsPaginatedResponse.data.utxo.slice(
-                offset,
-                offset + limit
-              ),
-              addresses: {
-                [addressWithManyUTXOs]: {
-                  ...getUTXOsPaginatedResponse.data.addresses[
-                    addressWithManyUTXOs
-                  ],
-                  unspent_output_count:
-                    getUTXOsPaginatedResponse.data.utxo.length,
-                },
-              },
-            },
-          } as unknown as BlockchairResponse<BlockChairDashboardAddressResponse>),
-        headers: new Headers({
-          'Content-type': 'application/json',
-        }),
-      })
-
+    describe('pagination', () => {
       const addressWithManyUTXOs = '1GrwDkr33gT6LuumniYjKEGjTLhsL5kmqC'
       const minValue = 5_610_592_350
 
-      global.fetch = vi.fn().mockImplementation((request) => {
-        const url = new URL(request)
+      const createPaginatedMockResponse = (offset: number, limit: number) => ({
+        ...getUTXOsPaginatedResponse,
+        data: {
+          ...getUTXOsPaginatedResponse.data,
+          utxo: getUTXOsPaginatedResponse.data.utxo.slice(
+            offset,
+            offset + limit
+          ),
+          addresses: {
+            [addressWithManyUTXOs]: {
+              ...getUTXOsPaginatedResponse.data.addresses[addressWithManyUTXOs],
+              unspent_output_count: getUTXOsPaginatedResponse.data.utxo.length,
+            },
+          },
+        },
+      })
 
-        // Handle balance check request
-        if (url.pathname.includes('/addresses/balances')) {
-          const addresses = url.searchParams.get('addresses')
-          if (addresses !== addressWithManyUTXOs) {
-            throw new Error(`Unexpected address in balance check: ${addresses}`)
-          }
-          return {
-            ok: true,
-            json: () =>
-              Promise.resolve({
+      it('should handle pagination correctly', async () => {
+        vi.spyOn(global, 'fetch').mockImplementation((request) => {
+          const url = new URL(request.toString())
+
+          if (url.pathname.includes('/addresses/balances')) {
+            return Promise.resolve(
+              createMockResponse({
                 data: {
-                  [addressWithManyUTXOs]: 1000000000000, // Large enough balance
+                  [addressWithManyUTXOs]: 1000000000000,
                 },
-                context: {
-                  code: 200,
-                },
-              } as BlockchairResponse<BlockchairAddressBalanceData>),
-            headers: new Headers({
-              'Content-type': 'application/json',
-            }),
+                context: { code: 200 },
+              } as BlockchairResponse<BlockchairAddressBalanceData>)
+            )
           }
-        }
 
-        // Handle UTXO requests
-        if (url.pathname.includes('/dashboards/addresses')) {
-          const address = url.pathname.split('/').pop()
-          if (address !== addressWithManyUTXOs) {
-            throw new Error(`Unexpected address in UTXO request: ${address}`)
+          if (url.pathname.includes('/dashboards/addresses')) {
+            const offset = Number.parseInt(
+              url.searchParams.get('offset')?.split(',')[1] || '0'
+            )
+            const limit = 100
+            return Promise.resolve(
+              createMockResponse(
+                createPaginatedMockResponse(
+                  offset,
+                  limit
+                ) as BlockchairResponse<BlockChairDashboardAddressResponse>
+              )
+            )
           }
-          const offset = Number.parseInt(
-            url.searchParams.get('offset')?.split(',')[1] || '0'
-          )
-          const limit = 100
-          return createMockResponse(offset, limit)
-        }
 
-        throw new Error(`Unexpected URL: ${url.pathname}`)
+          throw new Error(`Unexpected URL: ${url.pathname}`)
+        })
+
+        const utxos = await getUTXOs(publicClient, {
+          address: addressWithManyUTXOs,
+          minValue,
+        })
+
+        expect(utxos.length).toBeGreaterThan(0)
+        expect(new Set(utxos.map((utxo) => utxo.txId)).size).toBe(utxos.length)
+        expect(global.fetch).toHaveBeenCalled()
+
+        const totalValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
+        expect(totalValue).toBeGreaterThanOrEqual(minValue)
       })
-
-      const utxos = await getUTXOs(publicClient, {
-        address: addressWithManyUTXOs,
-        minValue,
-      })
-
-      expect(utxos.length).toBeGreaterThan(0)
-      expect(new Set(utxos.map((utxo) => utxo.txId)).size).toBe(utxos.length)
-
-      expect(global.fetch).toHaveBeenCalled()
-
-      const totalValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-      expect(totalValue).toBeGreaterThanOrEqual(minValue)
     })
   })
 })

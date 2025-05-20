@@ -1,3 +1,4 @@
+import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import { AnkrUTXOTxnAdapter } from './adapters.js'
 import type { AnkrAddressWithTxnsResponse } from './ankr.types.js'
@@ -5,42 +6,34 @@ import type { AnkrAddressWithTxnsResponse } from './ankr.types.js'
 export const getTransactions: RpcMethodHandler<'getTransactions'> = async (
   client,
   { baseUrl },
-  { address, limit = 100, offset = 0 }
+  { address, limit = 50, offset = 0, lastBlock }
 ) => {
-  async function* generator() {
-    let totalTxns = 0
-    let currentOffset = offset
-    let lastBlock = undefined
+  const apiUrl = urlWithParams(`${baseUrl}/address/${address}`, {
+    details: 'txs',
+    pageSize: limit,
+    to: lastBlock,
+  })
 
-    do {
-      const apiUrl = `${baseUrl}/address/${address}?details=txs&pageSize=${limit}${lastBlock ? `&to=${lastBlock}` : ''}`
-      const response = (await client.request({
-        url: apiUrl,
-        fetchOptions: { method: 'GET' },
-      })) as unknown as AnkrAddressWithTxnsResponse
+  const response = (await client.request({
+    url: apiUrl,
+    fetchOptions: { method: 'GET' },
+  })) as unknown as AnkrAddressWithTxnsResponse
 
-      const page = Math.floor(currentOffset / limit) + 1
-
-      totalTxns = response.txs
-      currentOffset += response.transactions.length
-      lastBlock =
-        response.transactions[response.transactions.length - 1].blockHeight
-
-      const data = {
-        transactions: response.transactions.map(AnkrUTXOTxnAdapter),
-        total: totalTxns,
-        page,
-        itemsPerPage: limit,
-      }
-      yield data
-
-      if (response.transactions.length < limit) {
-        break
-      }
-    } while (currentOffset < totalTxns)
+  if (response.error) {
+    return { error: response.error }
   }
 
-  return {
-    result: generator(),
+  const total = response.txs || 0
+  const page = Math.floor(offset / limit) + 1
+  const hasMore = total > offset + response.transactions.length
+
+  const data = {
+    transactions: response.transactions.map(AnkrUTXOTxnAdapter),
+    total,
+    page,
+    itemsPerPage: limit,
+    hasMore,
   }
+
+  return { result: data }
 }

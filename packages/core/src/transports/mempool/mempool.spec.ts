@@ -1,13 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
-import {
-  type GetTransactionsReturnType,
-  getTransactions,
-} from '../../actions/getTransactions'
+import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
+import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 import { utxo } from '../utxo'
+import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
+import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
+import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
+import type {
+  MempoolBalanceResponse,
+  MempoolErrorResponse,
+  MempoolUTXOTransactionsResponse,
+} from './mempool.types'
 
 const address = import.meta.env.VITE_TEST_ADDRESS
 
@@ -20,23 +26,61 @@ const publicClient = createClient({
 })
 
 describe('Mempool Transport', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
   describe('getBalance action', async () => {
-    const balance = await getBalance(publicClient, { address })
-    it('should fetch correct balance', () => {
+    it('should fetch correct balance', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getBalanceValidResponse as MempoolBalanceResponse)
+      )
+      const balance = await getBalance(publicClient, { address })
       expect(balance).toBeTypeOf('bigint')
+    })
+
+    it('should throw an error for invalid address response', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getBalanceInValidResponse as MempoolErrorResponse)
+      )
+
+      const nonExistentAddress =
+        '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNaNUIBNSUENopnoidsacn'
+      await expect(
+        getBalance(publicClient, { address: nonExistentAddress })
+      ).rejects.toThrow()
     })
   })
 
   describe('getTransactions action', async () => {
     it('should get transactions', async () => {
-      const resultGenerator = await getTransactions(publicClient, { address })
-      const results = (await resultGenerator.next())
-        .value as GetTransactionsReturnType
+      vi.spyOn(global, 'fetch').mockImplementation((request) => {
+        const url = new URL(request.toString())
+
+        if (url.pathname.endsWith(`/address/${address}`)) {
+          return Promise.resolve(
+            createMockResponse(
+              getBalanceValidResponse as MempoolBalanceResponse
+            )
+          )
+        }
+
+        if (url.pathname.includes(`/address/${address}/txs`)) {
+          return Promise.resolve(
+            createMockResponse(
+              getTransactionsValidResponse as MempoolUTXOTransactionsResponse
+            )
+          )
+        }
+
+        throw new Error(`Unexpected URL: ${url.pathname}`)
+      })
+
+      const results = await getTransactions(publicClient, { address })
       const { transactions } = results
       expect(transactions.length > 0)
       expect(transactions[0]).toHaveProperty('hash')
       expect(transactions[0]).toHaveProperty('vout')
       expect(transactions[0]).toHaveProperty('vin')
     })
-  }, 10_000)
+  })
 })

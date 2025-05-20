@@ -1,14 +1,17 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
-import {
-  type GetTransactionsReturnType,
-  getTransactions,
-} from '../../actions/getTransactions'
-import { getUTXOs } from '../../actions/getUTXOs'
+import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
+import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 import { utxo } from '../utxo'
+import getBalanceResponse from './__mocks__/getBalance/valid.json'
+import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
+import type {
+  AnkrAddressWithTxnsResponse,
+  AnkrBalanceResponse,
+} from './ankr.types'
 
 const ANKR_KEY = import.meta.env.VITE_TEST_ANKR_KEY
 const address = import.meta.env.VITE_TEST_ADDRESS
@@ -25,7 +28,14 @@ const publicClient = createClient({
 })
 
 describe('Ankr Transport', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
   describe('getBalance action', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      createMockResponse(getBalanceResponse as AnkrBalanceResponse)
+    )
     const balance = await getBalance(publicClient, { address })
     it('should fetch correct balance', () => {
       expect(balance).toBeTypeOf('bigint')
@@ -34,14 +44,20 @@ describe('Ankr Transport', () => {
 
   describe('getTransactions action', async () => {
     it('should get transactions', async () => {
-      const resultGenerator = await getTransactions(publicClient, { address })
-      const results = (await resultGenerator.next())
-        .value as GetTransactionsReturnType
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(
+          getTransactionsValidResponse as unknown as AnkrAddressWithTxnsResponse
+        )
+      )
+      const results = await getTransactions(publicClient, {
+        address,
+        limit: 100,
+      })
       const { transactions } = results
       expect(transactions.length > 0)
       expect(transactions[0]).toHaveProperty('hash')
       expect(transactions[0]).toHaveProperty('vout')
       expect(transactions[0]).toHaveProperty('vin')
     })
-  }, 50_000)
+  })
 })

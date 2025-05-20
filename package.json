@@ -25,6 +25,7 @@
     "prepare": "husky",
     "postinstall": "husky",
     "test": "pnpm -r --parallel test",
+    "coverage": "pnpm -r --parallel coverage",
     "link:all": "pnpm -r exec pnpm link --global",
     "unlink:all": "pnpm -r exec pnpm unlink --global"
   },

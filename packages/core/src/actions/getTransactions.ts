@@ -8,13 +8,16 @@ import type { Transport } from '../types/transport'
 
 export type GetTransactionsParameters = {
   address: string
+  offset?: number
+  limit?: number
+  lastBlock?: string
 }
 
 export type GetTransactionsReturnType = {
   transactions: Array<Partial<UTXOTransaction>>
   total: number
-  page: number
   itemsPerPage: number
+  hasMore: boolean
 }
 
 export async function getTransactions<
@@ -22,13 +25,16 @@ export async function getTransactions<
   A extends Account | undefined = Account | undefined,
 >(
   client: Client<Transport, C, A, UTXOSchema>,
-  { address }: GetTransactionsParameters
-): Promise<AsyncGenerator<GetTransactionsReturnType>> {
+  { address, offset, limit, lastBlock }: GetTransactionsParameters
+): Promise<GetTransactionsReturnType> {
   try {
     return client.request({
       method: 'getTransactions',
       params: {
         address,
+        offset,
+        limit,
+        lastBlock,
       },
     })
   } catch (_error) {

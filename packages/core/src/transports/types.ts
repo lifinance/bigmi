@@ -18,16 +18,16 @@ export type UTXOAPISchema = [
     Method: 'getTransactions'
     Parameters: {
       address: string
-      limit?: number
       offset?: number
-      minConfirmations?: number
+      limit?: number
+      lastBlock?: string
+      afterTxId?: string
     }
-    ReturnType: AsyncGenerator<{
+    ReturnType: {
       transactions: Array<Partial<UTXOTransaction>>
       total: number
-      page: number
-      itemsPerPage: number
-    }>
+      hasMore?: boolean
+    }
   },
   {
     Method: 'getUTXOs'

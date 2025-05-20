@@ -63,3 +63,5 @@ export type MempoolUTXOTransactionsResponse = {
     block_time: number
   }
 }[]
+
+export type MempoolErrorResponse = string
