@@ -60,9 +60,9 @@ export {
 } from './clients/decorators/wallet.js'
 
 // Exporting transports
-export { ankrMethods } from './transports/ankr/ankr.js'
-export { blockchairMethods } from './transports/blockchair/blockchair.js'
-export { blockcypherMethods } from './transports/blockcypher/blockcypher.js'
+export { ankrMethods } from './transports/ankr/methods.js'
+export { blockchairMethods } from './transports/blockchair/methods.js'
+export { blockcypherMethods } from './transports/blockcypher/methods.js'
 export { getHttpRpcClient } from './transports/getHttpRpcClient.js'
 export type {
   HttpRequestParameters,
@@ -70,7 +70,7 @@ export type {
   RpcRequest,
 } from './transports/getHttpRpcClient.js'
 export { getRpcProviderMethods } from './transports/getRpcProviderMethods.js'
-export { mempoolMethods } from './transports/mempool/mempool.js'
+export { mempoolMethods } from './transports/mempool/methods.js'
 export type {
   ErrorResult,
   RpcMethodHandler,
@@ -84,6 +84,10 @@ export type {
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
 export { custom } from './transports/custom.js'
+export { ankr } from './transports/ankr/ankr.js'
+export { blockchair } from './transports/blockchair/blockchair.js'
+export { blockcypher } from './transports/blockcypher/blockcypher.js'
+export { mempool } from './transports/mempool/mempool.js'
 
 // Exporting types
 export type { Account } from './types/account.js'

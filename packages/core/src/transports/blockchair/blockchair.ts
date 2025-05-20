@@ -1,8 +1,14 @@
-import type { RpcMethods } from '../types.js'
-import { getBalance } from './getBalance.js'
-import { getUTXOs } from './getUTXOs.js'
+import type { HttpTransportConfig } from '../http.js'
+import { utxo } from '../utxo.js'
 
-export const blockchairMethods: RpcMethods = {
-  getBalance,
-  getUTXOs,
-}
+type BlockchairConfig = {
+  baseUrl?: string
+  apiKey?: string
+} & HttpTransportConfig
+
+export const blockchair = (config: BlockchairConfig) =>
+  utxo(config?.baseUrl || 'https://api.blockchair.com', {
+    key: 'blockchair',
+    includeChainToURL: true,
+    ...config,
+  })

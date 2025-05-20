@@ -5,12 +5,12 @@ import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
-import { utxo } from '../utxo'
 import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
 import getBalanceReponse from './__mocks__/getBalance/valid.json'
 import getUTXOsInvalidResponse from './__mocks__/getUTXOs/invalidAddress.json'
 import getUTXOsResponse from './__mocks__/getUTXOs/valid.json'
 import getUTXOsPaginatedResponse from './__mocks__/getUTXOs/validPaginated.json'
+import { blockchair } from './blockchair.js'
 import type {
   BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
@@ -23,9 +23,7 @@ const apiKey = import.meta.env.VITE_TEST_BLOCKCHAIR_KEY
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
-  transport: utxo('https://api.blockchair.com', {
-    key: 'blockchair',
-    includeChainToURL: true,
+  transport: blockchair({
     apiKey,
   }),
 })

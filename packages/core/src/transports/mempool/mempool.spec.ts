@@ -5,10 +5,11 @@ import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
-import { utxo } from '../utxo'
+
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
+import { mempool } from './mempool'
 import type {
   MempoolBalanceResponse,
   MempoolErrorResponse,
@@ -20,9 +21,7 @@ const address = import.meta.env.VITE_TEST_ADDRESS
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
-  transport: utxo('https://mempool.space/api', {
-    key: 'mempool',
-  }),
+  transport: mempool(),
 })
 
 describe('Mempool Transport', () => {

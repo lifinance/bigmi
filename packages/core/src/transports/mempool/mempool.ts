@@ -1,8 +1,12 @@
-import type { RpcMethods } from '../types.js'
-import { getBalance } from './getBalance.js'
-import { getTransactions } from './getTransactions.js'
+import type { HttpTransportConfig } from '../http.js'
+import { utxo } from '../utxo.js'
 
-export const mempoolMethods: RpcMethods = {
-  getBalance,
-  getTransactions,
-}
+type MempoolConfig = {
+  baseUrl?: string
+} & HttpTransportConfig
+
+export const mempool = (config?: MempoolConfig) =>
+  utxo(config?.baseUrl || 'https://mempool.space/api', {
+    key: 'mempool',
+    ...config,
+  })

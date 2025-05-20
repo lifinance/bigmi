@@ -6,12 +6,12 @@ import { bitcoin } from '../../chains/bitcoin.js'
 import { createClient, rpcSchema } from '../../factories/createClient.js'
 import { createMockResponse } from '../../test/utils.js'
 import type { UTXOSchema } from '../types.js'
-import { utxo } from '../utxo.js'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
 import getUTXOsEmptyReponse from './__mocks__/getUTXOs/empty.json'
 import getUTXOsPaginatedReponse from './__mocks__/getUTXOs/paginated.json'
 import getUTXOsValidReponse from './__mocks__/getUTXOs/valid.json'
+import { blockcypher } from './blockcypher.js'
 import type {
   BlockcypherBalanceResponse,
   BlockcypherErrorResponse,
@@ -23,8 +23,7 @@ const apiKey = import.meta.env.VITE_TEST_BLOCKCYPHER_API_KEY
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
-  transport: utxo('https://api.blockcypher.com/v1/btc/main', {
-    key: 'blockcypher',
+  transport: blockcypher({
     apiKey,
   }),
 })

@@ -8,6 +8,7 @@ import type { UTXOSchema } from '../types'
 import { utxo } from '../utxo'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
+import { ankr } from './ankr'
 import type {
   AnkrAddressWithTxnsResponse,
   AnkrBalanceResponse,
@@ -19,12 +20,7 @@ const address = import.meta.env.VITE_TEST_ADDRESS
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
-  transport: utxo(
-    `https://rpc.ankr.com/premium-http/btc_blockbook/${ANKR_KEY}/api/v2`,
-    {
-      key: 'ankr',
-    }
-  ),
+  transport: ankr({ apiKey: ANKR_KEY }),
 })
 
 describe('Ankr Transport', () => {
