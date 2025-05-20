@@ -1,10 +1,10 @@
-import { TransactionsFetchError } from '../errors/transaction'
-import type { UTXOSchema } from '../transports/types'
-import type { Account } from '../types/account'
-import type { Chain } from '../types/chain'
-import type { Client } from '../types/client'
-import type { UTXO } from '../types/transaction'
-import type { Transport } from '../types/transport'
+import { TransactionsFetchError } from '../errors/transaction.js'
+import type { UTXOSchema } from '../transports/types.js'
+import type { Account } from '../types/account.js'
+import type { Chain } from '../types/chain.js'
+import type { Client } from '../types/client.js'
+import type { UTXO } from '../types/transaction.js'
+import type { Transport } from '../types/transport.js'
 
 export type GetUTXOsParameters = {
   address: string

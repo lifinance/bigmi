@@ -38,6 +38,16 @@ export type {
   WatchBlockNumberParameters,
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
+export { getUTXOs } from './actions/getUTXOs.js'
+export type {
+  GetUTXOsParameters,
+  GetUTXOsReturnType,
+} from './actions/getUTXOs.js'
+export { getTransactions } from './actions/getTransactions.js'
+export type {
+  GetTransactionsParameters,
+  GetTransactionsReturnType,
+} from './actions/getTransactions.js'
 
 // Exporting clients
 export {
