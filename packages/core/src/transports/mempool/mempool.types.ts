@@ -47,7 +47,7 @@ export type MempoolUTXOResponse = {
   value: number
 }[]
 
-export type MempoolUTXOTransactionsResponse = {
+export type MempoolTransaction = {
   txid: string
   version: number
   locktime: number
@@ -62,6 +62,8 @@ export type MempoolUTXOTransactionsResponse = {
     block_hash: string
     block_time: number
   }
-}[]
+}
+
+export type MempoolUTXOTransactionsResponse = Array<MempoolTransaction>
 
 export type MempoolErrorResponse = string

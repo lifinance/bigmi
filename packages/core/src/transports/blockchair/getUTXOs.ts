@@ -1,12 +1,22 @@
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
-import { blockChairDataAdapters } from './adapter.js'
 import type {
   BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
   BlockchairResponse,
+  BlockchairUTXO,
 } from './blockchair.types.js'
+
+const blockChairUTXOTransformer =
+  (scriptHex: string) =>
+  (data: BlockchairUTXO): UTXO => ({
+    blockHeight: data.block_id,
+    scriptHex,
+    txId: data.transaction_hash,
+    value: data.value,
+    vout: data.index,
+  })
 
 export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   client,
@@ -90,7 +100,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
     for await (const batch of fetchUTXOs()) {
       const addressScriptHex = batch.addresses[address].script_hex
       const utxoBatch = batch.utxo.map(
-        blockChairDataAdapters.getUTXOs(addressScriptHex)
+        blockChairUTXOTransformer(addressScriptHex)
       )
       utxos.push(...utxoBatch)
 

@@ -1,8 +1,20 @@
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
-import { blockcypherDataAdapters } from './adapters.js'
-import type { BlockcypherUTXOsResponse } from './blockcypher.types.js'
+import type {
+  BlockcypherUTXO,
+  BlockcypherUTXOsResponse,
+} from './blockcypher.types.js'
+
+const blockchairUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
+  blockHeight: utxo.block_height,
+  isConfirmed: Boolean(utxo.confirmations),
+  confirmations: utxo.confirmations,
+  value: utxo.value,
+  vout: utxo.tx_output_n,
+  txId: utxo.tx_hash,
+  scriptHex: utxo.script,
+})
 
 export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   client,
@@ -54,7 +66,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
     let valueCount = 0
 
     for await (const batch of fetchUTXOs()) {
-      const utxoBatch = batch.map(blockcypherDataAdapters.getUTXOs)
+      const utxoBatch = batch.map(blockchairUTXOTransformer)
       utxos.push(...utxoBatch)
 
       if (minValue) {
@@ -63,9 +75,6 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
           break
         }
       }
-    }
-    if (utxos.length < 1) {
-      throw new Error(`Address: ${address} has no spendable utxos`)
     }
 
     return { result: utxos }

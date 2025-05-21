@@ -1,9 +1,39 @@
+import type { UTXOTransaction } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type {
   MempoolBalanceResponse,
+  MempoolTransaction,
   MempoolUTXOTransactionsResponse,
 } from './mempool.types.js'
+
+const mempoolTransactionTransformer = (
+  txn: MempoolTransaction
+): Partial<UTXOTransaction> => ({
+  hash: txn.txid,
+  txid: txn.txid,
+  vout: txn.vout.map((vout, index) => ({
+    n: index,
+    scriptPubKey: {
+      address: vout.scriptpubkey_address,
+      asm: vout.scriptpubkey_asm,
+      type: vout.scriptpubkey_type,
+      desc: vout.scriptpubkey,
+      hex: vout.scriptpubkey,
+    },
+    value: vout.value,
+  })),
+  vin: txn.vin.map((vin) => ({
+    scriptSig: {
+      asm: vin.scriptsig_asm,
+      hex: vin.scriptsig,
+    },
+    sequence: vin.sequence,
+    txinwitness: vin.witness,
+    txid: vin.txid,
+    vout: vin.vout,
+  })),
+})
 
 export const getTransactions: RpcMethodHandler<'getTransactions'> = async (
   client,
@@ -28,31 +58,7 @@ export const getTransactions: RpcMethodHandler<'getTransactions'> = async (
     fetchOptions: { method: 'GET' },
   })) as unknown as MempoolUTXOTransactionsResponse
 
-  const transactions = response.map((utxo) => ({
-    hash: utxo.txid,
-    txid: utxo.txid,
-    vout: utxo.vout.map((vout, index) => ({
-      n: index,
-      scriptPubKey: {
-        address: vout.scriptpubkey_address,
-        asm: vout.scriptpubkey_asm,
-        type: vout.scriptpubkey_type,
-        desc: vout.scriptpubkey,
-        hex: vout.scriptpubkey,
-      },
-      value: vout.value,
-    })),
-    vin: utxo.vin.map((vin) => ({
-      scriptSig: {
-        asm: vin.scriptsig_asm,
-        hex: vin.scriptsig,
-      },
-      sequence: vin.sequence,
-      txinwitness: vin.witness,
-      txid: vin.txid,
-      vout: vin.vout,
-    })),
-  }))
+  const transactions = response.map(mempoolTransactionTransformer)
 
   const result = {
     transactions,
