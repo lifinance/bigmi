@@ -59,7 +59,8 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
         fetchOptions: { method: 'GET' },
       })) as unknown as BlockchairResponse<BlockChairDashboardAddressResponse>
 
-      if (response.context?.code !== 200) {
+      // blockchair returns a 404 for empty addresses
+      if (response.context?.code !== 200 && response.context?.code !== 404) {
         throw new Error(`${response.context.code} : ${response.context?.error}`)
       }
 

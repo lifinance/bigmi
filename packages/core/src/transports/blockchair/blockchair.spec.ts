@@ -100,9 +100,9 @@ describe('Blockchair Transport', () => {
       )
 
       const emptyAddress = '12LRT14SgNFFQ3hMRThAyXNao24BBy5cyU'
-      await expect(
-        getUTXOs(publicClient, { address: emptyAddress })
-      ).rejects.toThrow()
+      const utxos = await getUTXOs(publicClient, { address: emptyAddress })
+
+      expect(utxos.length).toBe(0)
     })
 
     describe('pagination', () => {

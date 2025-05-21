@@ -94,11 +94,9 @@ describe('Blockcypher Transport', () => {
       vi.spyOn(global, 'fetch').mockResolvedValue(
         createMockResponse(getUTXOsEmptyReponse as BlockcypherBalanceResponse)
       )
-
       const emptyAddress = '12LRT14SgNFFQ3hMRThAyXNao24BBy5cyU'
-      await expect(
-        getUTXOs(publicClient, { address: emptyAddress })
-      ).rejects.toThrow()
+      const utxos = await getUTXOs(publicClient, { address: emptyAddress })
+      expect(utxos.length).toBe(0)
     })
 
     it('should handle pagination correcly', async () => {
