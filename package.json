@@ -22,6 +22,7 @@
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
     "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
+    "pre-push": "pnpm test",
     "prepare": "husky",
     "postinstall": "husky",
     "test": "pnpm -r --parallel test",
