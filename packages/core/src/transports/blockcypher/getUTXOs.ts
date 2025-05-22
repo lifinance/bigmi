@@ -41,7 +41,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
       })) as unknown as BlockcypherUTXOsResponse
 
       if (response.error) {
-        throw new HttpRequestError({
+        throw new RpcRequestError({
           url: apiUrl,
           body: {
             method: 'fetchUTXOs',
@@ -49,7 +49,10 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
               address,
               minValue,
             },
-            response,
+          },
+          error: {
+            code: -1,
+            message: response.error,
           },
         })
       }

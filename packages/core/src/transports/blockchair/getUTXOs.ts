@@ -1,6 +1,5 @@
 import { NotEnoughUTXOError } from '../../errors/address.js'
-import { BaseError } from '../../errors/base.js'
-import { HttpRequestError, RpcRequestError } from '../../errors/request.js'
+import { RpcRequestError } from '../../errors/request.js'
 import type { UTXO } from '../../types/transaction.js'
 
 import { urlWithParams } from '../../utils/url.js'
@@ -45,7 +44,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
       })) as unknown as BlockchairResponse<BlockChairDashboardAddressResponse>
 
       if (response.context?.code !== 200 && response.context?.code !== 404) {
-        throw new HttpRequestError({
+        throw new RpcRequestError({
           url: apiUrl,
           body: {
             method: 'fetchUTXOs',
@@ -53,7 +52,10 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
               address,
               minValue,
             },
-            response,
+          },
+          error: {
+            code: response.context.code,
+            message: response.context.error || 'Error fetching utxos',
           },
         })
       }
