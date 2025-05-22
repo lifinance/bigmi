@@ -88,8 +88,6 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
       { baseUrl, apiKey },
       { address }
     )
-    console.log
-    balance
     if (minValue > Number(balance)) {
       throw new NotEnoughUTXOError({
         minValue,
