@@ -6,6 +6,7 @@ import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 
+import { BaseError } from '../../errors/base'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
@@ -71,7 +72,7 @@ describe('Mempool Transport', () => {
           )
         }
 
-        throw new Error(`Unexpected URL: ${url.pathname}`)
+        throw new BaseError(`Unexpected URL: ${url.pathname}`)
       })
 
       const results = await getTransactions(publicClient, { address })

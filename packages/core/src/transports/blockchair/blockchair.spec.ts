@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
 import { getUTXOs } from '../../actions/getUTXOs'
 import { bitcoin } from '../../chains/bitcoin'
+import { NotEnoughUTXOError } from '../../errors/address'
+import { BaseError } from '../../errors/base'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
@@ -79,11 +81,27 @@ describe('Blockchair Transport', () => {
     })
 
     it('should throw error when minValue exceeds balance', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(
-          getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
-        )
-      )
+      vi.spyOn(global, 'fetch').mockImplementation((request) => {
+        const url = new URL(request.toString())
+
+        if (url.pathname.includes('/addresses/balances')) {
+          return Promise.resolve(
+            createMockResponse(
+              getBalanceReponse as BlockchairAddressBalanceData
+            )
+          )
+        }
+
+        if (url.pathname.includes('/dashboards/addresses')) {
+          return Promise.resolve(
+            createMockResponse(
+              getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+            )
+          )
+        }
+
+        throw new BaseError(`Unexpected URL: ${url.pathname}`)
+      })
 
       const hugeValue = 999999999999999999n
       await expect(
@@ -91,7 +109,7 @@ describe('Blockchair Transport', () => {
           address,
           minValue: Number(hugeValue),
         })
-      ).rejects.toThrow("doesn't have enough utxo to spend")
+      ).rejects.toThrow(NotEnoughUTXOError)
     })
 
     it('should handle empty UTXO response', async () => {
@@ -156,7 +174,7 @@ describe('Blockchair Transport', () => {
             )
           }
 
-          throw new Error(`Unexpected URL: ${url.pathname}`)
+          throw new BaseError(`Unexpected URL: ${url.pathname}`)
         })
 
         const utxos = await getUTXOs(publicClient, {

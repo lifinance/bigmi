@@ -1,3 +1,6 @@
+import { NotEnoughUTXOError } from '../../errors/address.js'
+import { BaseError } from '../../errors/base.js'
+import { HttpRequestError, RpcRequestError } from '../../errors/request.js'
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
@@ -38,13 +41,25 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
       })) as unknown as BlockcypherUTXOsResponse
 
       if (response.error) {
-        throw new Error(`${response.error}`)
+        throw new HttpRequestError({
+          url: apiUrl,
+          body: {
+            method: 'fetchUTXOs',
+            params: {
+              address,
+              minValue,
+            },
+            response,
+          },
+        })
       }
 
       if (minValue && minValue > response.final_balance) {
-        throw new Error(
-          `Address: ${address} doesn't have enough utxo to spend ${minValue}`
-        )
+        throw new NotEnoughUTXOError({
+          minValue,
+          address,
+          balance: response.final_balance,
+        })
       }
 
       if (!response.txrefs || response.txrefs.length === 0) {
@@ -61,30 +76,20 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
     }
   }
 
-  try {
-    const utxos: UTXO[] = []
-    let valueCount = 0
+  const utxos: UTXO[] = []
+  let valueCount = 0
 
-    for await (const batch of fetchUTXOs()) {
-      const utxoBatch = batch.map(blockchairUTXOTransformer)
-      utxos.push(...utxoBatch)
+  for await (const batch of fetchUTXOs()) {
+    const utxoBatch = batch.map(blockchairUTXOTransformer)
+    utxos.push(...utxoBatch)
 
-      if (minValue) {
-        valueCount += utxoBatch.reduce((sum, utxo) => sum + utxo.value, 0)
-        if (valueCount >= minValue) {
-          break
-        }
+    if (minValue) {
+      valueCount += utxoBatch.reduce((sum, utxo) => sum + utxo.value, 0)
+      if (valueCount >= minValue) {
+        break
       }
     }
-
-    return { result: utxos }
-  } catch (error: any) {
-    return {
-      error: {
-        code: error?.code || -1,
-        message:
-          error instanceof Error ? error.message : 'Failed to fetch UTXOs',
-      },
-    }
   }
+
+  return { result: utxos }
 }

@@ -1,12 +1,16 @@
+import { NotEnoughUTXOError } from '../../errors/address.js'
+import { BaseError } from '../../errors/base.js'
+import { HttpRequestError, RpcRequestError } from '../../errors/request.js'
 import type { UTXO } from '../../types/transaction.js'
+
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type {
   BlockChairDashboardAddressResponse,
-  BlockchairAddressBalanceData,
   BlockchairResponse,
   BlockchairUTXO,
 } from './blockchair.types.js'
+import { getBalance } from './getBalance.js'
 
 const blockChairUTXOTransformer =
   (scriptHex: string) =>
@@ -23,25 +27,6 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   { baseUrl, apiKey },
   { address, minValue }
 ) => {
-  async function isAddressUTXOEnough(minValue: number): Promise<boolean> {
-    const apiUrl = urlWithParams(`${baseUrl}/addresses/balances`, {
-      key: apiKey,
-      addresses: address,
-    })
-    const response = (await client.request({
-      url: apiUrl,
-      fetchOptions: { method: 'GET' },
-    })) as unknown as BlockchairResponse<BlockchairAddressBalanceData>
-
-    if (response.context?.code !== 200) {
-      throw new Error(response.context.error || 'Error fetching user balance')
-    }
-
-    const addressUTXOBalance = Number(response.data[address])
-
-    return addressUTXOBalance > minValue
-  }
-
   async function* fetchUTXOs() {
     let offset = 0
     let hasMore = true
@@ -59,9 +44,18 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
         fetchOptions: { method: 'GET' },
       })) as unknown as BlockchairResponse<BlockChairDashboardAddressResponse>
 
-      // blockchair returns a 404 for empty addresses
       if (response.context?.code !== 200 && response.context?.code !== 404) {
-        throw new Error(`${response.context.code} : ${response.context?.error}`)
+        throw new HttpRequestError({
+          url: apiUrl,
+          body: {
+            method: 'fetchUTXOs',
+            params: {
+              address,
+              minValue,
+            },
+            response,
+          },
+        })
       }
 
       if (!response.data || response.data.utxo.length === 0) {
@@ -86,41 +80,39 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
     }
   }
 
-  try {
-    if (minValue) {
-      const _isAddressUTXOEnough = await isAddressUTXOEnough(minValue)
-      if (!_isAddressUTXOEnough) {
-        throw new Error(
-          `Address: ${address} doesn't have enough utxo to spend ${minValue}`
-        )
-      }
-    }
-    const utxos: UTXO[] = []
-    let valueCount = 0
-
-    for await (const batch of fetchUTXOs()) {
-      const addressScriptHex = batch.addresses[address].script_hex
-      const utxoBatch = batch.utxo.map(
-        blockChairUTXOTransformer(addressScriptHex)
-      )
-      utxos.push(...utxoBatch)
-
-      if (minValue) {
-        valueCount += utxoBatch.reduce((sum, utxo) => sum + utxo.value, 0)
-        if (valueCount >= minValue) {
-          break
-        }
-      }
-    }
-
-    return { result: utxos }
-  } catch (error: any) {
-    return {
-      error: {
-        code: error?.code || -1,
-        message:
-          error instanceof Error ? error.message : 'Failed to fetch UTXOs',
-      },
+  if (minValue) {
+    const { result: balance } = await getBalance(
+      client,
+      { baseUrl, apiKey },
+      { address }
+    )
+    console.log
+    balance
+    if (minValue > Number(balance)) {
+      throw new NotEnoughUTXOError({
+        minValue,
+        address,
+        balance: Number(balance),
+      })
     }
   }
+  const utxos: UTXO[] = []
+  let valueCount = 0
+
+  for await (const batch of fetchUTXOs()) {
+    const addressScriptHex = batch.addresses[address].script_hex
+    const utxoBatch = batch.utxo.map(
+      blockChairUTXOTransformer(addressScriptHex)
+    )
+    utxos.push(...utxoBatch)
+
+    if (minValue) {
+      valueCount += utxoBatch.reduce((sum, utxo) => sum + utxo.value, 0)
+      if (valueCount >= minValue) {
+        break
+      }
+    }
+  }
+
+  return { result: utxos }
 }
