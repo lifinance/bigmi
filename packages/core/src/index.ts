@@ -187,6 +187,12 @@ export {
   TransactionReceiptNotFoundError,
   WaitForTransactionReceiptTimeoutError,
 } from './errors/transaction.js'
+export {
+  NotEnoughUTXOsError as NotEnoughUTXOError,
+  UTXOsFetchError,
+  type NotEnoughUTXOsErrorType as NotEnoughUTXOErrorType,
+  type UTXOsFetchErrorType,
+} from './errors/utxo.js'
 export { UrlRequiredError } from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'
 

@@ -1,6 +1,5 @@
-import { NotEnoughUTXOError } from '../../errors/address.js'
-import { BaseError } from '../../errors/base.js'
-import { HttpRequestError, RpcRequestError } from '../../errors/request.js'
+import { RpcRequestError } from '../../errors/request.js'
+import { NotEnoughUTXOsError } from '../../errors/utxo.js'
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
@@ -61,7 +60,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
       }
 
       if (minValue && minValue > response.final_balance) {
-        throw new NotEnoughUTXOError({
+        throw new NotEnoughUTXOsError({
           minValue,
           address,
           balance: response.final_balance,

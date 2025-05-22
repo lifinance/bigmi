@@ -14,22 +14,3 @@ export class InvalidAddressError extends BaseError {
     })
   }
 }
-
-export type NotEnoughUTXOErrorType = NotEnoughUTXOError & {
-  name: 'NotEnoughUTXOError'
-}
-
-export class NotEnoughUTXOError extends BaseError {
-  constructor({
-    minValue,
-    address,
-    balance,
-  }: { minValue: number; address?: string; balance?: number }) {
-    super(`Not enough UTXO required for ${minValue}`, {
-      metaMessages: [
-        `${address && balance && `Address ${address} has a balance of ${balance}.`}`,
-      ],
-      name: 'NotEnoughUTXOError',
-    })
-  }
-}
