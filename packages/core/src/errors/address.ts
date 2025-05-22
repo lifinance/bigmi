@@ -25,7 +25,7 @@ export class NotEnoughUTXOError extends BaseError {
     address,
     balance,
   }: { minValue: number; address?: string; balance?: number }) {
-    super(`Not enough utxo required for ${minValue}`, {
+    super(`Not enough UTXO required for ${minValue}`, {
       metaMessages: [
         `${address && balance && `Address ${address} has a balance of ${balance}.`}`,
       ],

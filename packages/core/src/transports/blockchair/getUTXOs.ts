@@ -21,6 +21,8 @@ const blockChairUTXOTransformer =
     vout: data.index,
   })
 
+const MAX_API_LIMIT = '100,100'
+
 export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   client,
   { baseUrl, apiKey },
@@ -36,6 +38,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
         {
           key: apiKey,
           offset: `0,${offset}`,
+          limit: MAX_API_LIMIT,
         }
       )
       const response = (await client.request({

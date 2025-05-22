@@ -19,6 +19,8 @@ const blockchairUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
   scriptHex: utxo.script,
 })
 
+const MAX_API_LIMIT = 2000
+
 export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   client,
   { baseUrl, apiKey },
@@ -34,6 +36,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
         unspentOnly: 'true',
         includeScript: 'true',
         before: beforeBlock,
+        limit: MAX_API_LIMIT,
       })
       const response = (await client.request({
         url: apiUrl,
