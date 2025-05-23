@@ -1,0 +1,2 @@
+export const name = '@bigmi/client'
+export const version = '0.2.1'
