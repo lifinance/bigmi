@@ -66,15 +66,15 @@ export class WaitForTransactionReceiptTimeoutError extends BaseError {
   }
 }
 
-export type TransactionsFetchErrorType = TransactionsFetchError & {
+export type TransactionsNotFoundErrorType = TransactionsNotFoundError & {
   name: 'TransactionsFetchError'
 }
 
-export class TransactionsFetchError extends BaseError {
+export class TransactionsNotFoundError extends BaseError {
   constructor({ address }: { address: string }) {
     super(
       `There was a problem fetching transactions for address: ${address}.`,
-      { name: 'TransactionsFetchError' }
+      { name: 'TransactionsNotFoundError' }
     )
   }
 }

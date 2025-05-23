@@ -1,4 +1,3 @@
-import { TransactionsFetchError } from '../errors/transaction.js'
 import type { UTXOSchema } from '../transports/types.js'
 import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
@@ -17,8 +16,7 @@ export type GetTransactionsParameters = {
 export type GetTransactionsReturnType = {
   transactions: Array<Partial<UTXOTransaction>>
   total: number
-  itemsPerPage: number
-  hasMore: boolean
+  hasMore?: boolean
 }
 
 export async function getTransactions<
@@ -28,17 +26,15 @@ export async function getTransactions<
   client: Client<Transport, C, A, UTXOSchema>,
   { address, offset, limit, lastBlock }: GetTransactionsParameters
 ): Promise<GetTransactionsReturnType> {
-  try {
-    return client.request({
-      method: 'getTransactions',
-      params: {
-        address,
-        offset,
-        limit,
-        lastBlock,
-      },
-    })
-  } catch (_error) {
-    throw new TransactionsFetchError({ address })
-  }
+  const data = await client.request({
+    method: 'getTransactions',
+    params: {
+      address,
+      offset,
+      limit,
+      lastBlock,
+    },
+  })
+
+  return data
 }

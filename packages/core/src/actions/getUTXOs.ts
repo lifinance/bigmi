@@ -1,4 +1,4 @@
-import { UTXOsFetchError } from '../errors/utxo.js'
+import { UTXONotFoundError } from '../errors/utxo.js'
 import type { UTXOSchema } from '../transports/types.js'
 import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
@@ -20,15 +20,12 @@ export async function getUTXOs<
   client: Client<Transport, C, A, UTXOSchema>,
   { address, minValue }: GetUTXOsParameters
 ): Promise<GetUTXOsReturnType> {
-  try {
-    return client.request({
-      method: 'getUTXOs',
-      params: {
-        address,
-        minValue,
-      },
-    })
-  } catch (_error) {
-    throw new UTXOsFetchError({ address })
-  }
+  const data = await client.request({
+    method: 'getUTXOs',
+    params: {
+      address,
+      minValue,
+    },
+  })
+  return data
 }
