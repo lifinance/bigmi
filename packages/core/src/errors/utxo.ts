@@ -1,17 +1,5 @@
 import { BaseError } from './base.js'
 
-export type UTXONotFoundErrorType = UTXONotFoundError & {
-  name: 'UTXONotFoundError'
-}
-
-export class UTXONotFoundError extends BaseError {
-  constructor({ address }: { address: string }) {
-    super(`There was a problem fetching UTXOs for address: ${address}.`, {
-      name: 'UTXONotFoundError',
-    })
-  }
-}
-
 export type InsufficientUTXOBalanceErrorType = InsufficientUTXOBalanceError & {
   name: 'InsufficientUTXOBalanceError'
 }

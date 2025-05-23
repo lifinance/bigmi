@@ -188,10 +188,8 @@ export {
   WaitForTransactionReceiptTimeoutError,
 } from './errors/transaction.js'
 export {
-  InsufficientUTXOBalanceError as NotEnoughUTXOError,
-  UTXONotFoundError as UTXOsFetchError,
-  type InsufficientUTXOBalanceErrorType as NotEnoughUTXOErrorType,
-  type UTXONotFoundErrorType as UTXOsFetchErrorType,
+  InsufficientUTXOBalanceError,
+  type InsufficientUTXOBalanceErrorType,
 } from './errors/utxo.js'
 export { UrlRequiredError } from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'

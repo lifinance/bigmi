@@ -1,4 +1,3 @@
-import { UTXONotFoundError } from '../errors/utxo.js'
 import type { UTXOSchema } from '../transports/types.js'
 import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
