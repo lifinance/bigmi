@@ -25,5 +25,6 @@ export async function getBalance<
     },
     { dedupe: true }
   )
+
   return data
 }

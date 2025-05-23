@@ -1,0 +1,95 @@
+{
+  "data": {
+    "set": {
+      "address_count": 1,
+      "balance": 33206,
+      "balance_usd": 34.19520674,
+      "received": 424052,
+      "spent": 390846,
+      "output_count": 18,
+      "unspent_output_count": 1,
+      "first_seen_receiving": "2025-02-19 16:23:59",
+      "last_seen_receiving": "2025-05-16 19:17:40",
+      "first_seen_spending": "2025-02-21 09:12:18",
+      "last_seen_spending": "2025-05-16 19:17:40",
+      "transaction_count": 19
+    },
+    "addresses": {
+      "bc1qpvk0kjdg0kantu9z78qz7gqk53q643auz33yaw": {
+        "type": "witness_v0_scripthash",
+        "script_hex": "00140b2cfb49a87dbb35f0a2f1c02f2016a441aac7bc",
+        "balance": 33206,
+        "balance_usd": 34.19520674,
+        "received": 424052,
+        "received_usd": 387.6347,
+        "spent": 390846,
+        "spent_usd": 355.7633,
+        "output_count": 18,
+        "unspent_output_count": 1,
+        "first_seen_receiving": "2025-02-19 16:23:59",
+        "last_seen_receiving": "2025-05-16 19:17:40",
+        "first_seen_spending": "2025-02-21 09:12:18",
+        "last_seen_spending": "2025-05-16 19:17:40"
+      }
+    },
+    "transactions": [
+      "4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e",
+      "e77cbe6d061f43672968834bce324a1984797f5cfbb463697df238bd385917be",
+      "6fb47290d31b4601e9882dafaf446c4ad412ba7ef875f25a274b1dd0db22c087",
+      "0901dfa8f1576586b481918d623ac6677d7d7ca6bdec108683853cfe220f5bd5",
+      "1438c9115f819b42213e64628be549e5b57f6a3920a0f2de74c36dcb38e20273",
+      "9ad7e397142514c5c73a576bd4d0c4e0b630e678e53f197fa4b0e94dfcdace71",
+      "4dc7273ad40053046b8000325fe2512dfdc08495969662b78cd77e9997fa08de",
+      "cb6567b37e741055b2f63b96697a882719760a74109f156f19653fa9117b8fb5",
+      "18d8089743078c7660e9ab04871193d649c9696fc7c3cb7adbb31f7c388d34a5",
+      "e7a25c215a75057a849a3f1be47e3fc37fc4c6f9579d8760c487229ee57ebec0",
+      "b64f157ba8473ad12c598a973e35283c8070e662f6c6927a2550175fd491b1c5",
+      "c38a0df6ccd23945180558ffb7c0c0f041e311994a6cb590b37568dbe3d5a309",
+      "8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23",
+      "a76c4e97ca7becbaa7fc3e47ecb6e2f5abc0e8a82a47b5a32661769c17903c3d",
+      "bc03f829054f68279efb328f3f16c00f6c3be2465b10fe75180ea468475b70e8",
+      "57db1a9db8f2da0f05d0ec3b055c19c6ab8df5e6bc35142bff122c5933a2f958",
+      "fdce2091a5b477aa889a114d4959b51b7026562983837e9b16d780111ddf0ecb",
+      "40f3c3bf567ee8caea4bd4209f42325285a12c5127666f203ec33d725317aad4",
+      "c947acaef3cc7b3bf15447e7c992394a489df623d27ca4c925d8b4444374e913"
+    ],
+    "utxo": [
+      {
+        "block_id": 897002,
+        "transaction_hash": "4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e",
+        "index": 2,
+        "value": 33206,
+        "address": "bc1qpvk0kjdg0kantu9z78qz7gqk53q643auz33yaw"
+      }
+    ]
+  },
+  "context": {
+    "code": 200,
+    "source": "D",
+    "limit": "100,100",
+    "offset": "0,0",
+    "results": 1,
+    "optimized": false,
+    "state": 897410,
+    "market_price_usd": 102979,
+    "cache": {
+      "live": true,
+      "duration": 120,
+      "since": "2025-05-19 12:11:47",
+      "until": "2025-05-19 12:13:47",
+      "time": null
+    },
+    "api": {
+      "version": "2.0.95-ie",
+      "last_major_update": "2022-11-07 02:00:00",
+      "next_major_update": "2023-11-12 02:00:00",
+      "documentation": "https://blockchair.com/api/docs",
+      "notice": "Try out our new API v.3: https://3xpl.com/data"
+    },
+    "servers": "API4,BTC5",
+    "time": 1.095700979232788,
+    "render_time": 0.056569814682006836,
+    "full_time": 1.152270793914795,
+    "request_cost": 1
+  }
+}
