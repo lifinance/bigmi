@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
 import { getUTXOs } from '../../actions/getUTXOs'
 import { bitcoin } from '../../chains/bitcoin'
-import { NotEnoughUTXOError } from '../../errors/address'
 import { BaseError } from '../../errors/base'
+import { InsufficientUTXOBalanceError } from '../../errors/utxo'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
@@ -109,7 +109,7 @@ describe('Blockchair Transport', () => {
           address,
           minValue: Number(hugeValue),
         })
-      ).rejects.toThrow(NotEnoughUTXOError)
+      ).rejects.toThrow(InsufficientUTXOBalanceError)
     })
 
     it('should handle empty UTXO response', async () => {
