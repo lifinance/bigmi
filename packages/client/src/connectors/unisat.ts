@@ -72,6 +72,9 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       }
       if ('unisat' in window) {
         const anyWindow: any = window
+        if (anyWindow.unisat?.isBinance || anyWindow.unisat?.isBitKeep) {
+          return
+        }
         return anyWindow.unisat
       }
     },

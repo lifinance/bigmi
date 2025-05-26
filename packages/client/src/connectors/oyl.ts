@@ -26,7 +26,7 @@ type OylBitcoinProvider = {
   disconnect(): void
   getAddresses(): Promise<{
     taproot: OylAddress
-    nativeSegWit: OylAddress
+    nativeSegwit: OylAddress
     nestedSegwit: OylAddress
     legacy: OylAddress
   }>
@@ -47,7 +47,7 @@ type OylBitcoinProvider = {
 
 oyl.type = 'UTXO' as const
 export function oyl(parameters: UTXOConnectorParameters = {}) {
-  const { chainId } = parameters
+  const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: BtcAccount[]) => void) | undefined
 
   return createConnector<
@@ -57,7 +57,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
     id: 'OylProvider',
     name: 'Oyl',
     type: oyl.type,
-    icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAwIiBoZWlnaHQ9IjQzMyIgdmlld0JveD0iMCAwIDEwMDAgNDMzIiBmaWxsPSJub25lIj4KPHBhdGggZD0iTTUwMCAwQzU4Ni4wNTkgMCA2NjcuMDU2IDcuNTkzNDUgNzQyLjk5MSAyMi43ODA0QzgxOC45MjUgMzcuNTc3OSA4ODAuNjQ2IDYwLjk0MjQgOTI4LjE1NCA5Mi44NzM4Qzk3Ni4wNTEgMTI0LjgwNSAxMDAwIDE2NC45MTQgMTAwMCAyMTMuMjAxQzEwMDAgMjYxLjQ4OCA5NzYuMDUxIDMwMi4xODEgOTI4LjE1NCAzMzUuMjhDODgwLjI1NyAzNjcuOTkxIDgxOC4xNDYgMzkyLjMyOSA3NDEuODIyIDQwOC4yOTRDNjY1Ljg4OCA0MjQuMjYgNTg1LjI4IDQzMi4yNDMgNTAwIDQzMi4yNDNDNDEzLjk0MSA0MzIuMjQzIDMzMi45NDQgNDI0Ljg0NCAyNTcuMDA5IDQxMC4wNDdDMTgxLjA3NSAzOTQuODYgMTE5LjE1OSAzNzEuMzAxIDcxLjI2MTcgMzM5LjM2OUMyMy43NTM5IDMwNy40MzggMCAyNjcuMzI5IDAgMjE5LjA0MkMwIDE3MC43NTUgMjMuOTQ4NiAxMzAuMjU3IDcxLjg0NTggOTcuNTQ2N0MxMTkuNzQzIDY0LjQ0NzEgMTgxLjY1OSAzOS45MTQzIDI1Ny41OTMgMjMuOTQ4NkMzMzMuOTE3IDcuOTgyODcgNDE0LjcyIDAgNTAwIDBaTTUwMS4xNjggMzQ5LjI5OUM1NDIuMDU2IDM0OS4yOTkgNTgyLjk0NCAzNDUuMDE2IDYyMy44MzIgMzM2LjQ0OUM2NjUuMTA5IDMyNy44ODIgNjk5Ljc2NiAzMTMuNjY4IDcyNy44MDQgMjkzLjgwOEM3NTUuODQxIDI3My45NDkgNzY5Ljg2IDI0OC4wNTMgNzY5Ljg2IDIxNi4xMjJDNzY5Ljg2IDE4NC4xOSA3NTUuODQxIDE1OC4yOTQgNzI3LjgwNCAxMzguNDM1QzY5OS43NjYgMTE4LjU3NSA2NjUuMTA5IDEwNC4zNjEgNjIzLjgzMiA5NS43OTQ0QzU4Mi45NDQgODcuMjI3NCA1NDIuMDU2IDgyLjk0MzkgNTAxLjE2OCA4Mi45NDM5SDQ5OC44MzJDNDU3Ljk0NCA4Mi45NDM5IDQxNi44NjEgODcuMjI3NCAzNzUuNTg0IDk1Ljc5NDRDMzM0LjY5NiAxMDQuMzYxIDMwMC4yMzQgMTE4LjU3NSAyNzIuMTk2IDEzOC40MzVDMjQ0LjE1OSAxNTguMjk0IDIzMC4xNCAxODQuMTkgMjMwLjE0IDIxNi4xMjJDMjMwLjE0IDI0OC4wNTMgMjQ0LjE1OSAyNzMuOTQ5IDI3Mi4xOTYgMjkzLjgwOEMzMDAuMjM0IDMxMy42NjggMzM0LjY5NiAzMjcuODgyIDM3NS41ODQgMzM2LjQ0OUM0MTYuODYxIDM0NS4wMTYgNDU3Ljk0NCAzNDkuMjk5IDQ5OC44MzIgMzQ5LjI5OUg1MDEuMTY4WiIgZmlsbD0iYmxhY2siLz4KPC9zdmc+',
+    icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMjAiIGhlaWdodD0iMzIwIiB2aWV3Qm94PSIwIDAgMzIwIDMyMCIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMzIwIiBmaWxsPSJibGFjayIvPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNV8yKSI+CjxwYXRoIGQ9Ik0xNjAgMjA0QzE3Ny41NTYgMjA0IDE5NC4wNzkgMjAyLjQzOSAyMDkuNTcgMTk5LjMxOEMyMjUuMDYxIDE5Ni4yNzYgMjM3LjY1MiAxOTEuNDc0IDI0Ny4zNDMgMTg0LjkxQzI1Ny4xMTQgMTc4LjM0NyAyNjIgMTcwLjEwMyAyNjIgMTYwLjE3OEMyNjIgMTUwLjI1MyAyNTcuMTE0IDE0MS44ODkgMjQ3LjM0MyAxMzUuMDg2QzIzNy41NzIgMTI4LjM2MiAyMjQuOTAyIDEyMy4zNiAyMDkuMzMyIDEyMC4wNzhDMTkzLjg0MSAxMTYuNzk2IDE3Ny4zOTcgMTE1LjE1NiAxNjAgMTE1LjE1NkMxNDIuNDQ0IDExNS4xNTYgMTI1LjkyMSAxMTYuNjc2IDExMC40MyAxMTkuNzE4Qzk0LjkzOTMgMTIyLjgzOSA4Mi4zMDg0IDEyNy42ODIgNzIuNTM3NCAxMzQuMjQ1QzYyLjg0NTggMTQwLjgwOCA1OCAxNDkuMDUyIDU4IDE1OC45NzhDNTggMTY4LjkwMyA2Mi44ODU1IDE3Ny4yMjcgNzIuNjU2NSAxODMuOTVDODIuNDI3NiAxOTAuNzUzIDk1LjA1ODQgMTk1Ljc5NiAxMTAuNTQ5IDE5OS4wNzhDMTI2LjExOSAyMDIuMzU5IDE0Mi42MDMgMjA0IDE2MCAyMDRaTTE2MC4yMzggMTMyLjIwNEMxNjguNTc5IDEzMi4yMDQgMTc2LjkyMSAxMzMuMDg0IDE4NS4yNjIgMTM0Ljg0NUMxOTMuNjgyIDEzNi42MDYgMjAwLjc1MiAxMzkuNTI4IDIwNi40NzIgMTQzLjYxQzIxMi4xOTIgMTQ3LjY5MiAyMTUuMDUxIDE1My4wMTUgMjE1LjA1MSAxNTkuNTc4QzIxNS4wNTEgMTY2LjE0MSAyMTIuMTkyIDE3MS40NjQgMjA2LjQ3MiAxNzUuNTQ2QzIwMC43NTIgMTc5LjYyOCAxOTMuNjgyIDE4Mi41NDkgMTg1LjI2MiAxODQuMzFDMTc2LjkyMSAxODYuMDcxIDE2OC41NzkgMTg2Ljk1MSAxNjAuMjM4IDE4Ni45NTFIMTU5Ljc2MkMxNTEuNDIxIDE4Ni45NTEgMTQzLjA0IDE4Ni4wNzEgMTM0LjYxOSAxODQuMzFDMTI2LjI3OCAxODIuNTQ5IDExOS4yNDggMTc5LjYyOCAxMTMuNTI4IDE3NS41NDZDMTA3LjgwOCAxNzEuNDY0IDEwNC45NDkgMTY2LjE0MSAxMDQuOTQ5IDE1OS41NzhDMTA0Ljk0OSAxNTMuMDE1IDEwNy44MDggMTQ3LjY5MiAxMTMuNTI4IDE0My42MUMxMTkuMjQ4IDEzOS41MjggMTI2LjI3OCAxMzYuNjA2IDEzNC42MTkgMTM0Ljg0NUMxNDMuMDQgMTMzLjA4NCAxNTEuNDIxIDEzMi4yMDQgMTU5Ljc2MiAxMzIuMjA0SDE2MC4yMzhaIiBmaWxsPSJ3aGl0ZSIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzVfMiI+CjxyZWN0IHdpZHRoPSIyMDQiIGhlaWdodD0iODkiIGZpbGw9IndoaXRlIiB0cmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSA1OCAyMDQpIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+',
 
     async setup() {},
 
@@ -105,8 +105,17 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
           accountsChanged = this.onAccountsChanged.bind(this)
         }
 
+        if (shimDisconnect) {
+          await Promise.all([
+            config.storage?.setItem(`${this.id}.connected`, true),
+            config.storage?.removeItem(`${this.id}.disconnected`),
+          ])
+        }
+
         return { accounts, chainId }
       } catch (error: any) {
+        console.error({ error })
+        this.disconnect()
         throw new UserRejectedRequestError(error.message)
       }
     },
@@ -115,26 +124,45 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      this.disconnect()
+
+      provider.disconnect()
+      if (shimDisconnect) {
+        await Promise.all([
+          config.storage?.setItem(`${this.id}.disconnected`, true),
+          config.storage?.removeItem(`${this.id}.connected`),
+        ])
+      }
     },
     async getAccounts() {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+
       const accounts = await provider.getAddresses()
-      return [accounts.nativeSegWit.address as Address]
+
+      return [accounts.nativeSegwit.address as Address]
     },
     async getChainId() {
       return chainId!
     },
     async isAuthorized() {
-      const provider = await this.getInternalProvider()
-      if (!provider) {
-        throw new ProviderNotFoundError()
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const providerIsConnected = await provider.isConnected()
+        const isConnected =
+          providerIsConnected &&
+          shimDisconnect &&
+          Boolean(await config.storage?.getItem(`${this.id}.connected`))
+
+        return isConnected
+      } catch (error) {
+        console.error({ error })
+        return false
       }
-      const isConnected = await provider.isConnected()
-      return isConnected
     },
     async onAccountsChanged(accounts) {
       if (accounts.length === 0) {

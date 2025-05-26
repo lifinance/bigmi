@@ -72,7 +72,7 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       }
       if ('bitkeep' in window) {
         const anyWindow: any = window
-        return anyWindow.bitkeep.unisat
+        return anyWindow.bitkeep?.unisat
       }
     },
     async getProvider() {
