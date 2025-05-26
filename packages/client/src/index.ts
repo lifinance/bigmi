@@ -51,6 +51,18 @@ export type {
   XverseBitcoinEventMap,
   XverseBitcoinEvents,
 } from './connectors/xverse.js'
+export { binance } from './connectors/binance.js'
+export type {
+  BinanceBitcoinEventMap,
+  BinanceBitcoinEvents,
+} from './connectors/binance.js'
+export { bitget } from './connectors/bitget.js'
+export type {
+  BitgetBitcoinEventMap,
+  BitgetBitcoinEvents,
+} from './connectors/bitget.js'
+export { oyl } from './connectors/oyl.js'
+export type { OylConnectorProperties } from './connectors/oyl.js'
 
 export type { State } from './types/state.js'
 export { type Config, createConfig } from './factories/createConfig.js'
