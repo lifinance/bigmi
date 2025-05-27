@@ -16,6 +16,11 @@ export function base64ToHex(base64: string): string {
   return hex
 }
 
+export function base64urlEncode(str: string): string {
+  const encoded = btoa(decodeURIComponent(encodeURIComponent(str)))
+  return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
 export function stringToHex(value: string): string {
   const hex = Array.from(value)
     .map((char: string) => char.charCodeAt(0).toString(16).padStart(2, '0'))

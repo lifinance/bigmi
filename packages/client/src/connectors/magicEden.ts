@@ -8,9 +8,9 @@ import {
   hexToBase64,
   withRetry,
 } from '@bigmi/core'
-import * as jsontokens from 'jsontokens'
 
 import { createConnector } from '../factories/createConnector.js'
+import { createUnsecuredToken } from '../utils/createUnsecuredToken.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -216,7 +216,8 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
 }
 
 function encodeParams(params: any) {
-  return jsontokens.createUnsecuredToken(params)
+  const token = createUnsecuredToken(params)
+  return token
 }
 
 function createAccountHandler(callback: (accounts: Address[]) => void) {
