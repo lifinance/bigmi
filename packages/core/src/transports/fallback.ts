@@ -125,7 +125,7 @@ export function fallback<const transports extends readonly Transport[]>(
           // Filter transports to only those that support the requested method
           const supportedTransports = transports.reduce<
             ReturnType<Transport>[]
-          >((acc, transport) => {
+          >((supportedTransports, transport) => {
             const instance = transport({
               ...rest,
               chain,
@@ -135,18 +135,18 @@ export function fallback<const transports extends readonly Transport[]>(
             const { include, exclude } = instance.config.methods || {}
             if (include) {
               if (include.includes(method)) {
-                acc.push(instance)
+                supportedTransports.push(instance)
               }
-              return acc
+              return supportedTransports
             }
             if (exclude) {
               if (!exclude.includes(method)) {
-                acc.push(instance)
+                supportedTransports.push(instance)
               }
-              return acc
+              return supportedTransports
             }
-            acc.push(instance)
-            return acc
+            supportedTransports.push(instance)
+            return supportedTransports
           }, [])
 
           if (!supportedTransports.length) {
