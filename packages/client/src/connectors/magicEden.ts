@@ -221,5 +221,9 @@ function encodeParams(params: any) {
 
 function createAccountHandler(callback: (accounts: Address[]) => void) {
   return (accounts: MagicEdenAccount[]) =>
-    callback(accounts.map((account) => account.address))
+    callback(
+      accounts
+        .filter((account) => account.purpose === 'payment')
+        .map((account) => account.address)
+    )
 }
