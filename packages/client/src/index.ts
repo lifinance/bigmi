@@ -63,6 +63,11 @@ export type {
 } from './connectors/bitget.js'
 export { oyl } from './connectors/oyl.js'
 export type { OylConnectorProperties } from './connectors/oyl.js'
+export { magicEden } from './connectors/magicEden.js'
+export type {
+  MagicEdenBitcoinEventMap,
+  MagicEdenBitcoinEvents,
+} from './connectors/magicEden.js'
 
 export type { State } from './types/state.js'
 export { type Config, createConfig } from './factories/createConfig.js'
