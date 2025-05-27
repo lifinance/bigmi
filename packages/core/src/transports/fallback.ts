@@ -123,29 +123,38 @@ export function fallback<const transports extends readonly Transport[]>(
         name,
         async request({ method, params }) {
           // Filter transports to only those that support the requested method
-          const supportedTransports = transports.filter((transport) => {
-            const { include, exclude } =
-              transport({ chain }).config.methods || {}
+          const supportedTransports = transports.reduce<
+            ReturnType<Transport>[]
+          >((acc, transport) => {
+            const instance = transport({
+              ...rest,
+              chain,
+              retryCount: 0,
+              timeout,
+            })
+            const { include, exclude } = instance.config.methods || {}
             if (include) {
-              return include.includes(method)
+              if (include.includes(method)) {
+                acc.push(instance)
+              }
+              return acc
             }
             if (exclude) {
-              return !exclude.includes(method)
+              if (!exclude.includes(method)) {
+                acc.push(instance)
+              }
+              return acc
             }
-            return true
-          })
+            acc.push(instance)
+            return acc
+          }, [])
 
           if (!supportedTransports.length) {
             throw new TransportMethodNotSupportedError({ method })
           }
 
           const fetch = async (i = 0): Promise<any> => {
-            const transport = supportedTransports[i]({
-              ...rest,
-              chain,
-              retryCount: 0,
-              timeout,
-            })
+            const transport = supportedTransports[i]
             try {
               const response = await transport.request({
                 method,
@@ -175,7 +184,7 @@ export function fallback<const transports extends readonly Transport[]>(
               }
 
               // If we've reached the end of the fallbacks, throw the error.
-              if (i === transports.length - 1) {
+              if (i === supportedTransports.length - 1) {
                 throw err
               }
 
