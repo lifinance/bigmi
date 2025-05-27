@@ -1,5 +1,6 @@
 import {
   type Address,
+  type BtcAccount,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
@@ -17,14 +18,8 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
-type MagicEdenAccount = {
-  address: string
-  publicKey: string
-  purpose: 'payment' | 'ordinals'
-}
-
 export type MagicEdenBitcoinEventMap = {
-  accountsChanged(accounts: MagicEdenAccount[]): void
+  accountsChanged(accounts: BtcAccount[]): void
 }
 
 export type MagicEdenBitcoinEvents = {
@@ -45,7 +40,7 @@ type MagicEdenConnectorProperties = {
 } & UTXOWalletProvider
 
 type MagicEdenBitcoinProvider = {
-  connect(encodedRequest: string): Promise<{ addresses: MagicEdenAccount[] }>
+  connect(encodedRequest: string): Promise<{ addresses: BtcAccount[] }>
   signTransaction(encodedRequest: string): Promise<{
     psbtBase64: string
     txId?: string
@@ -221,7 +216,7 @@ function encodeParams(params: any) {
 }
 
 function createAccountHandler(callback: (accounts: Address[]) => void) {
-  return (accounts: MagicEdenAccount[]) =>
+  return (accounts: BtcAccount[]) =>
     callback(
       accounts
         .filter((account) => account.purpose === 'payment')
