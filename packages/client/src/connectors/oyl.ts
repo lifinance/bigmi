@@ -114,7 +114,6 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
 
         return { accounts, chainId }
       } catch (error: any) {
-        console.error({ error })
         this.disconnect()
         throw new UserRejectedRequestError(error.message)
       }
@@ -159,8 +158,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
 
         return isConnected
-      } catch (error) {
-        console.error({ error })
+      } catch (_error) {
         return false
       }
     },
