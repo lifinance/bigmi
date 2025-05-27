@@ -6,7 +6,7 @@ type BlockchairConfig = {
   apiKey?: string
 } & HttpTransportConfig
 
-export const blockchair = (config: BlockchairConfig) =>
+export const blockchair = (config?: BlockchairConfig) =>
   utxo(config?.baseUrl || 'https://api.blockchair.com', {
     key: 'blockchair',
     includeChainToURL: true,
