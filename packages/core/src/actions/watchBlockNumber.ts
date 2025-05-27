@@ -1,6 +1,6 @@
-import type { Transport } from '../factories/createTransport.js'
 import type { Chain } from '../types/chain.js'
 import type { Client } from '../types/client.js'
+import type { Transport } from '../types/transport.js'
 import { getAction } from '../utils/getAction.js'
 import { observe } from '../utils/observe.js'
 import { poll } from '../utils/poll.js'

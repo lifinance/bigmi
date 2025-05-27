@@ -4,13 +4,13 @@ import {
   type UrlRequiredErrorType,
 } from '../errors/transport.js'
 import type { ErrorType } from '../errors/utils.js'
-import {
-  type CreateTransportErrorType,
-  type Transport,
-  type TransportConfig,
-  createTransport,
-} from '../factories/createTransport.js'
+import { createTransport } from '../factories/createTransport.js'
 import type { BtcRpcRequestFn, RpcSchema } from '../types/request.js'
+import type {
+  CreateTransportErrorType,
+  Transport,
+  TransportConfig,
+} from '../types/transport.js'
 import { createBatchScheduler } from '../utils/createBatchScheduler.js'
 import {
   type HttpRpcClientOptions,

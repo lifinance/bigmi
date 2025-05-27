@@ -1,4 +1,5 @@
 import type { ErrorType } from '../errors/utils.js'
+import type { UTXOMethod } from '../transports/types.js'
 import type { Chain } from './chain.js'
 import type { BtcRpcRequestFn, RpcSchema } from './request.js'
 import type { OneOf } from './utils.js'
@@ -15,10 +16,10 @@ export type TransportConfig<
   methods?:
     | OneOf<
         | {
-            include?: string[] | undefined
+            include?: UTXOMethod[] | undefined
           }
         | {
-            exclude?: string[] | undefined
+            exclude?: UTXOMethod[] | undefined
           }
       >
     | undefined

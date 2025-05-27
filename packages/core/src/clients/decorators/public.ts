@@ -34,9 +34,9 @@ import {
 } from '../../actions/getUTXOs.js'
 
 import type { Client } from '../../factories/createClient.js'
-import type { Transport } from '../../factories/createTransport.js'
 import type { UTXOSchema } from '../../transports/types.js'
 import type { Account } from '../../types/account.js'
+import type { Transport } from '../../types/transport.js'
 
 import type { Chain } from '../../types/chain.js'
 

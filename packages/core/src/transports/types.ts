@@ -2,7 +2,7 @@ import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
-export const UTXOAPISchemaMethods = [
+export const UTXOAPISchemaMethods: UTXOMethod[] = [
   'getBalance',
   'getTransactions',
   'getUTXOs',

@@ -4,7 +4,7 @@ import { createTransport } from '../factories/createTransport.js'
 import { getHttpRpcClient } from './getHttpRpcClient.js'
 import { getRpcProviderMethods } from './getRpcProviderMethods.js'
 import type { HttpTransport, HttpTransportConfig } from './http.js'
-import { UTXOAPISchemaMethods, type UTXOMethod } from './types.js'
+import type { UTXOMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {
   includeChainToURL?: boolean
@@ -50,9 +50,7 @@ export function utxo(
       {
         key,
         name,
-        methods: {
-          include: UTXOAPISchemaMethods,
-        },
+        methods: config.methods,
         async request({ method, params }) {
           const body = { method, params }
           const methodHandler = rpcMethods?.[method as UTXOMethod]
