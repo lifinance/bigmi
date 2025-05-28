@@ -4,10 +4,11 @@ import { createTransport } from '../factories/createTransport.js'
 import { getHttpRpcClient } from './getHttpRpcClient.js'
 import { getRpcProviderMethods } from './getRpcProviderMethods.js'
 import type { HttpTransport, HttpTransportConfig } from './http.js'
-import { UTXOAPISchemaMethods, type UTXOMethod } from './types.js'
+import type { UTXOMethod } from './types.js'
 
 type UTXOHttpTransportConfig = HttpTransportConfig & {
   includeChainToURL?: boolean
+  apiKey?: string
 }
 
 export function utxo(
@@ -21,7 +22,10 @@ export function utxo(
     onFetchRequest,
     onFetchResponse,
     retryDelay,
+    apiKey,
+    methods,
   } = config
+
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
     const retryCount = config.retryCount ?? retryCount_
     const timeout = timeout_ ?? config.timeout ?? 10_000
@@ -47,15 +51,13 @@ export function utxo(
       {
         key,
         name,
-        methods: {
-          include: UTXOAPISchemaMethods,
-        },
+        methods,
         async request({ method, params }) {
           const body = { method, params }
           const methodHandler = rpcMethods?.[method as UTXOMethod]
           const { error, result } = await (methodHandler?.(
             client,
-            url_,
+            { baseUrl: url_, apiKey },
             params
           ) ??
             client.request({

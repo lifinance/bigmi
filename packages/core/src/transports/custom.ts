@@ -1,10 +1,10 @@
 import type { ErrorType } from '../errors/utils.js'
-import {
-  type CreateTransportErrorType,
-  type Transport,
-  type TransportConfig,
-  createTransport,
-} from '../factories/createTransport.js'
+import { createTransport } from '../factories/createTransport.js'
+import type {
+  CreateTransportErrorType,
+  Transport,
+  TransportConfig,
+} from '../types/transport.js'
 
 type BitcoinProvider = { request(...args: any): Promise<any> }
 

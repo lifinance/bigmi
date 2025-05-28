@@ -50,11 +50,14 @@ import {
   getBalance,
   getBlockCount,
   sendUTXOTransaction,
-  utxo,
   waitForTransaction,
   createClient, 
   fallback, 
   rpcSchema
+  ankr,
+  blockchair,
+  blockcypher,
+  mempool
 } from '@bigmi/core'
 import { useAccount } from '@bigmi/react'
 
@@ -64,19 +67,10 @@ const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
   transport: fallback([
-    utxo('https://api.blockchair.com', {
-      key: 'blockchair',
-      includeChainToURL: true,
-    }),
-    utxo('https://rpc.ankr.com/http/btc_blockbook/api/v2', {
-      key: 'ankr',
-    }),
-    utxo('https://api.blockcypher.com/v1/btc/main', {
-      key: 'blockcypher',
-    }),
-    utxo('https://mempool.space/api', {
-      key: 'mempool',
-    }),
+    blockchair(),
+    ankr({apiKey: 'YOUR_ANKR_API_KEY'}),
+    blockcypher(),
+    mempool(),
   ]),
 })
 

@@ -11,7 +11,7 @@ async function run() {
 
   const src = `export const name = '${name}'\nexport const version = '${version}'\n`
 
-  writeFile(`${process.cwd()}/src/config/version.ts`, src, {
+  writeFile(`${process.cwd()}/src/version.ts`, src, {
     flat: 'w',
   })
 }

@@ -1,9 +1,9 @@
 import type { Address } from '../types/address.js'
 
 import type { ErrorType } from '../errors/utils.js'
-import type { Transport } from '../factories/createTransport.js'
 import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'
+import type { Transport } from '../types/transport.js'
 
 import type { BtcRpcRequestFn, RpcSchema } from '../types/request.js'
 import type { BitcoinRpcMethods } from '../types/rpc.js'

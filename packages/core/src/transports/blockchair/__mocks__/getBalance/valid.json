@@ -1,0 +1,29 @@
+{
+  "data": { "bc1qpvk0kjdg0kantu9z78qz7gqk53q643auz33yaw": 33206 },
+  "context": {
+    "code": 200,
+    "source": "A",
+    "results": 1,
+    "state": 897404,
+    "market_price_usd": 102998,
+    "cache": {
+      "live": true,
+      "duration": 120,
+      "since": "2025-05-19 11:19:49",
+      "until": "2025-05-19 11:21:49",
+      "time": null
+    },
+    "api": {
+      "version": "2.0.95-ie",
+      "last_major_update": "2022-11-07 02:00:00",
+      "next_major_update": "2023-11-12 02:00:00",
+      "documentation": "https://blockchair.com/api/docs",
+      "notice": "Try out our new API v.3: https://3xpl.com/data"
+    },
+    "servers": "API4,BTC5",
+    "time": 0.6847109794616699,
+    "render_time": 0.012706995010375977,
+    "full_time": 0.6974179744720459,
+    "request_cost": 1.001
+  }
+}
