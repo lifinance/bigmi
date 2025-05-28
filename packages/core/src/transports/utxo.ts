@@ -23,6 +23,7 @@ export function utxo(
     onFetchResponse,
     retryDelay,
     apiKey,
+    methods,
   } = config
 
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
@@ -50,7 +51,7 @@ export function utxo(
       {
         key,
         name,
-        methods: config.methods,
+        methods,
         async request({ method, params }) {
           const body = { method, params }
           const methodHandler = rpcMethods?.[method as UTXOMethod]
