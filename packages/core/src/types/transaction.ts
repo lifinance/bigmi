@@ -12,33 +12,33 @@ export type UTXOTransaction = {
   version: number
   vsize: number
   weight: number
-  vin: {
-    scriptSig?: {
-      asm: string
-      hex: string
-    }
-    sequence: number
-    txid: string
-    txinwitness: string[]
-    vout: number
-  }[]
+  vin: (
+    | {
+        coinbase: string
+        sequence: number
+        txinwitness?: string[]
+      }
+    | {
+        txid: string
+        vout: number
+        scriptSig?: {
+          asm: string
+          hex: string
+        }
+        sequence: number
+        txinwitness?: string[]
+      }
+  )[]
   vout: {
     n: number
-    scriptPubKey?:
-      | {
-          address: string
-          asm: string
-          desc: string
-          hex: string
-          type: string
-        }
-      | {
-          asm: string
-          desc: string
-          hex: string
-          type: string
-        }
     value: number
+    scriptPubKey: {
+      address?: string
+      asm: string
+      desc: string
+      hex: string
+      type: string
+    }
   }[]
 }
 

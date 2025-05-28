@@ -43,8 +43,8 @@ export type AnkrVout = {
   hex: string
   addresses: string[]
   isAddress: boolean
-  scriptPubKey?: {
-    address: string
+  scriptPubKey: {
+    address?: string
     asm: string
     desc: string
     hex: string
