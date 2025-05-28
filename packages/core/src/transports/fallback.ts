@@ -1,6 +1,7 @@
 import { RpcErrorCode } from '../errors/rpc.js'
 import { TransportMethodNotSupportedError } from '../errors/transport.js'
 import type { ErrorType } from '../errors/utils.js'
+import { InsufficientUTXOBalanceError } from '../errors/utxo.js'
 import { createTransport } from '../factories/createTransport.js'
 import type { Chain } from '../types/chain.js'
 import type {
@@ -230,7 +231,8 @@ export function shouldThrow(error: Error) {
     if (
       error.code === RpcErrorCode.INTERNAL_ERROR ||
       error.code === RpcErrorCode.USER_REJECTION ||
-      error.code === 5000 // CAIP UserRejectedRequestError
+      error.code === 5000 || // CAIP UserRejectedRequestError
+      error instanceof InsufficientUTXOBalanceError
     ) {
       return true
     }
