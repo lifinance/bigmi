@@ -8,7 +8,7 @@ import type {
   BlockcypherUTXOsResponse,
 } from './blockcypher.types.js'
 
-const blockchairUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
+const blockcypherUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
   blockHeight: utxo.block_height,
   isConfirmed: Boolean(utxo.confirmations),
   confirmations: utxo.confirmations,
@@ -85,7 +85,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   let valueCount = 0
 
   for await (const batch of fetchUTXOs()) {
-    const utxoBatch = batch.map(blockchairUTXOTransformer)
+    const utxoBatch = batch.map(blockcypherUTXOTransformer)
     utxos.push(...utxoBatch)
 
     if (minValue) {
