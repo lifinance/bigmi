@@ -38,6 +38,16 @@ export type {
   WatchBlockNumberParameters,
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
+export { getUTXOs } from './actions/getUTXOs.js'
+export type {
+  GetUTXOsParameters,
+  GetUTXOsReturnType,
+} from './actions/getUTXOs.js'
+export { getTransactions } from './actions/getTransactions.js'
+export type {
+  GetTransactionsParameters,
+  GetTransactionsReturnType,
+} from './actions/getTransactions.js'
 
 // Exporting clients
 export {
@@ -50,9 +60,9 @@ export {
 } from './clients/decorators/wallet.js'
 
 // Exporting transports
-export { ankrMethods } from './transports/ankr.js'
-export { blockchairMethods } from './transports/blockchair.js'
-export { blockcypherMethods } from './transports/blockcypher.js'
+export { ankrMethods } from './transports/ankr/methods.js'
+export { blockchairMethods } from './transports/blockchair/methods.js'
+export { blockcypherMethods } from './transports/blockcypher/methods.js'
 export { getHttpRpcClient } from './transports/getHttpRpcClient.js'
 export type {
   HttpRequestParameters,
@@ -60,7 +70,7 @@ export type {
   RpcRequest,
 } from './transports/getHttpRpcClient.js'
 export { getRpcProviderMethods } from './transports/getRpcProviderMethods.js'
-export { mempoolMethods } from './transports/mempool.js'
+export { mempoolMethods } from './transports/mempool/methods.js'
 export type {
   ErrorResult,
   RpcMethodHandler,
@@ -74,6 +84,10 @@ export type {
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
 export { custom } from './transports/custom.js'
+export { ankr } from './transports/ankr/ankr.js'
+export { blockchair } from './transports/blockchair/blockchair.js'
+export { blockcypher } from './transports/blockcypher/blockcypher.js'
+export { mempool } from './transports/mempool/mempool.js'
 
 // Exporting types
 export type { Account } from './types/account.js'
@@ -114,7 +128,6 @@ export type {
   LooseOmit,
   UnionStrictOmit,
 } from './types/utils.js'
-export type { BtcAccount } from './types/account.js'
 
 // Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
@@ -179,6 +192,10 @@ export {
   TransactionReceiptNotFoundError,
   WaitForTransactionReceiptTimeoutError,
 } from './errors/transaction.js'
+export {
+  InsufficientUTXOBalanceError,
+  type InsufficientUTXOBalanceErrorType,
+} from './errors/utxo.js'
 export { UrlRequiredError } from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'
 

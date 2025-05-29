@@ -6,5 +6,3 @@ export interface Account {
   publicKey: string
   purpose: 'payment' | 'ordinals'
 }
-
-export interface BtcAccount extends Account {}

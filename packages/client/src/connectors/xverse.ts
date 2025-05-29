@@ -1,4 +1,4 @@
-import type { Address, BtcAccount, SignPsbtParameters } from '@bigmi/core'
+import type { Address, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -7,6 +7,7 @@ import {
   hexToBase64,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
+import type { BtcAccount } from '../types/account.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,

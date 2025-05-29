@@ -1,4 +1,5 @@
 import type { ErrorType } from '../errors/utils.js'
+import type { UTXOMethod } from '../transports/types.js'
 import type { OneOf } from './utils.js'
 
 export type RpcSchema = readonly {
@@ -34,10 +35,10 @@ export type BtcRpcRequestOptions = {
   methods?:
     | OneOf<
         | {
-            include?: string[] | undefined
+            include?: UTXOMethod[] | undefined
           }
         | {
-            exclude?: string[] | undefined
+            exclude?: UTXOMethod[] | undefined
           }
       >
     | undefined

@@ -1,8 +1,8 @@
 import type { PublicActions } from '../clients/decorators/public.js'
 import type { WalletActions } from '../clients/decorators/wallet.js'
-import type { Transport } from '../factories/createTransport.js'
 import type { UTXOSchema } from '../transports/types.js'
 import type { Client } from '../types/client.js'
+import type { Transport } from '../types/transport.js'
 
 import type { Account } from '../types/account.js'
 import type { Chain } from '../types/chain.js'

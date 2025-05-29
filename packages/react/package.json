@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/react",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "React primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -8,11 +8,12 @@
   "sideEffects": false,
   "scripts": {
     "watch": "tsc -w -p ./tsconfig.json",
-    "build": "pnpm clean && pnpm build:esm && pnpm build:clean",
+    "build": "pnpm clean && pnpm build:version && pnpm build:esm && pnpm build:clean",
     "build:esm": "tsc --build",
     "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../*.md' .",
     "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
     "build:clean": "rm -rf tsconfig.tsbuildinfo ./dist/tsconfig.tsbuildinfo",
+    "build:version": "node ../../scripts/version.js",
     "release:build": "pnpm build",
     "clean": "pnpm build:clean && rm -rf dist",
     "check:types": "tsc --noEmit",

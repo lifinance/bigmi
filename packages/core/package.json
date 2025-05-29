@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/core",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "TypeScript library for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -8,18 +8,21 @@
   "sideEffects": false,
   "scripts": {
     "watch": "tsc -w -p ./tsconfig.json",
-    "build": "pnpm clean && pnpm build:esm && pnpm build:cjs && pnpm build:types && pnpm build:clean",
+    "build": "pnpm clean && pnpm build:version && pnpm build:esm && pnpm build:cjs && pnpm build:types && pnpm build:clean",
     "build:cjs": "tsc --project ./tsconfig.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
     "build:esm": "tsc --project ./tsconfig.json --module es2015 --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
     "build:types": "tsc --project ./tsconfig.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
     "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../*.md' .",
     "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
     "build:clean": "rm -rf tsconfig.tsbuildinfo ./dist/tsconfig.tsbuildinfo",
+    "build:version": "node ../../scripts/version.js",
     "release:build": "pnpm build",
     "clean": "pnpm build:clean && rm -rf dist",
     "check:types": "tsc --noEmit",
     "check:circular-deps": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx')",
-    "check:circular-deps-graph": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx') --image graph.svg"
+    "check:circular-deps-graph": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx') --image graph.svg",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "author": "Eugene Chybisov <eugene@li.finance>",
   "homepage": "https://github.com/lifinance/bigmi",
@@ -47,12 +50,14 @@
     "bitcoinjs-lib": "^7.0.0-rc.0",
     "bs58": "^6.0.0",
     "eventemitter3": "^5.0.1",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.1.4",
     "cpy-cli": "^5.0.0",
     "madge": "^8.0.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.1.4"
   },
   "peerDependencies": {
     "bs58": "^6.0.0"
