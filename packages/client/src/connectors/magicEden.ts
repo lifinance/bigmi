@@ -1,6 +1,5 @@
 import {
   type Address,
-  type BtcAccount,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
@@ -9,8 +8,8 @@ import {
   hexToBase64,
   withRetry,
 } from '@bigmi/core'
-
 import { createConnector } from '../factories/createConnector.js'
+import type { BtcAccount } from '../types/account.js'
 import { createUnsecuredToken } from '../utils/createUnsecuredToken.js'
 import type {
   ProviderRequestParams,
