@@ -17,8 +17,12 @@ export function base64ToHex(base64: string): string {
 }
 
 export function base64urlEncode(str: string): string {
-  const encoded = btoa(decodeURIComponent(encodeURIComponent(str)))
-  return encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  const bytes = new TextEncoder().encode(str)
+  const encodedString = btoa(String.fromCharCode(...bytes))
+  return encodedString
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
 }
 
 export function stringToHex(value: string): string {
