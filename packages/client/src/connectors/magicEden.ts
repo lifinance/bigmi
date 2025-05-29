@@ -35,7 +35,7 @@ export type MagicEdenBitcoinEvents = {
 
 type MagicEdenConnectorProperties = {
   getAccounts(): Promise<readonly Address[]>
-  onAccountsChanged(accounts: Address[]): void
+  onAccountsChanged(accounts: BtcAccount[]): void
   getInternalProvider(): Promise<MagicEdenBitcoinProvider>
 } & UTXOWalletProvider
 
@@ -50,7 +50,7 @@ type MagicEdenBitcoinProvider = {
 magicEden.type = 'UTXO' as const
 export function magicEden(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
-  let accountsChanged: ((accounts: Address[]) => void) | undefined
+  let accountsChanged: ((accounts: BtcAccount[]) => void) | undefined
 
   return createConnector<
     UTXOWalletProvider | undefined,
@@ -118,10 +118,7 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
 
         if (!accountsChanged) {
           accountsChanged = this.onAccountsChanged.bind(this)
-          provider.addListener(
-            'accountsChanged',
-            createAccountHandler(accountsChanged)
-          )
+          provider.addListener('accountsChanged', accountsChanged)
         }
 
         // Remove disconnected shim if it exists
@@ -140,10 +137,7 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
       const provider = await this.getInternalProvider()
 
       if (accountsChanged) {
-        provider?.removeListener(
-          'accountsChanged',
-          createAccountHandler(accountsChanged)
-        )
+        provider?.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
       }
 
@@ -191,8 +185,12 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const addresses = (accounts as BtcAccount[])
+          .filter((account) => account.purpose === 'payment')
+          .map((account) => account.address)
+
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: addresses,
         })
       }
     },
@@ -212,13 +210,4 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
 function encodeParams(params: any) {
   const token = createUnsecuredToken(params)
   return token
-}
-
-function createAccountHandler(callback: (accounts: Address[]) => void) {
-  return (accounts: BtcAccount[]) =>
-    callback(
-      accounts
-        .filter((account) => account.purpose === 'payment')
-        .map((account) => account.address)
-    )
 }
