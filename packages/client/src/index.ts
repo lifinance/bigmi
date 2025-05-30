@@ -51,6 +51,23 @@ export type {
   XverseBitcoinEventMap,
   XverseBitcoinEvents,
 } from './connectors/xverse.js'
+export { binance } from './connectors/binance.js'
+export type {
+  BinanceBitcoinEventMap,
+  BinanceBitcoinEvents,
+} from './connectors/binance.js'
+export { bitget } from './connectors/bitget.js'
+export type {
+  BitgetBitcoinEventMap,
+  BitgetBitcoinEvents,
+} from './connectors/bitget.js'
+export { oyl } from './connectors/oyl.js'
+export type { OylConnectorProperties } from './connectors/oyl.js'
+export { magicEden } from './connectors/magicEden.js'
+export type {
+  MagicEdenBitcoinEventMap,
+  MagicEdenBitcoinEvents,
+} from './connectors/magicEden.js'
 
 // client types
 export type { BtcAccount } from './types/account.js'

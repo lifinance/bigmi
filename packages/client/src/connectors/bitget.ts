@@ -14,28 +14,28 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
-export type UnisatBitcoinEventMap = {
+export type BitgetBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
 }
 
-export type UnisatBitcoinEvents = {
-  addListener<TEvent extends keyof UnisatBitcoinEventMap>(
+export type BitgetBitcoinEvents = {
+  addListener<TEvent extends keyof BitgetBitcoinEventMap>(
     event: TEvent,
-    listener: UnisatBitcoinEventMap[TEvent]
+    listener: BitgetBitcoinEventMap[TEvent]
   ): void
-  removeListener<TEvent extends keyof UnisatBitcoinEventMap>(
+  removeListener<TEvent extends keyof BitgetBitcoinEventMap>(
     event: TEvent,
-    listener: UnisatBitcoinEventMap[TEvent]
+    listener: BitgetBitcoinEventMap[TEvent]
   ): void
 }
 
-type UnisatConnectorProperties = {
+type BitgetConnectorProperties = {
   getAccounts(): Promise<readonly Address[]>
   onAccountsChanged(accounts: Address[]): void
-  getInternalProvider(): Promise<UnisatBitcoinProvider>
+  getInternalProvider(): Promise<BitgetBitcoinProvider>
 } & UTXOWalletProvider
 
-type UnisatBitcoinProvider = {
+type BitgetBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   signPsbt(
@@ -49,20 +49,20 @@ type UnisatBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
-} & UnisatBitcoinEvents
+} & BitgetBitcoinEvents
 
-unisat.type = 'UTXO' as const
-export function unisat(parameters: UTXOConnectorParameters = {}) {
+bitget.type = 'UTXO' as const
+export function bitget(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
-    UnisatConnectorProperties
+    BitgetConnectorProperties
   >((config) => ({
-    id: 'unisat',
-    name: 'Unisat',
-    type: unisat.type,
-    icon: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGRhdGEtbmFtZT0i5Zu+5bGCIDIiIHZpZXdCb3g9IjAgMCAxMTUuNzcgMTQ3LjciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iYSIgeDE9IjMzNzkuMDMiIHgyPSIzNDE1LjQ4IiB5MT0iLTIxMDIiIHkyPSItMjE5OC4xMSIgZGF0YS1uYW1lPSLmnKrlkb3lkI3nmoTmuJDlj5ggNSIgZ3JhZGllbnRUcmFuc2Zvcm09InJvdGF0ZSgtMTM0LjczIDIxODcuNjY3IC0zNTMuNDI3KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzIwMWMxYiIvPjxzdG9wIG9mZnNldD0iLjM2IiBzdG9wLWNvbG9yPSIjNzczOTBkIi8+PHN0b3Agb2Zmc2V0PSIuNjciIHN0b3AtY29sb3I9IiNlYTgxMDEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmNGI4NTIiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iYiIgeDE9IjMzODQuMjMiIHgyPSIzMzMwLjY0IiB5MT0iLTIyMzEuNDIiIHkyPSItMjEzMS4yOSIgZGF0YS1uYW1lPSLmnKrlkb3lkI3nmoTmuJDlj5ggNCIgZ3JhZGllbnRUcmFuc2Zvcm09InJvdGF0ZSgtMTM0LjczIDIxODcuNjY3IC0zNTMuNDI3KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFmMWQxYyIvPjxzdG9wIG9mZnNldD0iLjM3IiBzdG9wLWNvbG9yPSIjNzczOTBkIi8+PHN0b3Agb2Zmc2V0PSIuNjciIHN0b3AtY29sb3I9IiNlYTgxMDEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmNGZiNTIiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYyIgY3g9IjUzLjAxIiBjeT0iNDUuODQiIHI9IjExLjEzIiBkYXRhLW5hbWU9IuacquWRveWQjeeahOa4kOWPmCA2IiBmeD0iNTMuMDEiIGZ5PSI0NS44NCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2Y0Yjg1MiIvPjxzdG9wIG9mZnNldD0iLjMzIiBzdG9wLWNvbG9yPSIjZWE4MTAxIi8+PHN0b3Agb2Zmc2V0PSIuNjQiIHN0b3AtY29sb3I9IiM3NzM5MGQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyMTFjMWQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48ZyBkYXRhLW5hbWU9IuWbvuWxgiAxIj48cGF0aCBmaWxsPSJ1cmwoI2EpIiBkPSJtODEuNjYgMTMuMjkgMzAuMzEgMzAuMDJjMi41OCAyLjU1IDMuODUgNS4xMyAzLjgxIDcuNzMtLjA0IDIuNi0xLjE1IDQuOTctMy4zMiA3LjEyLTIuMjcgMi4yNS00LjcyIDMuMzktNy4zNCAzLjQ0LTIuNjIuMDQtNS4yMi0xLjIyLTcuOC0zLjc3bC0zMS0zMC43Yy0zLjUyLTMuNDktNi45Mi01Ljk2LTEwLjE5LTcuNDEtMy4yNy0xLjQ1LTYuNzEtMS42OC0xMC4zMS0uNjgtMy42MS45OS03LjQ4IDMuNTQtMTEuNjMgNy42NC01LjcyIDUuNjctOC40NSAxMC45OS04LjE3IDE1Ljk2LjI4IDQuOTcgMy4xMiAxMC4xMyA4LjUxIDE1LjQ2bDMxLjI1IDMwLjk2YzIuNjEgMi41OCAzLjg5IDUuMTYgMy44NSA3LjcyLS4wNCAyLjU3LTEuMTYgNC45NC0zLjM3IDcuMTMtMi4yIDIuMTgtNC42MyAzLjMyLTcuMjcgMy40MS0yLjY0LjA5LTUuMjctMS4xNi03Ljg3LTMuNzRMMjAuODEgNzMuNTZjLTQuOTMtNC44OC04LjQ5LTkuNS0xMC42OC0xMy44Ni0yLjE5LTQuMzYtMy4wMS05LjI5LTIuNDQtMTQuNzkuNTEtNC43MSAyLjAyLTkuMjcgNC41NC0xMy42OSAyLjUxLTQuNDIgNi4xMS04Ljk0IDEwLjc4LTEzLjU3IDUuNTYtNS41MSAxMC44Ny05LjczIDE1LjkzLTEyLjY3QzQzLjk5IDIuMDQgNDguODguNDEgNTMuNi4wN2M0LjczLS4zNCA5LjM5LjYgMTQgMi44MiA0LjYxIDIuMjIgOS4yOSA1LjY4IDE0LjA1IDEwLjRaIi8+PHBhdGggZmlsbD0idXJsKCNiKSIgZD0iTTM0LjExIDEzNC40MiAzLjgxIDEwNC40QzEuMjMgMTAxLjg0LS4wNCA5OS4yNyAwIDk2LjY3Yy4wNC0yLjYgMS4xNS00Ljk3IDMuMzItNy4xMiAyLjI3LTIuMjUgNC43Mi0zLjM5IDcuMzQtMy40NCAyLjYyLS4wNCA1LjIyIDEuMjEgNy44IDMuNzdsMzAuOTkgMzAuN2MzLjUzIDMuNDkgNi45MiA1Ljk2IDEwLjE5IDcuNDEgMy4yNyAxLjQ1IDYuNzEgMS42NyAxMC4zMi42OCAzLjYxLS45OSA3LjQ4LTMuNTQgMTEuNjMtNy42NSA1LjcyLTUuNjcgOC40NS0xMC45OSA4LjE3LTE1Ljk2LS4yOC00Ljk3LTMuMTItMTAuMTMtOC41MS0xNS40N0w2NC42IDczLjI0Yy0yLjYxLTIuNTgtMy44OS01LjE2LTMuODUtNy43Mi4wNC0yLjU3IDEuMTYtNC45NCAzLjM3LTcuMTMgMi4yLTIuMTggNC42My0zLjMyIDcuMjctMy40MSAyLjY0LS4wOSA1LjI3IDEuMTYgNy44NyAzLjc0bDE1LjcgMTUuNDFjNC45MyA0Ljg4IDguNDkgOS41IDEwLjY4IDEzLjg2IDIuMTkgNC4zNiAzLjAxIDkuMjkgMi40NCAxNC43OS0uNTEgNC43MS0yLjAyIDkuMjctNC41NCAxMy42OS0yLjUxIDQuNDItNi4xMSA4Ljk0LTEwLjc4IDEzLjU3LTUuNTYgNS41MS0xMC44NyA5LjczLTE1LjkzIDEyLjY3LTUuMDYgMi45NC05Ljk1IDQuNTgtMTQuNjggNC45Mi00LjczLjM0LTkuMzktLjYtMTQtMi44Mi00LjYxLTIuMjItOS4yOS01LjY4LTE0LjA1LTEwLjRaIi8+PGNpcmNsZSBjeD0iNTMuMDEiIGN5PSI0NS44MyIgcj0iMTEuMTMiIGZpbGw9InVybCgjYykiLz48L2c+PC9zdmc+',
+    id: 'bitget',
+    name: 'Bitget',
+    type: bitget.type,
+    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjMDAxRjI5Ii8+CjxwYXRoIGQ9Ik0yMTkuOTQ4IDk1LjcwMjJDMjAxLjYyMyA5NS42OTI5IDE4My4zMyA5NS42ODM1IDE2NC45NDEgOTUuNzExNkMxNTMuODIyIDk1LjcxMTYgMTQ5LjY1MSAxMDkuNjcxIDE1Ny45MjEgMTE3LjkzOUwyODMuMDk4IDI0My4xMTdDMjg3LjAwNCAyNDYuNjkgMjg5LjQ0MSAyNTAuNTc0IDI4OS41MyAyNTUuNjkzQzI4OS40NDEgMjYwLjgxMiAyODcuMDA0IDI2NC42OTYgMjgzLjA5OCAyNjguMjY5TDE1Ny45MjEgMzkzLjQ0NkMxNDkuNjUxIDQwMS43MTUgMTUzLjgyMiA0MTUuNjc0IDE2NC45NDEgNDE1LjY3NEMxODMuMzMgNDE1LjcwMiAyMDEuNjIzIDQxNS42OTMgMjE5Ljk0OCA0MTUuNjgzQzIyOS4xMjIgNDE1LjY3OSAyMzguMzA1IDQxNS42NzQgMjQ3LjUxMSA0MTUuNjc0QzI1OS41NTUgNDE1LjY3NCAyNjYuNzIgNDA5LjI0IDI3My4xNTQgNDAyLjgwNUwzODYuMDQ3IDI4OS45MTJDMzk1LjA1NyAyODAuOTAyIDQwMy4xMTkgMjY4LjkzOSA0MDMuMDA5IDI1NS42OTNDNDAzLjExOSAyNDIuNDQ3IDM5NS4wNTcgMjMwLjQ4NCAzODYuMDQ3IDIyMS40NzRMMjczLjE1NCAxMDguNThDMjY2LjcyIDEwMi4xNDYgMjU5LjU1NSA5NS43MTE2IDI0Ny41MTEgOTUuNzExNkMyMzguMzA1IDk1LjcxMTYgMjI5LjEyMiA5NS43MDY5IDIxOS45NDggOTUuNzAyMloiIGZpbGw9IiMwMEYwRkYiLz4KPC9zdmc+',
     async setup() {
       //
     },
@@ -70,12 +70,9 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       if (typeof window === 'undefined') {
         return
       }
-      if ('unisat' in window) {
+      if ('bitkeep' in window) {
         const anyWindow: any = window
-        if (anyWindow.unisat?.isBinance || anyWindow.unisat?.isBitKeep) {
-          return
-        }
-        return anyWindow.unisat
+        return anyWindow.bitkeep?.unisat
       }
     },
     async getProvider() {
@@ -89,7 +86,7 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       return provider
     },
     async request(
-      this: UnisatBitcoinProvider,
+      this: BitgetBitcoinProvider,
       { method, params }: ProviderRequestParams
     ): Promise<any> {
       switch (method) {
