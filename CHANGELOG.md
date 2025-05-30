@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/lifinance/bigmi/compare/v0.3.0...v0.3.1) (2025-05-30)
+
+
+### Features
+
+* add more connectors (oyl, binance, magicEden & bitget) ([#17](https://github.com/lifinance/bigmi/issues/17)) ([18ad09a](https://github.com/lifinance/bigmi/commit/18ad09acd07726d25bd6422b0ecedd37745be335))
+
 ## [0.3.0](https://github.com/lifinance/bigmi/compare/v0.2.1...v0.3.0) (2025-05-28)
 
 
