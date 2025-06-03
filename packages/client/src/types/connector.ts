@@ -65,7 +65,7 @@ export type CreateConnectorFn<
     ): Promise<Client>
     isAuthorized(): Promise<boolean>
 
-    onAccountsChanged(accounts: string[]): void
+    onAccountsChanged(accounts: Account[]): void
     onChainChanged(chainId: string): void
     onConnect?(connectInfo: ProviderConnectInfo): void
     onDisconnect(error?: Error | undefined): void

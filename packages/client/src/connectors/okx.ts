@@ -208,12 +208,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         const publicKey = await provider.getPublicKey()
         const account = publicKeyToAccount(publicKey)
         config.emitter.emit('change', {
-          accounts: [
-            {
-              ...account,
-              address: addresses[0],
-            },
-          ],
+          accounts: [account],
         })
       }
     },

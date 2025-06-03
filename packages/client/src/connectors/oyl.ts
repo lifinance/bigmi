@@ -175,9 +175,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
         this.onDisconnect()
       } else {
         config.emitter.emit('change', {
-          accounts: (accounts as Account[]).filter(
-            (account) => account.purpose === 'payment'
-          ),
+          accounts: accounts.filter((account) => account.purpose === 'payment'),
         })
       }
     },
