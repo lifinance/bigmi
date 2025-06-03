@@ -1,4 +1,4 @@
-import type { Address } from '@bigmi/core'
+import type { Account } from '@bigmi/core'
 import type { ErrorType } from '@bigmi/core/src/errors/utils.js'
 
 import type { Compute } from '@bigmi/core/src/types/utils.js'
@@ -115,7 +115,7 @@ export async function reconnect(
       }
     })
     connections.push({
-      accounts: data.accounts as readonly [Address, ...Address[]],
+      accounts: data.accounts as readonly [Account, ...Account[]],
       chainId: data.chainId,
       connector,
     })

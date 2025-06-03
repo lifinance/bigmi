@@ -1,11 +1,11 @@
-import type { Address, SignPsbtParameters } from '@bigmi/core'
+import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-import type { BtcAccount } from '../types/account.js'
+
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -13,7 +13,7 @@ import type {
 } from './types.js'
 
 export type LeatherBitcoinEventMap = {
-  accountChange(accounts: BtcAccount[]): void
+  accountChange(accounts: Account[]): void
 }
 
 export type LeatherBitcoinEvents = {
@@ -28,14 +28,14 @@ export type LeatherBitcoinEvents = {
 }
 
 type LeatherConnectorProperties = {
-  getAccounts(): Promise<readonly (BtcAccount | Address)[]>
+  getAccounts(): Promise<readonly (Account | Address)[]>
   getInternalProvider(): Promise<LeatherBitcoinProvider>
 } & UTXOWalletProvider
 
 type Error = { code: number; message: string }
 
 interface GetAccountsResponse {
-  result?: { addresses: BtcAccount[] }
+  result?: { addresses: Account[] }
   error?: Error
 }
 
@@ -151,9 +151,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       if (!accounts.result) {
         throw new UserRejectedRequestError(accounts.error?.message!)
       }
-      return accounts.result.addresses.map(
-        (account) => account.address as Address
-      )
+      return accounts.result.addresses
     },
     async getChainId() {
       return chainId!

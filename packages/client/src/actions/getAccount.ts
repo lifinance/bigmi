@@ -1,4 +1,4 @@
-import type { Address, Chain } from '@bigmi/core'
+import type { Account, Address, Chain } from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector } from '../types/connector.js'
 
@@ -8,8 +8,8 @@ export type GetAccountReturnType<
   chain = Config extends config ? Chain : config['chains'][number],
 > =
   | {
-      address: Address
-      addresses: readonly [Address, ...Address[]]
+      account: Account
+      accounts: readonly [Account, ...Account[]]
       chain: chain | undefined
       chainId: number
       connector: Connector
@@ -20,8 +20,8 @@ export type GetAccountReturnType<
       status: 'connected'
     }
   | {
-      address: Address | undefined
-      addresses: readonly Address[] | undefined
+      account: Account | undefined
+      accounts: readonly Account[] | undefined
       chain: chain | undefined
       chainId: number | undefined
       connector: Connector | undefined
@@ -32,8 +32,8 @@ export type GetAccountReturnType<
       status: 'reconnecting'
     }
   | {
-      address: Address | undefined
-      addresses: readonly Address[] | undefined
+      account: Account | undefined
+      accounts: readonly Account[] | undefined
       chain: chain | undefined
       chainId: number | undefined
       connector: Connector | undefined
@@ -44,8 +44,8 @@ export type GetAccountReturnType<
       status: 'connecting'
     }
   | {
-      address: undefined
-      addresses: undefined
+      account: undefined
+      accounts: undefined
       chain: undefined
       chainId: undefined
       connector: undefined
@@ -62,8 +62,8 @@ export function getAccount<C extends Config>(
 ): GetAccountReturnType<C> {
   const uid = config.state.current!
   const connection = config.state.connections.get(uid)
-  const addresses = connection?.accounts
-  const address = addresses?.[0]
+  const accounts = connection?.accounts
+  const account = accounts?.[0]
   const chain = config.chains.find(
     (chain) => chain.id === connection?.chainId
   ) as GetAccountReturnType<C>['chain']
@@ -72,8 +72,8 @@ export function getAccount<C extends Config>(
   switch (status) {
     case 'connected':
       return {
-        address: address!,
-        addresses: addresses!,
+        account: account!,
+        accounts: accounts!,
         chain,
         chainId: connection?.chainId!,
         connector: connection?.connector!,
@@ -85,12 +85,12 @@ export function getAccount<C extends Config>(
       }
     case 'reconnecting':
       return {
-        address,
-        addresses,
+        account: account,
+        accounts: accounts,
         chain,
         chainId: connection?.chainId,
         connector: connection?.connector,
-        isConnected: !!address,
+        isConnected: !!account,
         isConnecting: false,
         isDisconnected: false,
         isReconnecting: true,
@@ -98,8 +98,8 @@ export function getAccount<C extends Config>(
       }
     case 'connecting':
       return {
-        address,
-        addresses,
+        account: account,
+        accounts: accounts,
         chain,
         chainId: connection?.chainId,
         connector: connection?.connector,
@@ -111,8 +111,8 @@ export function getAccount<C extends Config>(
       }
     case 'disconnected':
       return {
-        address: undefined,
-        addresses: undefined,
+        account: undefined,
+        accounts: undefined,
         chain: undefined,
         chainId: undefined,
         connector: undefined,

@@ -1,5 +1,8 @@
 import {
+  type Account,
   type Address,
+  type AddressPurpose,
+  type AddressType,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
@@ -7,11 +10,19 @@ import {
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
-import type {
-  ProviderRequestParams,
-  UTXOConnectorParameters,
-  UTXOWalletProvider,
-} from './types.js'
+import type { UTXOConnectorParameters, UTXOWalletProvider } from './types.js'
+
+interface GetAccountsRequest {
+  purposes: AddressPurpose[]
+}
+
+interface CtrlAccount {
+  address: string
+  publicKey: string
+  purpose: AddressPurpose
+  addressType: string
+  walletType: string
+}
 
 export type CtrlBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -29,7 +40,7 @@ export type CtrlBitcoinEvents = {
 }
 
 type CtrlConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<CtrlBitcoinProvider>
 } & UTXOWalletProvider
@@ -38,6 +49,10 @@ type CtrlBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   signPsbt(psbtHex: string, finalise?: boolean): Promise<string>
+  request(
+    method: 'request_accounts_and_keys',
+    params: GetAccountsRequest
+  ): Promise<CtrlAccount[]>
 } & CtrlBitcoinEvents
 
 ctrl.type = 'UTXO' as const
@@ -91,7 +106,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -132,8 +147,18 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const accounts = await provider.request('request_accounts_and_keys', {
+        purposes: ['payment'],
+      })
+      if (!accounts.length) {
+        throw new UserRejectedRequestError('Error getting accounts')
+      }
+      return accounts.map((account) => ({
+        address: account.address,
+        addressType: account.addressType.toLowerCase() as AddressType,
+        publicKey: account.publicKey,
+        purpose: account.purpose,
+      }))
     },
     async getChainId() {
       return chainId!
@@ -153,8 +178,9 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

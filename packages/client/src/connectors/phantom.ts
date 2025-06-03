@@ -1,11 +1,11 @@
-import type { Address, SignPsbtParameters } from '@bigmi/core'
+import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-import type { BtcAccount } from '../types/account.js'
+
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -13,7 +13,7 @@ import type {
 } from './types.js'
 
 export type PhantomBitcoinEventMap = {
-  accountsChanged(accounts: BtcAccount[]): void
+  accountsChanged(accounts: Account[]): void
 }
 
 export type PhantomBitcoinEvents = {
@@ -28,13 +28,13 @@ export type PhantomBitcoinEvents = {
 }
 
 type PhantomConnectorProperties = {
-  getAccounts(): Promise<readonly (BtcAccount | Address)[]>
-  onAccountsChanged(accounts: (BtcAccount | Address)[]): void
+  getAccounts(): Promise<readonly Account[]>
+  onAccountsChanged(accounts: Account[]): void
   getInternalProvider(): Promise<PhantomBitcoinProvider>
 } & UTXOWalletProvider
 
 type PhantomBitcoinProvider = {
-  requestAccounts(): Promise<BtcAccount[]>
+  requestAccounts(): Promise<Account[]>
   signPSBT(
     psbtHex: Uint8Array,
     options: {
@@ -51,7 +51,7 @@ type PhantomBitcoinProvider = {
 phantom.type = 'UTXO' as const
 export function phantom(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
-  let accountsChanged: ((accounts: BtcAccount[]) => void) | undefined
+  let accountsChanged: ((accounts: Account[]) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     PhantomConnectorProperties
@@ -158,9 +158,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       const accounts = await provider.requestAccounts()
-      return accounts
-        .filter((account) => account.purpose === 'payment')
-        .map((account) => account.address as Address)
+      return accounts.filter((account) => account.purpose === 'payment')
     },
     async getChainId() {
       return chainId!
@@ -181,9 +179,9 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
         this.onDisconnect()
       } else {
         config.emitter.emit('change', {
-          accounts: accounts
-            .filter((account) => (account as BtcAccount).purpose === 'payment')
-            .map((account) => (account as BtcAccount).address as Address),
+          accounts: (accounts as Account[]).filter(
+            (account) => account.purpose === 'payment'
+          ),
         })
       }
     },

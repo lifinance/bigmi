@@ -1,4 +1,5 @@
 import {
+  type Account,
   type Address,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -6,7 +7,7 @@ import {
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-import type { BtcAccount } from '../types/account.js'
+
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -14,8 +15,8 @@ import type {
 } from './types.js'
 
 export type OylConnectorProperties = {
-  getAccounts(): Promise<readonly (BtcAccount | Address)[]>
-  onAccountsChanged(accounts: (BtcAccount | Address)[]): void
+  getAccounts(): Promise<readonly Account[]>
+  onAccountsChanged(accounts: Account[]): void
   getInternalProvider(): Promise<OylBitcoinProvider>
 } & UTXOWalletProvider
 
@@ -48,7 +49,7 @@ type OylBitcoinProvider = {
 oyl.type = 'UTXO' as const
 export function oyl(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
-  let accountsChanged: ((accounts: BtcAccount[]) => void) | undefined
+  let accountsChanged: ((accounts: Account[]) => void) | undefined
 
   return createConnector<
     UTXOWalletProvider | undefined,
@@ -140,7 +141,14 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
 
       const accounts = await provider.getAddresses()
 
-      return [accounts.nativeSegwit.address as Address]
+      return [
+        {
+          address: accounts.nativeSegwit.address,
+          addressType: 'p2wpkh',
+          publicKey: accounts.nativeSegwit.publicKey,
+          purpose: 'payment',
+        },
+      ]
     },
     async getChainId() {
       return chainId!
@@ -167,9 +175,9 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
         this.onDisconnect()
       } else {
         config.emitter.emit('change', {
-          accounts: accounts
-            .filter((account) => (account as BtcAccount).purpose === 'payment')
-            .map((account) => (account as BtcAccount).address as Address),
+          accounts: (accounts as Account[]).filter(
+            (account) => account.purpose === 'payment'
+          ),
         })
       }
     },

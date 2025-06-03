@@ -1,8 +1,8 @@
 import type { Account, Chain } from '@bigmi/core'
 import type { Connector } from './connector.js'
 
-export interface BtcAccount extends Account {
-  accounts: readonly BtcAccount[]
+export interface BtcAccount {
+  accounts: readonly Account[]
   chain: Chain | undefined
   chainId: number
   connector: Connector
@@ -11,5 +11,4 @@ export interface BtcAccount extends Account {
   isDisconnected: boolean
   isReconnecting: boolean
   status: 'connected' | 'connecting' | 'disconnected' | 'reconnecting'
-  pubKey?: string
 }
