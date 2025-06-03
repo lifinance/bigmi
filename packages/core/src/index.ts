@@ -90,7 +90,7 @@ export { blockcypher } from './transports/blockcypher/blockcypher.js'
 export { mempool } from './transports/mempool/mempool.js'
 
 // Exporting types
-export type { Account } from './types/account.js'
+export type { Account, AddressPurpose, AddressType } from './types/account.js'
 export type { Address } from './types/address.js'
 export type { BlockTag } from './types/block.js'
 export type { BlockStats, BlockStatsKeys } from './types/blockStats.js'
@@ -217,4 +217,5 @@ export type { Transport } from './types/transport.js'
 
 export type { OneOf, RemoveUndefined } from './types/utils.js'
 export { uid } from './utils/uid.js'
+export { publicKeyToAccount } from './utils/publicKeyToAccount.js'
 export { version } from './version.js'

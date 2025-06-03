@@ -1,9 +1,11 @@
 import {
+  type Account,
   type Address,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  publicKeyToAccount,
   withRetry,
 } from '@bigmi/core'
 
@@ -30,7 +32,7 @@ export type UnisatBitcoinEvents = {
 }
 
 type UnisatConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<UnisatBitcoinProvider>
 } & UTXOWalletProvider
@@ -38,6 +40,7 @@ type UnisatConnectorProperties = {
 type UnisatBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getPublicKey(): Promise<string>
   signPsbt(
     psbtHex: string,
     options: {
@@ -119,7 +122,8 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        await provider.requestAccounts()
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -160,8 +164,9 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const publicKey = await provider.getPublicKey()
+      const account = publicKeyToAccount(publicKey)
+      return [account]
     },
     async getChainId() {
       return chainId!
@@ -185,8 +190,9 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

@@ -1,5 +1,5 @@
 import type {
-  Address,
+  Account,
   Chain,
   Client,
   Compute,
@@ -17,10 +17,10 @@ export type Connector<
 
 export type ConnectorEventMap = {
   change: {
-    accounts?: readonly Address[] | undefined
+    accounts?: readonly Account[] | undefined
     chainId?: number | undefined
   }
-  connect: { accounts: readonly Address[]; chainId: number }
+  connect: { accounts: readonly Account[]; chainId: number }
   disconnect: never
   error: { error: Error }
   message: { type: string; data?: unknown | undefined }
@@ -51,11 +51,11 @@ export type CreateConnectorFn<
         | { chainId?: number | undefined; isReconnecting?: boolean | undefined }
         | undefined
     ): Promise<{
-      accounts: readonly Address[]
+      accounts: readonly Account[]
       chainId: number
     }>
     disconnect(): Promise<void>
-    getAccounts(): Promise<readonly Address[]>
+    getAccounts(): Promise<readonly Account[]>
     getChainId(): Promise<number>
     getProvider(
       parameters?: { chainId?: number | undefined } | undefined
@@ -65,7 +65,7 @@ export type CreateConnectorFn<
     ): Promise<Client>
     isAuthorized(): Promise<boolean>
 
-    onAccountsChanged(accounts: string[]): void
+    onAccountsChanged(accounts: Account[]): void
     onChainChanged(chainId: string): void
     onConnect?(connectInfo: ProviderConnectInfo): void
     onDisconnect(error?: Error | undefined): void
