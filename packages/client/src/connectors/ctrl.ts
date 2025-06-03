@@ -150,9 +150,6 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       const accounts = await provider.request('request_accounts_and_keys', {
         purposes: ['payment'],
       })
-      if (!accounts.length) {
-        throw new UserRejectedRequestError('Error getting accounts')
-      }
       return accounts.map((account) => ({
         address: account.address,
         addressType: account.addressType.toLowerCase() as AddressType,
