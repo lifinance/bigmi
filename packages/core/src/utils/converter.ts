@@ -32,3 +32,9 @@ export function stringToHex(value: string): string {
 
   return `0x${hex}`
 }
+
+export function hexToUnit8Array(value: string): Uint8Array {
+  return new Uint8Array(
+    value.match(/.{1,2}/g)?.map((byte) => Number.parseInt(byte, 16)) || []
+  )
+}

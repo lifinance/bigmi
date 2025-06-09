@@ -3,7 +3,7 @@ import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
-  publicKeyToAccount,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
@@ -128,7 +128,6 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const { publicKey } = await provider.connect()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -143,9 +142,10 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
             config.storage?.removeItem(`${this.id}.disconnected`),
           ])
         }
+        const accounts = await this.getAccounts()
 
         return {
-          accounts: [publicKeyToAccount(publicKey)],
+          accounts,
           chainId,
         }
       } catch (error: any) {
@@ -175,7 +175,16 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
       }
 
       const publicKey = await provider.getPublicKey()
-      const account = publicKeyToAccount(publicKey)
+      const accounts = await provider.getAccounts()
+      const address = accounts[0]
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
 
       return [account]
     },
@@ -205,10 +214,9 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         if (!provider) {
           throw new ProviderNotFoundError()
         }
-        const publicKey = await provider.getPublicKey()
-        const account = publicKeyToAccount(publicKey)
+        const accounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: [account],
+          accounts: accounts,
         })
       }
     },

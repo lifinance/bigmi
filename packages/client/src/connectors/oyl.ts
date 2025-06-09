@@ -1,6 +1,6 @@
 import {
   type Account,
-  type Address,
+  AddressType,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
@@ -144,7 +144,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
       return [
         {
           address: accounts.nativeSegwit.address,
-          addressType: 'p2wpkh',
+          addressType: AddressType.p2wpkh,
           publicKey: accounts.nativeSegwit.publicKey,
           purpose: 'payment',
         },

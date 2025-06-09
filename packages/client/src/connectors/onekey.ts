@@ -5,7 +5,7 @@ import {
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  publicKeyToAccount,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
@@ -160,8 +160,17 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+      const accounts = await provider.getAccounts()
+      const address = accounts[0]
       const publicKey = await provider.getPublicKey()
-      const account = publicKeyToAccount(publicKey)
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
       return [account]
     },
     async getChainId() {

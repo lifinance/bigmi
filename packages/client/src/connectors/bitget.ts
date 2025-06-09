@@ -1,11 +1,12 @@
 import {
   type Account,
   type Address,
+  BaseError,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  publicKeyToAccount,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
@@ -119,8 +120,11 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        await provider.requestAccounts()
-        const publicKey = await provider.getPublicKey()
+        const address = await provider.requestAccounts()
+        if (!address) {
+          throw new BaseError('error connecting to your wallet')
+        }
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -135,8 +139,9 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
             config.storage?.removeItem(`${this.id}.disconnected`),
           ])
         }
-        return { accounts: [publicKeyToAccount(publicKey)], chainId }
+        return { accounts, chainId }
       } catch (error: any) {
+        console.error(error)
         throw new UserRejectedRequestError(error.message)
       }
     },
@@ -161,8 +166,21 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+      const accounts = await provider.getAccounts()
+      const address = accounts[0]
       const publicKey = await provider.getPublicKey()
-      const account = publicKeyToAccount(publicKey)
+
+      if (!publicKey.length) {
+        throw new BaseError('public key not found')
+      }
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
       return [account]
     },
     async getChainId() {
@@ -187,6 +205,10 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
         const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
           accounts: newAccounts,

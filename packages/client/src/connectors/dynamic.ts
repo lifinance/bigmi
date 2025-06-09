@@ -1,5 +1,6 @@
 import {
   type Account,
+  AddressType,
   BaseError,
   type SignPsbtParameters,
   base64ToHex,
@@ -204,7 +205,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
         {
           address: account.address,
           publicKey: account.publicKey,
-          addressType: 'p2pkh',
+          addressType: AddressType.p2pkh,
           purpose: account.type,
         },
       ]
