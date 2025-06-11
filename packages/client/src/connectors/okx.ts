@@ -128,6 +128,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
+        await provider.requestAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
