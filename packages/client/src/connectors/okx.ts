@@ -1,12 +1,14 @@
-import type { Address, SignPsbtParameters } from '@bigmi/core'
+import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
+
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -15,6 +17,11 @@ import type {
 
 export type OKXBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
+  accountChanged(account: {
+    address: Address
+    publicKey: string
+    compressedPublicKey: string
+  }): void
 }
 
 export type OKXBitcoinEvents = {
@@ -29,7 +36,7 @@ export type OKXBitcoinEvents = {
 }
 
 type OKXConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<OKXBitcoinProvider>
 } & UTXOWalletProvider
@@ -37,6 +44,8 @@ type OKXConnectorProperties = {
 type OKXBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getPublicKey(): Promise<string>
+  connect(): Promise<{ address: Address; publicKey: string }>
   signPsbt(
     psbtHex: string,
     options: {
@@ -119,7 +128,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        await provider.requestAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -134,7 +143,12 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
             config.storage?.removeItem(`${this.id}.disconnected`),
           ])
         }
-        return { accounts, chainId }
+        const accounts = await this.getAccounts()
+
+        return {
+          accounts,
+          chainId,
+        }
       } catch (error: any) {
         throw new UserRejectedRequestError(error.message)
       }
@@ -160,8 +174,20 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+
+      const publicKey = await provider.getPublicKey()
       const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const address = accounts[0]
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
+
+      return [account]
     },
     async getChainId() {
       return chainId!
@@ -181,12 +207,17 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
         return false
       }
     },
-    async onAccountsChanged(accounts) {
-      if (accounts.length === 0) {
+    async onAccountsChanged(addresses) {
+      if (addresses.length === 0) {
         this.onDisconnect()
       } else {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const accounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: accounts,
         })
       }
     },

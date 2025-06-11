@@ -1,51 +1,37 @@
 import { sha256 } from '@noble/hashes/sha256'
 import { type Decoded, bech32, bech32m } from 'bech32'
 import bs58 from 'bs58'
-import type { Address } from '../types/address.ts'
 
-export enum UTXONetwork {
-  Mainnet = 'mainnet',
-  Testnet = 'testnet',
-  Regtest = 'regtest',
-}
-
-export enum UTXOAddressType {
-  p2pkh = 'p2pkh',
-  p2sh = 'p2sh',
-  p2wpkh = 'p2wpkh',
-  p2wsh = 'p2wsh',
-  p2tr = 'p2tr',
-}
-
-export type UTXOAddress = {
-  bech32: boolean
-  network: UTXONetwork
-  address: Address
-  type: UTXOAddressType
-}
+import {
+  type Address,
+  type AddressInfo,
+  type AddressPurpose,
+  AddressType,
+  Network,
+} from '../types/address.js'
 
 const addressTypes: {
-  [key: number]: { type: UTXOAddressType; network: UTXONetwork }
+  [key: number]: { type: AddressType; network: Network }
 } = {
   0: {
-    type: UTXOAddressType.p2pkh,
-    network: UTXONetwork.Mainnet,
+    type: AddressType.p2pkh,
+    network: Network.Mainnet,
   },
   111: {
-    type: UTXOAddressType.p2pkh,
-    network: UTXONetwork.Testnet,
+    type: AddressType.p2pkh,
+    network: Network.Testnet,
   },
   5: {
-    type: UTXOAddressType.p2sh,
-    network: UTXONetwork.Mainnet,
+    type: AddressType.p2sh,
+    network: Network.Mainnet,
   },
   196: {
-    type: UTXOAddressType.p2sh,
-    network: UTXONetwork.Testnet,
+    type: AddressType.p2sh,
+    network: Network.Testnet,
   },
 }
 
-const parseBech32 = (address: Address): UTXOAddress => {
+const parseBech32 = (address: Address): AddressInfo => {
   let decoded: Decoded
 
   try {
@@ -62,13 +48,13 @@ const parseBech32 = (address: Address): UTXOAddress => {
     throw new Error('Invalid address')
   }
 
-  const mapPrefixToNetwork: { [key: string]: UTXONetwork } = {
-    bc: UTXONetwork.Mainnet,
-    tb: UTXONetwork.Testnet,
-    bcrt: UTXONetwork.Regtest,
+  const mapPrefixToNetwork: { [key: string]: Network } = {
+    bc: Network.Mainnet,
+    tb: Network.Testnet,
+    bcrt: Network.Regtest,
   }
 
-  const network: UTXONetwork = mapPrefixToNetwork[decoded.prefix]
+  const network: Network = mapPrefixToNetwork[decoded.prefix]
 
   if (network === undefined) {
     throw new Error('Invalid address')
@@ -81,24 +67,27 @@ const parseBech32 = (address: Address): UTXOAddress => {
   }
   const data = bech32.fromWords(decoded.words.slice(1))
 
-  let type: UTXOAddressType
+  let type: AddressType
   if (data.length === 20) {
-    type = UTXOAddressType.p2wpkh
+    type = AddressType.p2wpkh
   } else if (witnessVersion === 1) {
-    type = UTXOAddressType.p2tr
+    type = AddressType.p2tr
   } else {
-    type = UTXOAddressType.p2wsh
+    type = AddressType.p2wsh
   }
+
+  const purpose = getAddressPurpose(type)
 
   return {
     bech32: true,
     network,
     address,
     type,
+    purpose,
   }
 }
 
-export const getUTXOAddress = (address: Address): UTXOAddress => {
+export const getAddressInfo = (address: Address): AddressInfo => {
   let decoded: Uint8Array
   const prefix = address.substring(0, 2).toLowerCase()
 
@@ -145,5 +134,21 @@ export const getUTXOAddress = (address: Address): UTXOAddress => {
     ...addressType,
     address,
     bech32: false,
+    purpose: getAddressPurpose(addressType.type),
+  }
+}
+
+const getAddressPurpose = (type: AddressType): AddressPurpose => {
+  switch (type) {
+    case AddressType.p2tr:
+      return 'ordinals'
+    case AddressType.p2wsh:
+      return 'stacks'
+    case AddressType.p2wpkh:
+    case AddressType.p2sh:
+    case AddressType.p2pkh:
+      return 'payment'
+    default:
+      throw new Error('Invalid address type')
   }
 }

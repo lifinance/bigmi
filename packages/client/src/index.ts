@@ -70,7 +70,6 @@ export type {
 } from './connectors/magicEden.js'
 
 // client types
-export type { BtcAccount } from './types/account.js'
 export type { State } from './types/state.js'
 export { type Config, createConfig } from './factories/createConfig.js'
 export type { CreateConnectorFn, Connector } from './types/connector.js'
