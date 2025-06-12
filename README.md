@@ -39,30 +39,21 @@ pnpm add @bigmi/client
 ```
 
 ## Getting Started
+### Node.js
+How to setup bigmi on the backend with node.js:
 
-Here is an example of a basic usage:
-
-```tsx
-import { useConfig } from '@bigmi/react'
+```typescript
+// main.ts
 import {
-  type UTXOSchema,
+  createClient,
   bitcoin,
-  getBalance,
-  getBlockCount,
+  blockchair,
   sendUTXOTransaction,
   waitForTransaction,
-  createClient, 
-  fallback, 
-  rpcSchema
-  ankr,
-  blockchair,
-  blockcypher,
-  mempool
+  getBalance,
 } from '@bigmi/core'
-import { useAccount } from '@bigmi/react'
 
-
-// Create a public client for interactions with the Bitcoin
+// Create a client for Bitcoin mainnet
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
@@ -74,23 +65,12 @@ const publicClient = createClient({
   ]),
 })
 
-// Define the Bitcoin address you're working with
-const address = 'BITCOIN_ADDRESS';
-
 // Fetch the balance of the address
 const balance = await getBalance(publicClient, { address });
 console.log(`Balance for ${address}:`, balance);
 
-// Fetch the current block count (height)
-const blockCount = await getBlockCount(publicClient);
-console.log('Current block count:', blockCount);
-
-// Prepare the transaction hex (as a string)
-const txHex = 'TRANSACTION_HEX';
-
-// Send the transaction to the network
-const txId = await sendUTXOTransaction(publicClient, { hex: txHex });
-console.log('Transaction sent with ID:', txId);
+const txId = await sendUTXOTransaction(client, { hex: 'YOUR_TRANSACTION_HEX' })
+console.log('Transaction sent:', txId)
 
 // Wait for the transaction to be confirmed
 const transaction = await waitForTransaction(publicClient, {
@@ -103,23 +83,79 @@ const transaction = await waitForTransaction(publicClient, {
 });
 
 console.log('Transaction confirmed:', transaction);
-
-// Getting account information inside the React application
-const bigmiConfig = useConfig()
-const account = useAccount()
-
-console.log('Bitcoin account address:', account.address);
+ 
 ```
+
+### React
+
+Simple bigmi setup with a react app:
+
+```typescript
+// App.tsx
+
+import { bitcoin, http, createClient } from '@bigmi/core'
+import { BigmiProvider, createConfig } from '@bigmi/react'
+import { binance, xverse, phantom } from '@bigmi/client'
+
+const chainId  = bitcoin.id
+
+// create bigmi config object
+const config = createConfig({
+    chains: [bitcoin],
+    connectors: [binance({chainId}), xverse({chainId}), phantom({chainId})],
+    client: ({ chain }) => createClient({ chain, transport: http() }),
+    ssr: true // if using Next.js or SSR
+})
+
+
+function App() {
+  return (
+    // Wrap your application with the necessary providers:
+    <BigmiProvider config={config}>
+      <YourApp />
+    </BigmiProvider>
+  )
+}
+```
+
+```typescript
+// YourApp.tsx
+
+// import the hooks from bigmi/react library
+import { useAccount, useBalance, useConnect } from '@bigmi/react'
+
+const { address, isConnected } = useAccount()
+const { balance } = useBalance()
+const { connect } = useConnect()
+
+function YourApp() {
+  return (
+    <div>
+      {isConnected ? (
+        <p>Connected: {address}: {balance}BTC</p>
+      ) : (
+        <button onClick={connect}>Connect Wallet</button>
+      )}
+    </div>
+  )
+}
+```
+
 
 ## Examples
 
-We are working on more examples to showcase Bigmi's capabilities. Stay tuned!
+- [See Node.js examples](./docs/core/examples.md)
+- [See React examples](./docs/react/examples.md)
 
-In the meantime, explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for inspiration.
+You can explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for detailed production examples.
 
 ## Documentation
+- [Learn more about Configuration](./docs/configuration.md)
+- [See Core Docs](./docs/core/index.md)
+- [See Client Docs](./docs/client/index.md)
+- [See React Docs](./docs/react/index.md)
 
-Detailed documentation is coming soon. For now, refer to the source code and type definitions for guidance.
+- [Want to add your wallet?](./docs/api/client/connectors.md)
 
 ## Support
 
