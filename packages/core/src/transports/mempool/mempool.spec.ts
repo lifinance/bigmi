@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
+import { getTransaction } from '../../actions/getTransaction'
 import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
@@ -9,6 +10,8 @@ import type { UTXOSchema } from '../types'
 import { BaseError } from '../../errors/base'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
+import getTransactionInvalidResponse from './__mocks__/getTransaction/invalid.json'
+import getTransactionValidResponse from './__mocks__/getTransaction/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
 import { mempool } from './mempool'
 import type {
@@ -47,6 +50,35 @@ describe('Mempool Transport', () => {
         '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNaNUIBNSUENopnoidsacn'
       await expect(
         getBalance(publicClient, { address: nonExistentAddress })
+      ).rejects.toThrow()
+    })
+  })
+
+  describe('getTransaction action', async () => {
+    it('should get transaction details', async () => {
+      const txId =
+        '4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e'
+      getTransactionValidResponse.txid = txId
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionValidResponse)
+      )
+
+      const result = await getTransaction(publicClient, { txId })
+      const { transaction } = result
+      expect(transaction).toBeDefined()
+      expect(transaction.hash).toBe(txId)
+      expect(transaction.vout).toBeDefined()
+      expect(transaction.vin).toBeDefined()
+    })
+
+    it('should throw an error for invalid transaction ID', async () => {
+      const invalidTxId = 'invalid-tx-id'
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionInvalidResponse)
+      )
+
+      await expect(
+        getTransaction(publicClient, { txId: invalidTxId })
       ).rejects.toThrow()
     })
   })
