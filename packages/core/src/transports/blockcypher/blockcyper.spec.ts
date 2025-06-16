@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance.js'
 import { getUTXOs } from '../../actions/getUTXOs.js'
 import { bitcoin } from '../../chains/bitcoin.js'
-import { NotEnoughUTXOError } from '../../errors/address.js'
+import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import { createClient, rpcSchema } from '../../factories/createClient.js'
 import { createMockResponse } from '../../test/utils.js'
 import type { UTXOSchema } from '../types.js'
@@ -88,7 +88,7 @@ describe('Blockcypher Transport', () => {
           address,
           minValue: Number(hugeValue),
         })
-      ).rejects.toThrow(NotEnoughUTXOError)
+      ).rejects.toThrow(InsufficientUTXOBalanceError)
     })
 
     it('should handle empty UTXO', async () => {
