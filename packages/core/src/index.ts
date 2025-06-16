@@ -12,6 +12,11 @@ export type {
   GetBlockStatsParameters,
   GetBlockStatsReturnType,
 } from './actions/getBlockStats.js'
+export { getTransaction } from './actions/getTransaction.js'
+export type {
+  GetTransactionParameters,
+  GetTransactionReturnType,
+} from './actions/getTransaction.js'
 export { getUTXOTransaction } from './actions/getUTXOTransaction.js'
 export type {
   GetUTXOTransactionParameters,

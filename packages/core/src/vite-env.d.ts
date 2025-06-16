@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_TEST_ADDRESS: string
+  readonly VITE_TEST_TXID: string
   readonly VITE_TEST_ANKR_KEY: string
   readonly VITE_TEST_BLOCKCHAIR_KEY: string
   readonly VITE_TEST_BLOCKCYPHER_API_KEY: string

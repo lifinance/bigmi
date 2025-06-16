@@ -67,6 +67,7 @@ export type AnkrTransaction = {
   valueIn: string
   fees: string
   hex: string
+  weight: number
   coinSpecificData?: {
     hash: string
     hex: string
@@ -80,3 +81,7 @@ export type AnkrTransaction = {
 export type AnkrAddressWithTxnsResponse = {
   transactions: AnkrTransaction[]
 } & AnkrBalanceResponse
+
+export type AnkrTxnResponse = {
+  error?: string
+} & AnkrTransaction
