@@ -9,14 +9,18 @@ This document provides a comprehensive reference for the `@bigmi/react` package,
 The main provider component that enables Bigmi functionality in your React application.
 
 ```typescript
-import { BigmiProvider, phantom, binance, okx } from '@bigmi/react'
+import { BigmiProvider, phantom, binance, okx, bitcoin } from '@bigmi/react'
 
 function App() {
   return (
     <BigmiProvider
       config={{
         autoConnect: true,
-        connectors: [phantom(), binance(), okx()],
+        connectors: [
+          phantom({ chainId: bitcoin.id }), 
+          binance({ chainId: bitcoin.id }), 
+          okx({ chainId: bitcoin.id })
+          ],
       }}
     >
       <YourApp />
