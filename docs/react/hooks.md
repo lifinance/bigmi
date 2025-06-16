@@ -80,6 +80,14 @@ function Component() {
 
 ## `useConnect`
 
+Hook to create a connection between a client and a connector, authorizing the client to send requests to a wallet via the connector.
+
+#### Returns
+
+- `connect()`: A function to run the connect logic syncronously
+- `connectAsync()`: A async connect function
+- `connectors`: Array of available wallet connectors
+
 ## `useReconnect`
 
-## `useSyncExternalStoreWithTracked`
+This hook reconnects to a wallet connector if a connection already exists or the client is already autorized to use the connector.
