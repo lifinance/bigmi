@@ -40,5 +40,4 @@ This packages comes with react hooks to make it easy to use in your application
 
 ## Next Steps
 
-- Check out the [Type Definitions](./types.md)
 - Learn about the [Core API](../core/index.md)
