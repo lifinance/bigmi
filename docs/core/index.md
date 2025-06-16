@@ -80,26 +80,6 @@ This error is thrown from the `getUTXOs` when an address doesn't enough utxos fo
 
 ### [🐞 View All Errors ➡️](./errors.md)
 
-## Utility Functions
-
-The core contains util functions that are useful when using the library.
-
-### `base64ToHex`
-
- A function that converts a base64 string to a hex string, useful for
- parsing psbt signatures
-
- ```typescript
- import { base64ToHex } from '@bigmi/core'
-
- function signPSBT(request) {
-    const signedPsbt = await signTransaction(request)
-    return base64ToHex(signedPsbt.psbtBase64)
- }
- ```
-
-### [🛠️ View All Utils ➡️](./utils.md)
-
 ## Type Definitions
 
 You can import types used in the library to type your project.

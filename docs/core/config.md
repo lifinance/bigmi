@@ -81,8 +81,6 @@ const client = createClient({
 
 ```
 
-### Custom Transport
-
 ## Chain Configuration
 
 We only have a chain definition for bitcoin mainnet, custom chains can be created using the `defineChain` util.
