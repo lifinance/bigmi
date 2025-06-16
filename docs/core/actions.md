@@ -72,4 +72,17 @@ The transaction ID.
 
 ### `waitForTransaction`
 
+Waits for a transaction to be included on a block
+
+#### Parameters
+
+- `txId`: id of the transaction
+- `txHex`: the hex string of the raw transaction
+- `confirmations`?: number of confirmations to wait for _optional_ _default=1_
+- `senderAddress`?: sender address of the transaction _optional_
+
+#### Returns
+
+- a `UTXOTransaction` object
+  
 [⬅️ back](./index.md)

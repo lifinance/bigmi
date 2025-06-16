@@ -31,15 +31,19 @@ Bigmi is modularized into several packages, each suited to different use cases:
 ```sh
 pnpm add @bigmi/react
 ```
+
 ```sh
 pnpm add @bigmi/core
 ```
+
 ```sh
 pnpm add @bigmi/client
 ```
 
 ## Getting Started
+
 ### Node.js
+
 How to setup bigmi on the backend with node.js:
 
 ```typescript
@@ -65,12 +69,23 @@ const publicClient = createClient({
   ]),
 })
 
+// Define the Bitcoin address you're working with
+const address = 'BITCOIN_ADDRESS';
+
 // Fetch the balance of the address
 const balance = await getBalance(publicClient, { address });
 console.log(`Balance for ${address}:`, balance);
 
-const txId = await sendUTXOTransaction(client, { hex: 'YOUR_TRANSACTION_HEX' })
-console.log('Transaction sent:', txId)
+// Fetch the current block count (height)
+const blockCount = await getBlockCount(publicClient);
+console.log('Current block count:', blockCount);
+
+// Prepare the transaction hex (as a string)
+const txHex = 'TRANSACTION_HEX';
+
+// Send the transaction to the network
+const txId = await sendUTXOTransaction(publicClient, { hex: txHex });
+console.log('Transaction sent with ID:', txId);
 
 // Wait for the transaction to be confirmed
 const transaction = await waitForTransaction(publicClient, {
@@ -141,7 +156,6 @@ function YourApp() {
 }
 ```
 
-
 ## Examples
 
 - [See Node.js examples](./docs/core/examples.md)
@@ -150,12 +164,13 @@ function YourApp() {
 You can explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for detailed production examples.
 
 ## Documentation
-- [Learn more about Configuration](./docs/configuration.md)
+
+- [Learn more about Configuration](./docs/core/config.md)
 - [See Core Docs](./docs/core/index.md)
 - [See Client Docs](./docs/client/index.md)
 - [See React Docs](./docs/react/index.md)
 
-- [Want to add your wallet?](./docs/api/client/connectors.md)
+- [Want to add support for your wallet?](./docs/client/connectors.md)
 
 ## Support
 
