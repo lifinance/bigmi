@@ -9,16 +9,14 @@ This document provides a comprehensive reference for the `@bigmi/react` package,
 The main provider component that enables Bigmi functionality in your React application.
 
 ```typescript
-import { BigmiProvider } from '@bigmi/react'
+import { BigmiProvider, phantom, binance, okx } from '@bigmi/react'
 
 function App() {
   return (
     <BigmiProvider
       config={{
         autoConnect: true,
-        connectors: [
-          // Your wallet connectors
-        ],
+        connectors: [phantom(), binance(), okx()],
       }}
     >
       <YourApp />
@@ -35,10 +33,12 @@ function App() {
   - `pollingInterval?`: How often to poll for updates
 
 ## Hooks
+
 This packages comes with react hooks to make it easy to use in your application
 
 - Explore the [react hooks](./hooks.md)
 
 ## Next Steps
-- Check out the [Type Definitions](./types.md) 
-- Learn about the [Core API](../core/core.md)
+
+- Check out the [Type Definitions](./types.md)
+- Learn about the [Core API](../core/index.md)

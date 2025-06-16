@@ -7,8 +7,7 @@ This guide covers all configuration options available in Bigmi. Learn how to set
 The client is the core of Bigmi. Here's how to configure it:
 
 ```typescript
-import { createClient, bitcoin } from '@bigmi/core'
-import { blockchair } from '@bigmi/core'
+import { createClient, bitcoin, blockchair, ankr } from '@bigmi/core'
 
 const client = createClient({
   chain: bitcoin,
@@ -28,48 +27,61 @@ const client = createClient({
 - `batchSize`: Number of requests to batch together
 - `timeout`: Request timeout in milliseconds
 
-## Transport Options
+## Transport Configuration
 
-Bigmi supports multiple transport layers. It is recommended to use the fallback transport that wraps many transports for better reliability. 
+Bigmi supports multiple transport layers. It is recommended to use the fallback transport that wraps many transports for better reliability.
 
 Most https transports are free to use with API limits, they can be configured with an `apiKey` and `baseUrl` for production ready use cases.
 
-### Blockchair (Recommended for Production)
-```typescript
-import { blockchair } from '@bigmi/core'
+### Base Transports
 
-const transport = blockchair({
-  apiKey: process.env.BLOCKCHAIR_API_KEY,
-  timeout: 30000,
+#### `http`
+
+This option
+
+#### `utxo`
+
+This is a transport that extends the http transport but is customized to consume common bitcoin http APIs:
+
+There are four included transports that extend the `utxo` base transport
+
+  1. blockchair
+  2. ankr
+  3. blockcypher
+  4. mempool
+  
+##### Usage
+
+```typescript
+import { blockchair, ankr, blockcypher, mempool } from '@bigmi/core'
+
+const clientWithBlockChair = createClient({
+  chain: bitcoin,
+  transport: blockchair(),
 })
+
 ```
 
-### Ankr
-```typescript
-import { ankr } from '@bigmi/core'
+### Fallback Transport (recommended)
 
-const transport = ankr({
-  apiKey: YOUR_ANKR_API_KEY,
+This transport takes an array of transports, for when any of the transport fails, it falls back to another.
+
+```typescript
+
+import { createClient, bitcoin, blockchair, ankr, fallback } from '@bigmi/core'
+
+const client = createClient({
+  chain: bitcoin,
+  transport: fallback([
+    blockchair(),
+    ankr({apiKey: 'YOUR_ANKR_API_KEY'}),
+    mempool()
+  ]),
 })
+
 ```
 
-### Blockcypher
-```typescript
-import { blockcypher } from '@bigmi/core'
-
-const transport = blockcypher({
-  apiKey: YOUR_BLOCKCYPHER_API_KEY,
-})
-```
-
-### Mempool
-```typescript
-import { mempool } from '@bigmi/core'
-
-const transport = mempool({
-    baseUrl: YOUR_MEMPOOL_SUBDOMAIN_URL
-})
-```
+### Custom Transport
 
 ## Chain Configuration
 
@@ -96,6 +108,5 @@ const testnet4 = defineChain({
   testnet: true
 })
 ```
-
 
 [⬅️ back](./index.md)

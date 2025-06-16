@@ -1,6 +1,6 @@
-## Hooks
+# Hooks
 
-### `useConfig`
+## `useConfig`
 
 Hook to access the Bigmi configuration.
 
@@ -17,7 +17,7 @@ function Component() {
 
 The current Bigmi configuration.
 
-### `useAccount`
+## `useAccount`
 
 Hook to access the connected account information.
 
@@ -49,63 +49,7 @@ function Component() {
 - `connect`: Function to connect to a wallet
 - `disconnect`: Function to disconnect the wallet
 
-### `useBalance`
-
-Hook to track the balance of a Bitcoin address.
-
-```typescript
-import { useBalance } from '@bigmi/react'
-
-function Component({ address }: { address: string }) {
-  const { balance, isLoading, error } = useBalance({ address })
-  
-  if (isLoading) return <p>Loading...</p>
-  if (error) return <p>Error: {error.message}</p>
-  return <p>Balance: {balance} BTC</p>
-}
-```
-
-#### Parameters
-
-- `address`: The Bitcoin address to track
-
-#### Returns
-
-- `balance`: The current balance
-- `isLoading`: Whether the balance is being loaded
-- `error`: Any error that occurred
-
-### `useTransaction`
-
-Hook to track a transaction's status.
-
-```typescript
-import { useTransaction } from '@bigmi/react'
-
-function Component({ txId }: { txId: string }) {
-  const { status, confirmations, error } = useTransaction({ txId })
-  
-  return (
-    <div>
-      <p>Status: {status}</p>
-      <p>Confirmations: {confirmations}</p>
-      {error && <p>Error: {error.message}</p>}
-    </div>
-  )
-}
-```
-
-#### Parameters
-
-- `txId`: The transaction ID to track
-
-#### Returns
-
-- `status`: The current transaction status
-- `confirmations`: Number of confirmations
-- `error`: Any error that occurred
-
-### `useConnectors`
+## `useConnectors`
 
 Hook to access available wallet connectors.
 
@@ -134,99 +78,8 @@ function Component() {
 
 - `connectors`: Array of available wallet connectors
 
-## Components
+## `useConnect`
 
-### `ConnectButton`
+## `useReconnect`
 
-A pre-styled button component for connecting wallets.
-
-```typescript
-import { ConnectButton } from '@bigmi/react'
-
-function Component() {
-  return <ConnectButton />
-}
-```
-
-#### Props
-
-- `className?`: Additional CSS classes
-- `style?`: Additional styles
-- `onClick?`: Click handler
-
-### `DisconnectButton`
-
-A pre-styled button component for disconnecting wallets.
-
-```typescript
-import { DisconnectButton } from '@bigmi/react'
-
-function Component() {
-  return <DisconnectButton />
-}
-```
-
-#### Props
-
-- `className?`: Additional CSS classes
-- `style?`: Additional styles
-- `onClick?`: Click handler
-
-## Best Practices
-
-1. **Error Handling**
-   - Always handle loading and error states
-   - Provide meaningful error messages
-   - Implement fallback UI
-
-2. **Performance**
-   - Use appropriate polling intervals
-   - Implement proper cleanup
-   - Avoid unnecessary re-renders
-
-3. **User Experience**
-   - Show loading states
-   - Provide feedback for actions
-   - Handle edge cases gracefully
-
-## Examples
-
-### Basic Wallet Integration
-
-```typescript
-import { useAccount, useBalance } from '@bigmi/react'
-
-function WalletComponent() {
-  const { address, isConnected } = useAccount()
-  const { balance, isLoading } = useBalance({ address })
-  
-  if (!isConnected) return <p>Please connect your wallet</p>
-  if (isLoading) return <p>Loading balance...</p>
-  
-  return (
-    <div>
-      <p>Address: {address}</p>
-      <p>Balance: {balance} BTC</p>
-    </div>
-  )
-}
-```
-
-### Transaction Tracking
-
-```typescript
-import { useTransaction } from '@bigmi/react'
-
-function TransactionComponent({ txId }: { txId: string }) {
-  const { status, confirmations, error } = useTransaction({ txId })
-  
-  return (
-    <div>
-      <h3>Transaction Status</h3>
-      <p>Status: {status}</p>
-      <p>Confirmations: {confirmations}</p>
-      {error && <p className="error">{error.message}</p>}
-    </div>
-  )
-}
-```
+## `useSyncExternalStoreWithTracked`

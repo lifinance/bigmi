@@ -1,19 +1,23 @@
-## Error Handling
+# Error Handling
 
-### Basic Error Handling
+## Basic Error Handling
+
 ```typescript
+import { NetworkError, TransactionNotFoundError, getUTXOTransaction } from '@bigmi/core'
+
 try {
-  await client.request({ method: 'getBalance', params: [address] })
+  const txn = await getUTXOTransaction(client, { txId })
 } catch (error) {
   if (error instanceof NetworkError) {
     console.error('Network error:', error.message)
-  } else if (error instanceof TransactionError) {
-    console.error('Transaction error:', error.message)
+  } else if (error instanceof TransactionNotFoundError) {
+    console.error('Transaction not found:', error.message)
   }
 }
 ```
 
-### Custom Error Handler
+## Custom Error Handler
+
 ```typescript
 const client = createClient({
   chain: bitcoin,
@@ -52,7 +56,7 @@ class NetworkError extends BaseError {
 }
 ```
 
-### `TransactionError`
+### `TransactionNotFoundError`
 
 Error thrown when transaction operations fail.
 
@@ -61,3 +65,5 @@ class TransactionError extends BaseError {
   name: 'TransactionError'
 }
 ```
+
+### [⬅️ back to core doc](./index.md)

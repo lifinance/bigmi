@@ -1,8 +1,6 @@
-[ <- Back to Core](./core.md)
+# Type Definition
 
-## Type Definition
-
-### `Client`
+## `Client`
 
 The main client type.
 
@@ -14,7 +12,7 @@ interface Client {
 }
 ```
 
-### `Chain`
+## `Chain`
 
 Chain configuration type.
 
@@ -43,3 +41,5 @@ interface Transport {
   request: (params: RequestParams) => Promise<any>
 }
 ```
+
+[⬅️ back](./index.md)

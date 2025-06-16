@@ -70,3 +70,5 @@ const txId = await sendUTXOTransaction(client, { hex })
 The transaction ID.
 
 ### `waitForTransaction`
+
+[⬅️ back](./index.md)
