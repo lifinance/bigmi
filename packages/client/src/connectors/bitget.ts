@@ -141,7 +141,6 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
-        console.error(error)
         throw new UserRejectedRequestError(error.message)
       }
     },
