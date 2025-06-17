@@ -5,6 +5,11 @@ import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import type { UTXOSchema } from '../types'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
 import getInValidTransactionFeeResponse from './__mocks__/getTransactionFee/invalid.json'
@@ -19,7 +24,8 @@ import type {
 
 const ANKR_KEY = import.meta.env.VITE_TEST_ANKR_KEY
 const address = import.meta.env.VITE_TEST_ADDRESS
-const txId = import.meta.env.VITE_TEST_TXID
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -44,26 +50,34 @@ describe('Ankr Transport', () => {
 
   describe('getTransactionFee action', async () => {
     it('should get transaction fee', async () => {
-      getValidTransactionFeeResponse.txid = txId
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(
-          getValidTransactionFeeResponse as unknown as AnkrTxnResponse
-        )
-      )
+      if (USE_MOCK) {
+        getValidTransactionFeeResponse.txid = VALID_TX_ID
+        getValidTransactionFeeResponse.fees = TX_FEE
 
-      const result = await getTransactionFee(publicClient, { txId })
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getValidTransactionFeeResponse as unknown as AnkrTxnResponse
+          )
+        )
+      }
+
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
       expect(result).toBeDefined()
-      expect(result).toBe(BigInt(getValidTransactionFeeResponse.fees))
+      expect(result).toBe(BigInt(TX_FEE))
     })
 
     it('should throw error when txid is invalid', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(
-          getInValidTransactionFeeResponse as unknown as AnkrTxnResponse
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getInValidTransactionFeeResponse as unknown as AnkrTxnResponse
+          )
         )
-      )
+      }
       await expect(
-        getTransactionFee(publicClient, { txId })
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
       ).rejects.toThrowError()
     })
   })

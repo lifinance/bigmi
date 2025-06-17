@@ -7,6 +7,11 @@ import { BaseError } from '../../errors/base'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import type { UTXOSchema } from '../types'
 import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
 import getBalanceReponse from './__mocks__/getBalance/valid.json'
@@ -24,6 +29,8 @@ import type {
 
 const address = import.meta.env.VITE_TEST_ADDRESS
 const apiKey = import.meta.env.VITE_TEST_BLOCKCHAIR_KEY
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -197,26 +204,39 @@ describe('Blockchair Transport', () => {
 
   describe('getTransactionFee', () => {
     it('should fetch correct transaction fee for valid transaction', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionFeeValidResponse)
-      )
+      if (USE_MOCK) {
+        const mockData = {
+          data: {
+            [VALID_TX_ID]:
+              getTransactionFeeValidResponse.data[
+                '8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23'
+              ],
+          },
+          context: getTransactionFeeValidResponse.context,
+        }
 
-      const txId =
-        '8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23'
-      const result = await getTransactionFee(publicClient, { txId })
+        mockData.data[VALID_TX_ID].transaction.fee = TX_FEE
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(mockData)
+        )
+      }
 
-      expect(result).toBe(BigInt(1020))
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(TX_FEE))
     })
 
     it('should throw error for non-existent transaction', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionFeeInvalidResponse)
-      )
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeInvalidResponse)
+        )
+      }
 
-      const nonExistentTxId =
-        '0000000000000000000000000000000000000000000000000000000000000000'
       await expect(
-        getTransactionFee(publicClient, { txId: nonExistentTxId })
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
       ).rejects.toThrow()
     })
   })

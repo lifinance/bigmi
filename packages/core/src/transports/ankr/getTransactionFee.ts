@@ -6,12 +6,11 @@ export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
   { baseUrl },
   { txId }
 ) => {
-  const apiUrl = `${baseUrl}/tx-specific/${txId}`
+  const apiUrl = `${baseUrl}/tx/${txId}`
   const response = (await client.request({
     url: apiUrl,
     fetchOptions: { method: 'GET' },
   })) as unknown as AnkrTxnResponse
-
   if (response.error) {
     return { error: response.error }
   }

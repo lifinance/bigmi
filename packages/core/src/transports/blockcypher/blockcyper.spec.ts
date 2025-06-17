@@ -6,6 +6,11 @@ import { bitcoin } from '../../chains/bitcoin.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import { createClient, rpcSchema } from '../../factories/createClient.js'
 import { createMockResponse } from '../../test/utils.js'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import type { UTXOSchema } from '../types.js'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
@@ -22,6 +27,8 @@ import type {
 } from './blockcypher.types.js'
 
 const apiKey = import.meta.env.VITE_TEST_BLOCKCYPHER_API_KEY
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -124,26 +131,30 @@ describe('Blockcypher Transport', () => {
 
   describe('getTransactionFee', () => {
     it('should fetch correct transaction fee for valid transaction', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionFeeValidResponse)
-      )
+      if (USE_MOCK) {
+        getTransactionFeeValidResponse.hash = VALID_TX_ID
+        getTransactionFeeValidResponse.fees = TX_FEE
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeValidResponse)
+        )
+      }
 
-      const txId =
-        '8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23'
-      const result = await getTransactionFee(publicClient, { txId })
-
-      expect(result).toBe(BigInt(1036))
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(TX_FEE))
     })
 
     it('should throw error for non-existent transaction', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionFeeInvalidResponse)
-      )
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeInvalidResponse)
+        )
+      }
 
-      const nonExistentTxId =
-        '0000000000000000000000000000000000000000000000000000000000000000'
       await expect(
-        getTransactionFee(publicClient, { txId: nonExistentTxId })
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
       ).rejects.toThrow()
     })
   })
