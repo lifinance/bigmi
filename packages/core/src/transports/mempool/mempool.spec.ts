@@ -7,6 +7,7 @@ import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 
+import { getTransactionFee } from '../../actions/getTransactionFee'
 import { BaseError } from '../../errors/base'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
@@ -54,35 +55,6 @@ describe('Mempool Transport', () => {
     })
   })
 
-  describe('getTransaction action', async () => {
-    it('should get transaction details', async () => {
-      const txId =
-        '4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e'
-      getTransactionValidResponse.txid = txId
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionValidResponse)
-      )
-
-      const result = await getTransaction(publicClient, { txId })
-      const { transaction } = result
-      expect(transaction).toBeDefined()
-      expect(transaction.hash).toBe(txId)
-      expect(transaction.vout).toBeDefined()
-      expect(transaction.vin).toBeDefined()
-    })
-
-    it('should throw an error for invalid transaction ID', async () => {
-      const invalidTxId = 'invalid-tx-id'
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionInvalidResponse)
-      )
-
-      await expect(
-        getTransaction(publicClient, { txId: invalidTxId })
-      ).rejects.toThrow()
-    })
-  })
-
   describe('getTransactions action', async () => {
     it('should get transactions', async () => {
       vi.spyOn(global, 'fetch').mockImplementation((request) => {
@@ -113,6 +85,34 @@ describe('Mempool Transport', () => {
       expect(transactions[0]).toHaveProperty('hash')
       expect(transactions[0]).toHaveProperty('vout')
       expect(transactions[0]).toHaveProperty('vin')
+    })
+  })
+
+  describe('getTransactionFee action', async () => {
+    it('should get transaction fee', async () => {
+      const txId =
+        '4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e'
+      const fee = 300
+      getTransactionValidResponse.txid = txId
+      getTransactionValidResponse.fee = fee
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionValidResponse)
+      )
+
+      const result = await getTransactionFee(publicClient, { txId })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(fee))
+    })
+
+    it('should throw an error for invalid transaction ID', async () => {
+      const invalidTxId = 'invalid-tx-id'
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionInvalidResponse)
+      )
+
+      await expect(
+        getTransactionFee(publicClient, { txId: invalidTxId })
+      ).rejects.toThrow()
     })
   })
 })

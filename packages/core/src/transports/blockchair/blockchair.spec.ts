@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
+import { getTransactionFee } from '../../actions/getTransactionFee'
 import { getUTXOs } from '../../actions/getUTXOs'
 import { bitcoin } from '../../chains/bitcoin'
 import { BaseError } from '../../errors/base'
@@ -9,6 +10,8 @@ import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
 import getBalanceReponse from './__mocks__/getBalance/valid.json'
+import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
+import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getUTXOsInvalidResponse from './__mocks__/getUTXOs/invalidAddress.json'
 import getUTXOsResponse from './__mocks__/getUTXOs/valid.json'
 import getUTXOsPaginatedResponse from './__mocks__/getUTXOs/validPaginated.json'
@@ -189,6 +192,32 @@ describe('Blockchair Transport', () => {
         const totalValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
         expect(totalValue).toBeGreaterThanOrEqual(minValue)
       })
+    })
+  })
+
+  describe('getTransactionFee', () => {
+    it('should fetch correct transaction fee for valid transaction', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionFeeValidResponse)
+      )
+
+      const txId =
+        '8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23'
+      const result = await getTransactionFee(publicClient, { txId })
+
+      expect(result).toBe(BigInt(1020))
+    })
+
+    it('should throw error for non-existent transaction', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(getTransactionFeeInvalidResponse)
+      )
+
+      const nonExistentTxId =
+        '0000000000000000000000000000000000000000000000000000000000000000'
+      await expect(
+        getTransactionFee(publicClient, { txId: nonExistentTxId })
+      ).rejects.toThrow()
     })
   })
 })

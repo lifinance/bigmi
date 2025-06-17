@@ -1,0 +1,22 @@
+{
+  "block_height": 896390,
+  "hash": "8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23",
+  "addresses": [
+    "bc1qpvk0kjdg0kantu9z78qz7gqk53q643auz33yaw",
+    "bc1qjmggdm4r9rqkfq335w72duu47386jhdw6wye0m"
+  ],
+  "total": 10269001908,
+  "fees": 1036,
+  "size": 450,
+  "vsize": 288,
+  "preference": "medium",
+  "relayed_by": "127.0.0.1",
+  "received": "2024-03-15T12:00:00Z",
+  "ver": 1,
+  "double_spend": false,
+  "vin_sz": 2,
+  "vout_sz": 3,
+  "confirmations": 1040,
+  "inputs": [],
+  "outputs": []
+}

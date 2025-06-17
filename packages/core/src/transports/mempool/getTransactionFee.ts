@@ -1,8 +1,7 @@
 import type { RpcMethodHandler } from '../types.js'
 import type { MempoolTransaction } from './mempool.types.js'
-import { mempoolTransactionTransformer } from './utils.js'
 
-export const getTransaction: RpcMethodHandler<'getTransaction'> = async (
+export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
   client,
   { baseUrl },
   { txId }
@@ -14,13 +13,7 @@ export const getTransaction: RpcMethodHandler<'getTransaction'> = async (
     fetchOptions: { method: 'GET' },
   })) as unknown as MempoolTransaction
 
-  const transaction = mempoolTransactionTransformer(response)
-
-  const result = {
-    transaction,
-  }
-
   return {
-    result,
+    result: BigInt(response.fee),
   }
 }

@@ -39,6 +39,13 @@ export type UTXOAPISchema = [
     }
   },
   {
+    Method: 'getTransactionFee'
+    Parameters: {
+      txId: string
+    }
+    ReturnType: bigint
+  },
+  {
     Method: 'getUTXOs'
     Parameters: {
       address: string

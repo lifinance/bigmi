@@ -1,8 +1,7 @@
 import type { RpcMethodHandler } from '../types.js'
 import type { AnkrTxnResponse } from './ankr.types.js'
-import { ankrTransactionTransformer } from './utils.js'
 
-export const getTransaction: RpcMethodHandler<'getTransaction'> = async (
+export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
   client,
   { baseUrl },
   { txId }
@@ -17,11 +16,7 @@ export const getTransaction: RpcMethodHandler<'getTransaction'> = async (
     return { error: response.error }
   }
 
-  const result = {
-    transaction: ankrTransactionTransformer(response),
-  }
-
   return {
-    result,
+    result: BigInt(response.fees),
   }
 }
