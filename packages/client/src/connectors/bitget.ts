@@ -1,9 +1,12 @@
 import {
+  type Account,
   type Address,
+  BaseError,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
@@ -30,7 +33,7 @@ export type BitgetBitcoinEvents = {
 }
 
 type BitgetConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<BitgetBitcoinProvider>
 } & UTXOWalletProvider
@@ -38,6 +41,7 @@ type BitgetConnectorProperties = {
 type BitgetBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getPublicKey(): Promise<string>
   signPsbt(
     psbtHex: string,
     options: {
@@ -116,7 +120,11 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        const address = await provider.requestAccounts()
+        if (!address) {
+          throw new BaseError('error connecting to your wallet')
+        }
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -158,7 +166,21 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const address = accounts[0]
+      const publicKey = await provider.getPublicKey()
+
+      if (!publicKey.length) {
+        throw new BaseError('public key not found')
+      }
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
+      return [account]
     },
     async getChainId() {
       return chainId!
@@ -182,8 +204,13 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

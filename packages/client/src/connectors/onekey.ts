@@ -1,9 +1,11 @@
 import {
+  type Account,
   type Address,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
@@ -29,7 +31,7 @@ export type OneKeyBitcoinEvents = {
 }
 
 type OneKeyConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<OneKeyBitcoinProvider>
 } & UTXOWalletProvider
@@ -37,6 +39,7 @@ type OneKeyConnectorProperties = {
 type OneKeyBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getPublicKey(): Promise<string>
   signPsbt(
     psbtHex: string,
     options: {
@@ -115,7 +118,8 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        await provider.requestAccounts()
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -157,7 +161,17 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const address = accounts[0]
+      const publicKey = await provider.getPublicKey()
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
+      return [account]
     },
     async getChainId() {
       return chainId!
@@ -181,8 +195,9 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

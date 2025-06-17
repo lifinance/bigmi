@@ -1,4 +1,5 @@
 import {
+  type Account,
   type Address,
   type BaseErrorType,
   type Compute,
@@ -38,7 +39,7 @@ export type ConnectParameters<
   parameters
 
 export type ConnectReturnType<config extends Config = Config> = {
-  accounts: readonly [Address, ...Address[]]
+  accounts: readonly [Account, ...Account[]]
   chainId:
     | config['chains'][number]['id']
     | (number extends config['chains'][number]['id'] ? number : number & {})
@@ -78,7 +79,7 @@ export async function connect<
 
     const { connector: _, ...rest } = parameters
     const data = await connector.connect(rest)
-    const accounts = data.accounts as readonly [Address, ...Address[]]
+    const accounts = data.accounts as readonly [Account, ...Account[]]
 
     connector.emitter.off('connect', config._internal.events.connect)
     connector.emitter.on('change', config._internal.events.change)

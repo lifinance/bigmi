@@ -1,5 +1,4 @@
 import {
-  type Address,
   ConnectorAccountNotFoundError,
   createClient,
   custom,
@@ -62,7 +61,7 @@ export type GetConnectorClientParameters<
        *   call without a connected account – the user will be prompted to select
        *   an account within the wallet).
        */
-      account?: Address | null | undefined
+      account?: Account | null | undefined
     }
 >
 
@@ -82,7 +81,7 @@ export async function getConnectorClient<
       connector.getChainId(),
     ])
     connection = {
-      accounts: accounts as readonly [Address, ...Address[]],
+      accounts: accounts as readonly [Account, ...Account[]],
       chainId,
       connector,
     }
@@ -124,7 +123,7 @@ export async function getConnectorClient<
   if (
     parameters.account &&
     !connection.accounts.some(
-      (x: string) => x.toLowerCase() === account.address.toLowerCase()
+      (x: Account) => x.address.toLowerCase() === account.address.toLowerCase()
     )
   ) {
     throw new ConnectorAccountNotFoundError({

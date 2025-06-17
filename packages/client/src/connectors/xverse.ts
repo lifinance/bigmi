@@ -1,4 +1,4 @@
-import type { Address, SignPsbtParameters } from '@bigmi/core'
+import type { Account, AddressPurpose, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -7,7 +7,7 @@ import {
   hexToBase64,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-import type { BtcAccount } from '../types/account.js'
+
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -15,7 +15,7 @@ import type {
 } from './types.js'
 
 export type XverseBitcoinEventMap = {
-  accountChange(accounts: BtcAccount[]): void
+  accountChange(accounts: Account[]): void
 }
 
 export type XverseBitcoinEvents = {
@@ -30,22 +30,20 @@ export type XverseBitcoinEvents = {
 }
 
 type XverseConnectorProperties = {
-  getAccounts(): Promise<readonly (BtcAccount | Address)[]>
-  onAccountsChanged(accounts: (BtcAccount | Address)[]): void
+  getAccounts(): Promise<readonly Account[]>
+  onAccountsChanged(accounts: Account[]): void
   getInternalProvider(): Promise<XverseBitcoinProvider>
 } & UTXOWalletProvider
-
-type Purpose = 'ordinals' | 'payment' | 'stacks'
 
 type Error = { code: number; message: string }
 
 // Define the shape of the request parameters
 interface GetAccountsRequest {
-  purposes: Purpose[]
+  purposes: AddressPurpose[]
 }
 
 interface GetAccountsResponse {
-  result?: { addresses: BtcAccount[] }
+  result?: { addresses: Account[] }
   error?: Error
 }
 
@@ -76,7 +74,7 @@ type XverseBitcoinProvider = {
 xverse.type = 'UTXO' as const
 export function xverse(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
-  let accountChange: ((accounts: BtcAccount[]) => void) | undefined
+  let accountChange: ((accounts: Account[]) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     XverseConnectorProperties
@@ -205,9 +203,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       if (!accounts.result) {
         throw new UserRejectedRequestError(accounts.error?.message!)
       }
-      return accounts.result.addresses.map(
-        (account) => account.address as Address
-      )
+      return accounts.result.addresses
     },
     async getChainId() {
       return chainId!
