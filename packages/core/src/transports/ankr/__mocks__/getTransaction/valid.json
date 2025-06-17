@@ -46,5 +46,6 @@
   "blockhash": "00000000000000000000424244f4cc05ce659d674d0980cdad000dd72cbe0d8d",
   "confirmations": 2,
   "time": 1750086075,
-  "blocktime": 1750086075
+  "blocktime": 1750086075,
+  "fees": 300
 }

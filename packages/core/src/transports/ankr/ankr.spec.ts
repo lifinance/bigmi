@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
-import { getTransaction } from '../../actions/getTransaction'
+import { getTransactionFee } from '../../actions/getTransactionFee'
 import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
-import { utxo } from '../utxo'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
 import getInValidTransactionResponse from './__mocks__/getTransaction/invalid.json'
 import getValidTransactionResponse from './__mocks__/getTransaction/valid.json'
@@ -43,8 +42,8 @@ describe('Ankr Transport', () => {
     })
   })
 
-  describe('getTransaction action', async () => {
-    it('should get a valid transaction', async () => {
+  describe('getTransactionFee action', async () => {
+    it('should get transaction fee', async () => {
       getValidTransactionResponse.txid = txId
       vi.spyOn(global, 'fetch').mockResolvedValue(
         createMockResponse(
@@ -52,12 +51,9 @@ describe('Ankr Transport', () => {
         )
       )
 
-      const result = await getTransaction(publicClient, { txId })
-
-      const { transaction } = result
-      expect(transaction).toHaveProperty('hash')
-      expect(transaction).toHaveProperty('vout')
-      expect(transaction).toHaveProperty('vin')
+      const result = await getTransactionFee(publicClient, { txId })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(getValidTransactionResponse.fees))
     })
 
     it('should throw error when txid is invalid', async () => {
@@ -67,7 +63,7 @@ describe('Ankr Transport', () => {
         )
       )
       await expect(
-        getTransaction(publicClient, { txId })
+        getTransactionFee(publicClient, { txId })
       ).rejects.toThrowError()
     })
   })
