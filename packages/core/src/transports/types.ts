@@ -6,6 +6,7 @@ export const UTXOAPISchemaMethods: UTXOMethod[] = [
   'getBalance',
   'getTransactions',
   'getUTXOs',
+  'getTransactionFee',
 ]
 
 export type UTXOAPISchema = [
