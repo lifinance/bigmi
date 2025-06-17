@@ -7,8 +7,8 @@ import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
-import getInValidTransactionResponse from './__mocks__/getTransaction/invalid.json'
-import getValidTransactionResponse from './__mocks__/getTransaction/valid.json'
+import getInValidTransactionFeeResponse from './__mocks__/getTransactionFee/invalid.json'
+import getValidTransactionFeeResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
 import { ankr } from './ankr'
 import type {
@@ -44,22 +44,22 @@ describe('Ankr Transport', () => {
 
   describe('getTransactionFee action', async () => {
     it('should get transaction fee', async () => {
-      getValidTransactionResponse.txid = txId
+      getValidTransactionFeeResponse.txid = txId
       vi.spyOn(global, 'fetch').mockResolvedValue(
         createMockResponse(
-          getValidTransactionResponse as unknown as AnkrTxnResponse
+          getValidTransactionFeeResponse as unknown as AnkrTxnResponse
         )
       )
 
       const result = await getTransactionFee(publicClient, { txId })
       expect(result).toBeDefined()
-      expect(result).toBe(BigInt(getValidTransactionResponse.fees))
+      expect(result).toBe(BigInt(getValidTransactionFeeResponse.fees))
     })
 
     it('should throw error when txid is invalid', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValue(
         createMockResponse(
-          getInValidTransactionResponse as unknown as AnkrTxnResponse
+          getInValidTransactionFeeResponse as unknown as AnkrTxnResponse
         )
       )
       await expect(

@@ -30,15 +30,6 @@ export type UTXOAPISchema = [
     }
   },
   {
-    Method: 'getTransaction'
-    Parameters: {
-      txId: string
-    }
-    ReturnType: {
-      transaction: Partial<UTXOTransaction>
-    }
-  },
-  {
     Method: 'getTransactionFee'
     Parameters: {
       txId: string

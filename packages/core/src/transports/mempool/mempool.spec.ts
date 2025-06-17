@@ -10,8 +10,8 @@ import { getTransactionFee } from '../../actions/getTransactionFee'
 import { BaseError } from '../../errors/base'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
-import getTransactionInvalidResponse from './__mocks__/getTransaction/invalid.json'
-import getTransactionValidResponse from './__mocks__/getTransaction/valid.json'
+import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
+import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
 import { mempool } from './mempool'
 import type {
@@ -92,10 +92,10 @@ describe('Mempool Transport', () => {
       const txId =
         '4b6ee974f1dd179071d027562e1fd1c83965efa4a171ec84f00b6c638e36fa4e'
       const fee = 300
-      getTransactionValidResponse.txid = txId
-      getTransactionValidResponse.fee = fee
+      getTransactionFeeValidResponse.txid = txId
+      getTransactionFeeValidResponse.fee = fee
       vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionValidResponse)
+        createMockResponse(getTransactionFeeValidResponse)
       )
 
       const result = await getTransactionFee(publicClient, { txId })
@@ -106,7 +106,7 @@ describe('Mempool Transport', () => {
     it('should throw an error for invalid transaction ID', async () => {
       const invalidTxId = 'invalid-tx-id'
       vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getTransactionInvalidResponse)
+        createMockResponse(getTransactionFeeInvalidResponse)
       )
 
       await expect(
