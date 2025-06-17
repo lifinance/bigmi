@@ -6,6 +6,7 @@ export const UTXOAPISchemaMethods: UTXOMethod[] = [
   'getBalance',
   'getTransactions',
   'getUTXOs',
+  'getTransactionFee',
 ]
 
 export type UTXOAPISchema = [
@@ -28,6 +29,13 @@ export type UTXOAPISchema = [
       total: number
       hasMore?: boolean
     }
+  },
+  {
+    Method: 'getTransactionFee'
+    Parameters: {
+      txId: string
+    }
+    ReturnType: bigint
   },
   {
     Method: 'getUTXOs'
