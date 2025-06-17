@@ -5,7 +5,7 @@ export type UTXOTransaction = {
   hash: string
   hex: string
   in_active_chain?: boolean
-  locktime?: number
+  locktime: number
   size: number
   time?: number
   txid: string
