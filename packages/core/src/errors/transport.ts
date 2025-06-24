@@ -25,3 +25,57 @@ export class TransportMethodNotSupportedError extends BaseError {
     })
   }
 }
+
+export type AllTransportsFailedErrorType = AllTransportsFailedError & {
+  name: 'AllTransportsFailedError'
+}
+export class AllTransportsFailedError extends BaseError {
+  constructor({
+    method,
+    params,
+    errors,
+    totalAttempts,
+  }: {
+    method: string
+    params: unknown
+    errors: Array<{
+      transport: string
+      error: Error
+      attempt: number
+    }>
+    totalAttempts: number
+  }) {
+    const errorMessages = errors
+      .map(
+        ({ transport, error, attempt }) =>
+          `${attempt}. ${transport}: ${error.message}`
+      )
+      .join('\n')
+
+    super(
+      `All ${totalAttempts} transports failed for method "${method}": \n${errorMessages}`,
+      {
+        name: 'AllTransportsFailedError',
+        metaMessages: [
+          `Method: ${method}`,
+          `Total attempts: ${totalAttempts}`,
+          `Failed transports: ${errors.map((e) => e.transport).join(', ')}`,
+        ],
+      }
+    )
+
+    this.method = method
+    this.params = params
+    this.errors = errors
+    this.totalAttempts = totalAttempts
+  }
+
+  method: string
+  params: unknown
+  errors: Array<{
+    transport: string
+    error: Error
+    attempt: number
+  }>
+  totalAttempts: number
+}
