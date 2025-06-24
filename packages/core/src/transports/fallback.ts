@@ -196,7 +196,7 @@ export function fallback<const transports extends readonly Transport[]>(
               collectedErrors.push({
                 transport: transport.config.name,
                 error: err as Error,
-                attempt: i,
+                attempt: i + 1,
               })
 
               // If we've reached the end of the fallbacks, throw all collected errors.
@@ -205,7 +205,7 @@ export function fallback<const transports extends readonly Transport[]>(
                   method,
                   params,
                   errors: collectedErrors,
-                  totalAttempts: supportedTransports.length,
+                  totalAttempts: i + 1,
                 })
               }
 
