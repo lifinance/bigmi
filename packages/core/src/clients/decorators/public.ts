@@ -18,6 +18,11 @@ import {
   getBlockStats,
 } from '../../actions/getBlockStats.js'
 import {
+  type GetTransactionFeeParameters,
+  type GetTransactionFeeReturnType,
+  getTransactionFee,
+} from '../../actions/getTransactionFee.js'
+import {
   type GetTransactionsParameters,
   type GetTransactionsReturnType,
   getTransactions,
@@ -54,6 +59,9 @@ export type PublicActions = {
     args: GetUTXOTransactionParameters
   ) => Promise<GetUTXOTransactionReturnType>
   getUTXOs: (args: GetUTXOsParameters) => Promise<GetUTXOsReturnType>
+  getTransactionFee: (
+    args: GetTransactionFeeParameters
+  ) => Promise<GetTransactionFeeReturnType>
 }
 
 export function publicActions<
@@ -70,5 +78,6 @@ export function publicActions<
     getTransactions: (args) => getTransactions(client, args),
     getUTXOTransaction: (args) => getUTXOTransaction(client, args),
     getUTXOs: (args) => getUTXOs(client, args),
+    getTransactionFee: (args) => getTransactionFee(client, args),
   }
 }
