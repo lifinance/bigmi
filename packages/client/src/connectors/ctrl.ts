@@ -1,17 +1,48 @@
 import {
+  type Account,
   type Address,
+  type AddressPurpose,
+  type AddressType,
+  BaseError,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  base64ToHex,
+  hexToBase64,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
-import type {
-  ProviderRequestParams,
-  UTXOConnectorParameters,
-  UTXOWalletProvider,
-} from './types.js'
+import type { UTXOConnectorParameters, UTXOWalletProvider } from './types.js'
+
+interface GetAccountsRequest {
+  purposes: AddressPurpose[]
+}
+
+type CtrlResponse<T> =
+  | {
+      status: 'success'
+      result: T
+      error?: never
+    }
+  | {
+      status: 'error'
+      error: string
+      result?: never
+    }
+
+interface CtrlSignPsbtResult {
+  psbt: string
+  txid: string
+}
+
+interface CtrlAccount {
+  address: string
+  publicKey: string
+  purpose: AddressPurpose
+  addressType: string
+  walletType: string
+}
 
 export type CtrlBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -29,15 +60,34 @@ export type CtrlBitcoinEvents = {
 }
 
 type CtrlConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<CtrlBitcoinProvider>
 } & UTXOWalletProvider
 
 type CtrlBitcoinProvider = {
+  signPsbt(psbtHex: string, finalise?: boolean): Promise<string>
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
-  signPsbt(psbtHex: string, finalise?: boolean): Promise<string>
+  request({
+    method,
+    params,
+  }: {
+    method: 'sign_psbt'
+    params: {
+      psbt: string
+      allowedSignHash: number
+      signInputs: Record<string, number[]>
+      broadcast: boolean
+    }
+  }): Promise<CtrlResponse<CtrlSignPsbtResult>>
+  request({
+    method,
+    params,
+  }: {
+    method: 'request_accounts_and_keys'
+    params: GetAccountsRequest
+  }): Promise<CtrlResponse<CtrlAccount[]>>
 } & CtrlBitcoinEvents
 
 ctrl.type = 'UTXO' as const
@@ -48,10 +98,10 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
     UTXOWalletProvider | undefined,
     CtrlConnectorProperties
   >((config) => ({
-    id: 'io.xdefi.bitcoin',
-    name: 'XDEFI',
+    id: 'io.xdefi',
+    name: 'Ctrl Wallet',
     type: ctrl.type,
-    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8yMTkxXzQyOTApIj4KPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMDQiIGZpbGw9IiMzMzVERTUiLz4KPHBhdGggZD0iTTQ2My40MzggMjQxLjI0N0M0NjAuNzY1IDIwNS4xMzUgNDQ4LjU4IDE3MC4zMzggNDI4LjA4NyAxNDAuMjcxQzQwNy41OTkgMTEwLjIwOSAzNzkuNTA5IDg1LjkxODIgMzQ2LjU3OSA2OS43OTZDMzEzLjY1MyA1My42NzggMjc3LjAzMiA0Ni4yODA0IDI0MC4zMiA0OC4zMzYzQzIwMy42MDUgNTAuMzkyMSAxNjguMDY5IDYxLjgyNTUgMTM3LjIxMiA4MS41MjAxQzEwNi4zNTQgMTAxLjIxIDgxLjIzOTQgMTI4LjQ4IDY0LjMzODYgMTYwLjYzNkw2My41MzYgMTYyLjI1N0M1OC4xOTcxIDE3My4xMjYgNTQuNTg3OCAxODQuNzQ1IDUyLjg0MTEgMTk2LjY5N0M0Ny44NDU1IDIzMi4wMjEgNTUuNTkyIDI2My40NiA3NS44Mjc1IDI4Ny42NjdDOTcuOTU5OSAzMTQuMTM2IDEzMy45OTMgMzI5Ljg3OSAxNzcuMjE1IDMzMS45NDdDMjI5LjgzMiAzMzQuNTU1IDI4Mi4xNDggMzIwLjQzNCAzMTkuMjc1IDI5NC40NThMMzQxLjI4NyAzMDcuMzUzQzMyMC4yNTggMzI1LjI5MSAyNzEuNjM3IDM1Ny41OTQgMTkxLjExMiAzNjIuMDA5QzEwMC43MTkgMzY2LjkzIDYzLjA0MjUgMzM4LjAwMSA2Mi42OTA1IDMzNy43MDZMNTYuMzUxNyAzNDUuNDAzTDQ4IDM1NS4yNzNDNDkuNjAwOCAzNTYuNiA4NS43Mjg1IDM4NS4zMzUgMTcwLjU3NiAzODUuMzM1QzE3Ny41MiAzODUuMzM1IDE4NC44MTYgMzg1LjMzNSAxOTIuNDEyIDM4NC43NDZDMjg5Ljg3MyAzNzkuMzkxIDM0My40NzYgMzM3LjU3NSAzNjIuMjMxIDMxOS42MjlMMzgwLjY0MiAzMzAuNjM3QzM2OC4yNjEgMzQ2LjY1OCAzNTMuMDI1IDM2MC4zMzMgMzM1LjY3IDM3MC45ODJDMjc0LjUwNCA0MDkuODQ5IDE5Ni43MDggNDE0Ljg2NyAxNDIuMjQyIDQxMi4xNjJMMTQxLjA5NiA0MzQuODMxQzE1MC4yNDIgNDM1LjI3MyAxNTkuMDM1IDQzNS40NzEgMTY3LjU4IDQzNS40NzFDMzIxLjA0OCA0MzUuNDcxIDM4My4xMzIgMzY2LjcxOSA0MDAuNTM5IDM0Mi4wNjJMNDE0LjkyNSAzNTAuNDg3QzQwMS4xMzUgMzczLjYwMyAzODIuMzkzIDM5My41NjcgMzU5LjkzMSA0MDguOTM5QzMzMy4wMzQgNDI3LjM0NSAzMDEuNzM1IDQzOC41MzggMjY5LjExNCA0NDEuNDE1TDI3MS4xMTQgNDY0QzMwNy43MzkgNDYwLjc4NiAzNDIuODg4IDQ0OC4yMzYgMzczLjA4OSA0MjcuNTgxQzQwMy4yOSA0MDYuOTI2IDQyNy41MDggMzc4Ljg4MSA0NDMuMzQ5IDM0Ni4yMDdDNDU5LjE4NSAzMTMuNTI5IDQ2Ni4xMTYgMjc3LjM1OCA0NjMuNDM4IDI0MS4yNDdaTTM3NC44MSAyNDQuNzM5QzM2NC42MjYgMjQ0LjczOSAzNTYuMzY4IDIzNi42MTMgMzU2LjM2OCAyMjYuNTg2QzM1Ni4zNjggMjE2LjU2IDM2NC42MjEgMjA4LjQzMyAzNzQuODEgMjA4LjQzM0MzODQuOTkgMjA4LjQzMyAzOTMuMjQ3IDIxNi41NiAzOTMuMjQ3IDIyNi41ODZDMzkzLjI0NyAyMzYuNjEzIDM4NC45OTQgMjQ0LjczOSAzNzQuODEgMjQ0LjczOVoiIGZpbGw9IiNFQ0VDRUMiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8yMTkxXzQyOTAiPgo8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K',
+    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI0IiBoZWlnaHQ9IjEyNCIgdmlld0JveD0iMCAwIDEyNCAxMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8yMjA5XzQyNjUzKSI+CjxwYXRoIGQ9Ik00MS4zMzMgOTAuMzI1NVYxMTYuMzM3QzQxLjMzMyAxMjAuNTc2IDQ0Ljc2NzEgMTI0LjAwMSA0OC45OTUzIDEyNC4wMDFINzUuMDA0Qzc5LjI0MjUgMTI0LjAwMSA4Mi42NjYzIDEyMC41NjYgODIuNjY2MyAxMTYuMzM3VjEwMy4zMzFDODIuNjY2MyA5Ny42MTc1IDg0Ljk3NjQgOTIuNDUwMSA4OC43MTk5IDg4LjcxNjVDOTIuNDYzNCA4NC45NzI1IDk3LjYzMDEgODIuNjYyMiAxMDMuMzMzIDgyLjY2MjJIMTE2LjMzN0MxMjAuNTc2IDgyLjY2MjIgMTI0IDc5LjIyNzYgMTI0IDc0Ljk5ODlWNDguOTk3M0MxMjQgNDQuNzU4MiAxMjAuNTY2IDQxLjMzNCAxMTYuMzM3IDQxLjMzNEg5MC4zMzlDODYuMTAwNSA0MS4zMzQgODIuNjc2NyA0NC43Njg1IDgyLjY3NjcgNDguOTk3M1Y2Mi42MzI0QzgyLjY3NjcgNzMuNjk5MyA3My43MDQ2IDgyLjY2MjIgNjIuNjQ5NCA4Mi42NjIySDQ5LjAxNkM0NC43Nzc0IDgyLjY2MjIgNDEuMzUzNiA4Ni4wOTY3IDQxLjM1MzYgOTAuMzI1NUg0MS4zMzNaIiBmaWxsPSIjMDAxNDA1Ii8+CjxwYXRoIGQ9Ik0wIDQ4Ljk5NTdWNzUuMDA0M0MwIDc5LjI0MjggMy40MzQxMyA4Mi42NjY3IDcuNjYyMzQgODIuNjY2N0gzMy42NzFDMzcuOTA5NSA4Mi42NjY3IDQxLjMzMzMgNzkuMjMyNSA0MS4zMzMzIDc1LjAwNDNWNjJDNDEuMzMzMyA1Ni4yODY4IDQzLjY0MzQgNTEuMTIwMSA0Ny4zODY5IDQ3LjM4NjlDNTEuMTMwNCA0My42NDM0IDU2LjI5NzEgNDEuMzMzMyA2MiA0MS4zMzMzSDc1LjAwNDNDNzkuMjQyOCA0MS4zMzMzIDgyLjY2NjcgMzcuODk5MiA4Mi42NjY3IDMzLjY3MVY3LjY2MjM0QzgyLjY2NjcgMy40MjM4MiA3OS4yMzI1IDAgNzUuMDA0MyAwSDQ5LjAwNkM0NC43Njc1IDAgNDEuMzQzNiAzLjQzNDEzIDQxLjM0MzYgNy42NjIzNFYyMS4yOTU3QzQxLjM0MzYgMzIuMzYxMyAzMi4zNzE2IDQxLjMyMyAyMS4zMTY0IDQxLjMyM0g3LjY2MjM0QzMuNDIzODIgNDEuMzIzIDAgNDQuNzU3MiAwIDQ4Ljk4NTRWNDguOTk1N1oiIGZpbGw9IiMwMDE0MDUiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8yMjA5XzQyNjUzIj4KPHJlY3Qgd2lkdGg9IjEyNCIgaGVpZ2h0PSIxMjQiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==',
     async setup() {
       //
     },
@@ -78,8 +128,34 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       switch (method) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
-          const signedPsbt = await this.signPsbt(psbt, options.finalize)
-          return signedPsbt
+
+          const psbtBase64 = hexToBase64(psbt)
+          const signInputs = options.inputsToSign.reduce(
+            (signInputs, input) => {
+              if (!signInputs[input.address]) {
+                signInputs[input.address] = []
+              }
+              signInputs[input.address].push(...input.signingIndexes)
+              return signInputs
+            },
+            {} as Record<string, number[]>
+          )
+
+          const response = await this.request({
+            method: 'sign_psbt',
+            params: {
+              psbt: psbtBase64,
+              signInputs,
+              allowedSignHash: 1,
+              broadcast: Boolean(options.finalize),
+            },
+          })
+
+          if (response.status === 'success') {
+            return base64ToHex(response.result.psbt)
+          }
+
+          throw new BaseError(response.error)
         }
         default:
           throw new MethodNotSupportedRpcError(method)
@@ -91,7 +167,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -108,6 +184,9 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
+        console.error({
+          error,
+        })
         throw new UserRejectedRequestError(error.message)
       }
     },
@@ -132,8 +211,21 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const { status, result } = await provider.request({
+        method: 'request_accounts_and_keys',
+        params: {
+          purposes: ['payment'],
+        },
+      })
+      if (status === 'success') {
+        return result.map((account) => ({
+          address: account.address,
+          addressType: account.addressType.toLowerCase() as AddressType,
+          publicKey: account.publicKey,
+          purpose: account.purpose,
+        }))
+      }
+      throw new BaseError('Error getting accounts')
     },
     async getChainId() {
       return chainId!
@@ -153,8 +245,9 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

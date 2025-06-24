@@ -1,4 +1,11 @@
-import { type SignPsbtParameters, base64ToHex, hexToBase64 } from '@bigmi/core'
+import {
+  type Account,
+  AddressType,
+  BaseError,
+  type SignPsbtParameters,
+  base64ToHex,
+  hexToBase64,
+} from '@bigmi/core'
 import type { UTXOWalletProvider } from './types.js'
 
 import {
@@ -69,7 +76,7 @@ type DynamicBitcoinWallet = {
 }
 
 type DynamicConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<DynamicWalletConnector>
 } & UTXOWalletProvider
@@ -188,13 +195,20 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       }
     },
     async getAccounts() {
-      const paymentAdress = wallet.additionalAddresses.find(
+      const account = wallet.additionalAddresses.find(
         (wallet) => wallet.type === 'payment'
       )
-      if (!paymentAdress) {
-        throw new Error('Please connect a wallet with a segwit address')
+      if (!account) {
+        throw new BaseError('Please connect a wallet with a segwit address')
       }
-      return [paymentAdress.address] as Address[]
+      return [
+        {
+          address: account.address,
+          publicKey: account.publicKey,
+          addressType: AddressType.p2pkh,
+          purpose: account.type,
+        },
+      ]
     },
     async getChainId() {
       return chainId!
@@ -206,8 +220,9 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

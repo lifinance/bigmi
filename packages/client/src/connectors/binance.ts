@@ -1,9 +1,11 @@
 import {
+  type Account,
   type Address,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
@@ -30,12 +32,13 @@ export type BinanceBitcoinEvents = {
 }
 
 type BinanceConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<BinanceBitcoinProvider>
 } & UTXOWalletProvider
 
 type BinanceBitcoinProvider = {
+  getPublicKey(): Promise<string>
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   signPsbt(
@@ -122,7 +125,9 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        await provider.requestAccounts()
+        const accounts = await this.getAccounts()
+
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -164,7 +169,17 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const address = accounts[0]
+      const publicKey = await provider.getPublicKey()
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
+      return [account]
     },
     async getChainId() {
       return chainId!
@@ -188,8 +203,9 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },

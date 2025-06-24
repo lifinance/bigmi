@@ -1,4 +1,5 @@
 import {
+  type Account,
   type Address,
   type BtcRpcRequestFn,
   type Chain,
@@ -17,8 +18,11 @@ import {
 } from '@bigmi/core'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
+import type {
+  ConnectorEventMap,
+  CreateConnectorFn,
+} from '../types/connector.js'
 import type { Storage } from '../types/storage.js'
-import type { ConnectorEventMap, CreateConnectorFn } from './createConnector.js'
 import { type Emitter, type EventData, createEmitter } from './createEmitter.js'
 import { createStorage, getDefaultStorage } from './createStorage.js'
 
@@ -305,7 +309,7 @@ export function createConfig<
         ...x,
         connections: new Map(x.connections).set(data.uid, {
           accounts:
-            (data.accounts as readonly [Address, ...Address[]]) ??
+            (data.accounts as readonly [Account, ...Account[]]) ??
             connection.accounts,
           chainId: data.chainId ?? connection.chainId,
           connector: connection.connector,
@@ -341,7 +345,7 @@ export function createConfig<
       return {
         ...x,
         connections: new Map(x.connections).set(data.uid, {
-          accounts: data.accounts as readonly [Address, ...Address[]],
+          accounts: data.accounts as readonly [Account, ...Account[]],
           chainId: data.chainId,
           connector: connector,
         }),
@@ -603,7 +607,7 @@ export type PartializedState = Compute<
 >
 
 export type Connection = {
-  accounts: readonly [Address, ...Address[]]
+  accounts: readonly [Account, ...Account[]]
   chainId: number
   connector: Connector
 }

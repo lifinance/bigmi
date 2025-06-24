@@ -1,5 +1,5 @@
 import {
-  type Address,
+  type Account,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
@@ -9,7 +9,7 @@ import {
   withRetry,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-import type { BtcAccount } from '../types/account.js'
+
 import { createUnsecuredToken } from '../utils/createUnsecuredToken.js'
 import type {
   ProviderRequestParams,
@@ -18,7 +18,7 @@ import type {
 } from './types.js'
 
 export type MagicEdenBitcoinEventMap = {
-  accountsChanged(accounts: BtcAccount[]): void
+  accountsChanged(accounts: Account[]): void
 }
 
 export type MagicEdenBitcoinEvents = {
@@ -33,13 +33,13 @@ export type MagicEdenBitcoinEvents = {
 }
 
 type MagicEdenConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
-  onAccountsChanged(accounts: BtcAccount[]): void
+  getAccounts(): Promise<readonly Account[]>
+  onAccountsChanged(accounts: Account[]): void
   getInternalProvider(): Promise<MagicEdenBitcoinProvider>
 } & UTXOWalletProvider
 
 type MagicEdenBitcoinProvider = {
-  connect(encodedRequest: string): Promise<{ addresses: BtcAccount[] }>
+  connect(encodedRequest: string): Promise<{ addresses: Account[] }>
   signTransaction(encodedRequest: string): Promise<{
     psbtBase64: string
     txId?: string
@@ -49,7 +49,7 @@ type MagicEdenBitcoinProvider = {
 magicEden.type = 'UTXO' as const
 export function magicEden(parameters: UTXOConnectorParameters = {}) {
   const { chainId, shimDisconnect = true } = parameters
-  let accountsChanged: ((accounts: BtcAccount[]) => void) | undefined
+  let accountsChanged: ((accounts: Account[]) => void) | undefined
 
   return createConnector<
     UTXOWalletProvider | undefined,
@@ -158,9 +158,7 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
 
       const { addresses } = await provider.connect(request)
 
-      return addresses
-        .filter((account) => account.purpose === 'payment')
-        .map((account) => account.address as Address)
+      return addresses.filter((account) => account.purpose === 'payment')
     },
     async getChainId() {
       return chainId!
@@ -184,12 +182,12 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
-        const addresses = (accounts as BtcAccount[])
-          .filter((account) => account.purpose === 'payment')
-          .map((account) => account.address)
+        const filteredAccounts = (accounts as Account[]).filter(
+          (account) => account.purpose === 'payment'
+        )
 
         config.emitter.emit('change', {
-          accounts: addresses,
+          accounts: filteredAccounts,
         })
       }
     },
