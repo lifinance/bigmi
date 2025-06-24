@@ -1,14 +1,21 @@
-import { beforeEach } from 'node:test'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance.js'
+import { getTransactionFee } from '../../actions/getTransactionFee.js'
 import { getUTXOs } from '../../actions/getUTXOs.js'
 import { bitcoin } from '../../chains/bitcoin.js'
-import { NotEnoughUTXOError } from '../../errors/address.js'
+import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import { createClient, rpcSchema } from '../../factories/createClient.js'
 import { createMockResponse } from '../../test/utils.js'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import type { UTXOSchema } from '../types.js'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
+import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
+import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getUTXOsEmptyReponse from './__mocks__/getUTXOs/empty.json'
 import getUTXOsPaginatedReponse from './__mocks__/getUTXOs/paginated.json'
 import getUTXOsValidReponse from './__mocks__/getUTXOs/valid.json'
@@ -20,6 +27,8 @@ import type {
 } from './blockcypher.types.js'
 
 const apiKey = import.meta.env.VITE_TEST_BLOCKCYPHER_API_KEY
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -88,7 +97,7 @@ describe('Blockcypher Transport', () => {
           address,
           minValue: Number(hugeValue),
         })
-      ).rejects.toThrow(NotEnoughUTXOError)
+      ).rejects.toThrow(InsufficientUTXOBalanceError)
     })
 
     it('should handle empty UTXO', async () => {
@@ -117,6 +126,36 @@ describe('Blockcypher Transport', () => {
       expect(global.fetch).toHaveBeenCalled()
       const totalValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
       expect(totalValue).toBeGreaterThanOrEqual(minValue)
+    })
+  })
+
+  describe('getTransactionFee', () => {
+    it('should fetch correct transaction fee for valid transaction', async () => {
+      if (USE_MOCK) {
+        getTransactionFeeValidResponse.hash = VALID_TX_ID
+        getTransactionFeeValidResponse.fees = TX_FEE
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeValidResponse)
+        )
+      }
+
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(TX_FEE))
+    })
+
+    it('should throw error for non-existent transaction', async () => {
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeInvalidResponse)
+        )
+      }
+
+      await expect(
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
+      ).rejects.toThrow()
     })
   })
 })

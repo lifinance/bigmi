@@ -6,9 +6,17 @@ import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
 import type { UTXOSchema } from '../types'
 
+import { getTransactionFee } from '../../actions/getTransactionFee'
 import { BaseError } from '../../errors/base'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
+import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
+import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
 import { mempool } from './mempool'
 import type {
@@ -18,6 +26,8 @@ import type {
 } from './mempool.types'
 
 const address = import.meta.env.VITE_TEST_ADDRESS
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -81,6 +91,37 @@ describe('Mempool Transport', () => {
       expect(transactions[0]).toHaveProperty('hash')
       expect(transactions[0]).toHaveProperty('vout')
       expect(transactions[0]).toHaveProperty('vin')
+    })
+  })
+
+  describe('getTransactionFee action', async () => {
+    it('should get transaction fee', async () => {
+      if (USE_MOCK) {
+        getTransactionFeeValidResponse.txid = VALID_TX_ID
+        getTransactionFeeValidResponse.fee = TX_FEE
+
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeValidResponse)
+        )
+      }
+
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(TX_FEE))
+    })
+
+    it('should throw an error for invalid transaction ID', async () => {
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getTransactionFeeInvalidResponse)
+        )
+      }
+
+      await expect(
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
+      ).rejects.toThrow()
     })
   })
 })

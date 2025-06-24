@@ -1,0 +1,37 @@
+{
+  "data": {
+    "8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23": {
+      "transaction": {
+        "block_id": 896390,
+        "id": 123456,
+        "hash": "8f210660cd99c5e6dc77b6cb09d4d522d3fbc5fd97ad3e65403d49aa7aa5dc23",
+        "date": "2024-03-15",
+        "time": "12:00:00",
+        "size": 450,
+        "weight": 1149,
+        "version": 1,
+        "lock_time": 0,
+        "is_coinbase": false,
+        "has_witness": true,
+        "input_count": 2,
+        "output_count": 3,
+        "input_total": 10269002928,
+        "input_total_usd": 102690.02928,
+        "output_total": 10269001908,
+        "output_total_usd": 102690.01908,
+        "fee": 1020,
+        "fee_usd": 1.02,
+        "fee_per_kb": 2266,
+        "fee_per_kb_usd": 2.266,
+        "fee_per_kwu": 887,
+        "fee_per_kwu_usd": 0.887,
+        "cdd_total": 0,
+        "is_rbf": false
+      }
+    }
+  },
+  "context": {
+    "code": 200,
+    "error": null
+  }
+}

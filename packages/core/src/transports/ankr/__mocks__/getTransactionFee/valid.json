@@ -1,0 +1,51 @@
+{
+  "txid": "f5742112a67781b7a4edf0f8a4947f2de7ace7d0d1676ad210a864090dfbb0b5",
+  "hash": "a6cb5bb2b04e707e908877768698704532a39e7c722bdaf738e41d8322da5499",
+  "version": 2,
+  "size": 222,
+  "vsize": 141,
+  "weight": 561,
+  "locktime": 901525,
+  "vin": [
+    {
+      "txid": "8cfe185ae02d74903d7adb6143dcc5c752486511c3e64bfef4d97a1f7eaf7b70",
+      "vout": 0,
+      "scriptSig": { "asm": "", "hex": "" },
+      "txinwitness": [
+        "3044022060621e82e159b1745fc9bfd9f559bef82292e1d231c76df654618c575f9bda2c02203d0cf3369bb0665bba0f53ed03d0adc6e6eff66914b81a39ebff6c629b618cc901",
+        "0253255ff7355f4dbcc6abf7b69c193db6465cbf69490b0427e3c510289421f78c"
+      ],
+      "sequence": 4294967293
+    }
+  ],
+  "vout": [
+    {
+      "value": 0.02916852,
+      "n": 0,
+      "scriptPubKey": {
+        "asm": "0 299ee6ccdbf83eaae4e7b40a378af3e0db286670",
+        "desc": "addr(bc1q9x0wdnxmlql24e88ks9r0zhnurdjsens486axv)#k5n52ns5",
+        "hex": "0014299ee6ccdbf83eaae4e7b40a378af3e0db286670",
+        "address": "bc1q9x0wdnxmlql24e88ks9r0zhnurdjsens486axv",
+        "type": "witness_v0_keyhash"
+      }
+    },
+    {
+      "value": 0.02939571,
+      "n": 1,
+      "scriptPubKey": {
+        "asm": "0 a49003a69b99395bedd4eae792ece26568f41fe5",
+        "desc": "addr(bc1q5jgq8f5mnyu4hmw5atne9m8zv450g8l9uhf3me)#jr0v2n0x",
+        "hex": "0014a49003a69b99395bedd4eae792ece26568f41fe5",
+        "address": "bc1q5jgq8f5mnyu4hmw5atne9m8zv450g8l9uhf3me",
+        "type": "witness_v0_keyhash"
+      }
+    }
+  ],
+  "hex": "02000000000101707baf7e1f7ad9f4fe4be6c311654852c7c5dc4361db7a3d90742de05a18fe8c0000000000fdffffff02f4812c0000000000160014299ee6ccdbf83eaae4e7b40a378af3e0db286670b3da2c0000000000160014a49003a69b99395bedd4eae792ece26568f41fe502473044022060621e82e159b1745fc9bfd9f559bef82292e1d231c76df654618c575f9bda2c02203d0cf3369bb0665bba0f53ed03d0adc6e6eff66914b81a39ebff6c629b618cc901210253255ff7355f4dbcc6abf7b69c193db6465cbf69490b0427e3c510289421f78c95c10d00",
+  "blockhash": "00000000000000000000424244f4cc05ce659d674d0980cdad000dd72cbe0d8d",
+  "confirmations": 2,
+  "time": 1750086075,
+  "blocktime": 1750086075,
+  "fees": 300
+}
