@@ -196,7 +196,15 @@ export {
   InsufficientUTXOBalanceError,
   type InsufficientUTXOBalanceErrorType,
 } from './errors/utxo.js'
-export { UrlRequiredError } from './errors/transport.js'
+export {
+  UrlRequiredError,
+  AllTransportsFailedError,
+} from './errors/transport.js'
+export type {
+  UrlRequiredErrorType,
+  AllTransportsFailedErrorType,
+  TransportMethodNotSupportedErrorType,
+} from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'
 
 export {
