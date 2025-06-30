@@ -121,13 +121,11 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
 
-          // Validate that psbt is provided
           if (!psbt) {
             throw new BaseError('PSBT parameter is required')
           }
 
           try {
-            // Pass the hex string directly to the wallet (it expects hex, not base64)
             const psbt64 = hexToBase64(psbt)
             const response = await this.signPsbt({
               psbt: psbt64,
@@ -141,8 +139,6 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
             }
 
             throw new BaseError(response.error)
-
-            // The wallet returns a base64 string, so convert it back to hex
           } catch (e) {
             console.error('catching error in ctrl', e)
             throw e
