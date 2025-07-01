@@ -68,7 +68,7 @@ type CtrlConnectorProperties = {
 type CtrlBitcoinProvider = {
   signPsbt({
     psbt,
-  }: { psbt: string; broadcast: boolean; finalize: boolean }): Promise<
+  }: { psbt: string; broadcast: boolean }): Promise<
     CtrlResponse<CtrlSignPsbtResult>
   >
   requestAccounts(): Promise<Address[]>
@@ -125,24 +125,18 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
             throw new BaseError('PSBT parameter is required')
           }
 
-          try {
-            const psbt64 = hexToBase64(psbt)
-            const response = await this.signPsbt({
-              psbt: psbt64,
-              finalize: Boolean(options.finalize),
-              broadcast: Boolean(options.finalize),
-            })
+          const psbt64 = hexToBase64(psbt)
+          const response = await this.signPsbt({
+            psbt: psbt64,
+            broadcast: Boolean(options.finalize),
+          })
 
-            if (response.status === 'success') {
-              const signedHex = base64ToHex(response.result.psbt)
-              return signedHex
-            }
-
-            throw new BaseError(response.error)
-          } catch (e) {
-            console.error('catching error in ctrl', e)
-            throw e
+          if (response.status === 'success') {
+            const signedHex = base64ToHex(response.result.psbt)
+            return signedHex
           }
+
+          throw new BaseError(response.error)
         }
         default:
           throw new MethodNotSupportedRpcError(method)
