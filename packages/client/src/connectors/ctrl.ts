@@ -121,10 +121,6 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
 
-          if (!psbt) {
-            throw new BaseError('PSBT parameter is required')
-          }
-
           const psbt64 = hexToBase64(psbt)
           const response = await this.signPsbt({
             psbt: psbt64,
