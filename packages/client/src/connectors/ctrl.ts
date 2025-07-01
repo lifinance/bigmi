@@ -66,21 +66,13 @@ type CtrlConnectorProperties = {
 } & UTXOWalletProvider
 
 type CtrlBitcoinProvider = {
-  signPsbt(psbtHex: string, finalise?: boolean): Promise<string>
+  signPsbt({
+    psbt,
+  }: { psbt: string; broadcast: boolean }): Promise<
+    CtrlResponse<CtrlSignPsbtResult>
+  >
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
-  request({
-    method,
-    params,
-  }: {
-    method: 'sign_psbt'
-    params: {
-      psbt: string
-      allowedSignHash: number
-      signInputs: Record<string, number[]>
-      broadcast: boolean
-    }
-  }): Promise<CtrlResponse<CtrlSignPsbtResult>>
   request({
     method,
     params,
@@ -129,30 +121,15 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
 
-          const psbtBase64 = hexToBase64(psbt)
-          const signInputs = options.inputsToSign.reduce(
-            (signInputs, input) => {
-              if (!signInputs[input.address]) {
-                signInputs[input.address] = []
-              }
-              signInputs[input.address].push(...input.signingIndexes)
-              return signInputs
-            },
-            {} as Record<string, number[]>
-          )
-
-          const response = await this.request({
-            method: 'sign_psbt',
-            params: {
-              psbt: psbtBase64,
-              signInputs,
-              allowedSignHash: 1,
-              broadcast: Boolean(options.finalize),
-            },
+          const psbt64 = hexToBase64(psbt)
+          const response = await this.signPsbt({
+            psbt: psbt64,
+            broadcast: Boolean(options.finalize),
           })
 
           if (response.status === 'success') {
-            return base64ToHex(response.result.psbt)
+            const signedHex = base64ToHex(response.result.psbt)
+            return signedHex
           }
 
           throw new BaseError(response.error)
