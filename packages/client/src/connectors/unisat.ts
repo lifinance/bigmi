@@ -184,7 +184,7 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       try {
         const isConnected =
           shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
+          // check storage to see if a connection exists already
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
         return isConnected
       } catch {
