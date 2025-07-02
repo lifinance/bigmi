@@ -182,15 +182,11 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
     },
     async isAuthorized() {
       try {
-        const isDisconnected =
+        const isConnected =
           shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
-          (await config.storage?.getItem(`${this.id}.disconnected`))
-        if (isDisconnected) {
-          return false
-        }
-        const accounts = await withRetry(() => this.getAccounts())
-        return !!accounts.length
+          // check storage to see if a connection exists already
+          Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        return isConnected
       } catch {
         return false
       }
