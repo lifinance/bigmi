@@ -68,7 +68,7 @@ type CtrlConnectorProperties = {
 type CtrlBitcoinProvider = {
   signPsbt({
     psbt,
-  }: { psbt: string; broadcast: boolean; finalize: boolean }): Promise<
+  }: { psbt: string; broadcast: boolean }): Promise<
     CtrlResponse<CtrlSignPsbtResult>
   >
   requestAccounts(): Promise<Address[]>
@@ -121,9 +121,15 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
         case 'signPsbt': {
           const { psbt, ...options } = params as SignPsbtParameters
 
-          // Validate that psbt is provided
-          if (!psbt) {
-            throw new BaseError('PSBT parameter is required')
+          const psbt64 = hexToBase64(psbt)
+          const response = await this.signPsbt({
+            psbt: psbt64,
+            broadcast: Boolean(options.finalize),
+          })
+
+          if (response.status === 'success') {
+            const signedHex = base64ToHex(response.result.psbt)
+            return signedHex
           }
 
           try {
@@ -131,7 +137,6 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
             const psbt64 = hexToBase64(psbt)
             const response = await this.signPsbt({
               psbt: psbt64,
-              finalize: Boolean(options.finalize),
               broadcast: Boolean(options.finalize),
             })
 
