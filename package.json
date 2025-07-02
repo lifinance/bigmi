@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -44,7 +44,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@types/events": "^3.0.3",
-    "@types/node": "^24.0.8",
+    "@types/node": "^24.0.10",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "cpy-cli": "^5.0.0",

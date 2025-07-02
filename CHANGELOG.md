@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.1](https://github.com/lifinance/bigmi/compare/v0.4.0...v0.4.1) (2025-07-02)
+
+
+### Bug Fixes
+
+* unisat wallet connector ([#24](https://github.com/lifinance/bigmi/issues/24)) ([6466bc5](https://github.com/lifinance/bigmi/commit/6466bc543719b1b26b1cdf990f2dc667659042a4))
+
 ## [0.4.0](https://github.com/lifinance/bigmi/compare/v0.4.0-beta.2...v0.4.0) (2025-07-01)
 
 
