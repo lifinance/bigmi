@@ -132,26 +132,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
             return signedHex
           }
 
-          try {
-            // Pass the hex string directly to the wallet (it expects hex, not base64)
-            const psbt64 = hexToBase64(psbt)
-            const response = await this.signPsbt({
-              psbt: psbt64,
-              broadcast: Boolean(options.finalize),
-            })
-
-            if (response.status === 'success') {
-              const signedHex = base64ToHex(response.result.psbt)
-              return signedHex
-            }
-
-            throw new BaseError(response.error)
-
-            // The wallet returns a base64 string, so convert it back to hex
-          } catch (e) {
-            console.error('catching error in ctrl', e)
-            throw e
-          }
+          throw new BaseError(response.error)
         }
         default:
           throw new MethodNotSupportedRpcError(method)
