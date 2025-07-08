@@ -1,5 +1,8 @@
 import { RpcErrorCode } from '../errors/rpc.js'
-import { TransportMethodNotSupportedError } from '../errors/transport.js'
+import {
+  AllTransportsFailedError,
+  TransportMethodNotSupportedError,
+} from '../errors/transport.js'
 import type { ErrorType } from '../errors/utils.js'
 import { InsufficientUTXOBalanceError } from '../errors/utxo.js'
 import { createTransport } from '../factories/createTransport.js'
@@ -154,6 +157,12 @@ export function fallback<const transports extends readonly Transport[]>(
             throw new TransportMethodNotSupportedError({ method })
           }
 
+          const collectedErrors: Array<{
+            transport: string
+            error: Error
+            attempt: number
+          }> = []
+
           const fetch = async (i = 0): Promise<any> => {
             const transport = supportedTransports[i]
             try {
@@ -184,9 +193,20 @@ export function fallback<const transports extends readonly Transport[]>(
                 throw err
               }
 
-              // If we've reached the end of the fallbacks, throw the error.
+              collectedErrors.push({
+                transport: transport.config.name,
+                error: err as Error,
+                attempt: i + 1,
+              })
+
+              // If we've reached the end of the fallbacks, throw all collected errors.
               if (i === supportedTransports.length - 1) {
-                throw err
+                throw new AllTransportsFailedError({
+                  method,
+                  params,
+                  errors: collectedErrors,
+                  totalAttempts: i + 1,
+                })
               }
 
               // Otherwise, try the next fallback.
@@ -227,16 +247,20 @@ export function fallback<const transports extends readonly Transport[]>(
 }
 
 export function shouldThrow(error: Error) {
+  if (error instanceof InsufficientUTXOBalanceError) {
+    return true
+  }
+
   if ('code' in error && typeof error.code === 'number') {
     if (
       error.code === RpcErrorCode.INTERNAL_ERROR ||
       error.code === RpcErrorCode.USER_REJECTION ||
-      error.code === 5000 || // CAIP UserRejectedRequestError
-      error instanceof InsufficientUTXOBalanceError
+      error.code === 5000 // CAIP UserRejectedRequestError
     ) {
       return true
     }
   }
+
   return false
 }
 

@@ -1,20 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance'
+import { getTransactionFee } from '../../actions/getTransactionFee'
 import { getTransactions } from '../../actions/getTransactions'
 import { bitcoin } from '../../chains/bitcoin'
 import { createClient, rpcSchema } from '../../factories/createClient'
 import { createMockResponse } from '../../test/utils'
+import {
+  INVALID_TX_ID,
+  TX_FEE,
+  VALID_TX_ID,
+} from '../__mocks__/getTransactionFee'
 import type { UTXOSchema } from '../types'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
+import getInValidTransactionFeeResponse from './__mocks__/getTransactionFee/invalid.json'
+import getValidTransactionFeeResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
 import { ankr } from './ankr'
 import type {
   AnkrAddressWithTxnsResponse,
   AnkrBalanceResponse,
+  AnkrTxnResponse,
 } from './ankr.types'
 
 const ANKR_KEY = import.meta.env.VITE_TEST_ANKR_KEY
 const address = import.meta.env.VITE_TEST_ADDRESS
+
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
@@ -34,6 +45,40 @@ describe('Ankr Transport', () => {
     const balance = await getBalance(publicClient, { address })
     it('should fetch correct balance', () => {
       expect(balance).toBeTypeOf('bigint')
+    })
+  })
+
+  describe('getTransactionFee action', async () => {
+    it('should get transaction fee', async () => {
+      if (USE_MOCK) {
+        getValidTransactionFeeResponse.txid = VALID_TX_ID
+        getValidTransactionFeeResponse.fees = TX_FEE
+
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getValidTransactionFeeResponse as unknown as AnkrTxnResponse
+          )
+        )
+      }
+
+      const result = await getTransactionFee(publicClient, {
+        txId: VALID_TX_ID,
+      })
+      expect(result).toBeDefined()
+      expect(result).toBe(BigInt(TX_FEE))
+    })
+
+    it('should throw error when txid is invalid', async () => {
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getInValidTransactionFeeResponse as unknown as AnkrTxnResponse
+          )
+        )
+      }
+      await expect(
+        getTransactionFee(publicClient, { txId: INVALID_TX_ID })
+      ).rejects.toThrowError()
     })
   })
 

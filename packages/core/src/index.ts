@@ -12,6 +12,11 @@ export type {
   GetBlockStatsParameters,
   GetBlockStatsReturnType,
 } from './actions/getBlockStats.js'
+export { getTransactionFee } from './actions/getTransactionFee.js'
+export type {
+  GetTransactionFeeParameters,
+  GetTransactionFeeReturnType,
+} from './actions/getTransactionFee.js'
 export { getUTXOTransaction } from './actions/getUTXOTransaction.js'
 export type {
   GetUTXOTransactionParameters,
@@ -91,7 +96,13 @@ export { mempool } from './transports/mempool/mempool.js'
 
 // Exporting types
 export type { Account } from './types/account.js'
-export type { Address } from './types/address.js'
+export {
+  type Address,
+  type AddressInfo,
+  type AddressPurpose,
+  AddressType,
+  Network,
+} from './types/address.js'
 export type { BlockTag } from './types/block.js'
 export type { BlockStats, BlockStatsKeys } from './types/blockStats.js'
 export type {
@@ -131,13 +142,9 @@ export type {
 
 // Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
-export {
-  UTXOAddressType,
-  UTXONetwork,
-  getUTXOAddress,
-} from './utils/getUTXOAddress.js'
-export type { UTXOAddress } from './utils/getUTXOAddress.js'
-export { isUTXOAddress } from './utils/isUTXOAddress.js'
+
+export { getAddressInfo } from './utils/getAddressInfo.js'
+export { isAddress as isUTXOAddress } from './utils/isAddress.js'
 export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'
 export { poll } from './utils/poll.js'
@@ -146,6 +153,7 @@ export {
   hexToBase64,
   base64urlEncode,
   stringToHex,
+  hexToUnit8Array,
 } from './utils/converter.js'
 export { withRetry } from './utils/withRetry.js'
 export { parseAccount } from './utils/parseAccount.js'
@@ -196,7 +204,15 @@ export {
   InsufficientUTXOBalanceError,
   type InsufficientUTXOBalanceErrorType,
 } from './errors/utxo.js'
-export { UrlRequiredError } from './errors/transport.js'
+export {
+  UrlRequiredError,
+  AllTransportsFailedError,
+} from './errors/transport.js'
+export type {
+  UrlRequiredErrorType,
+  AllTransportsFailedErrorType,
+  TransportMethodNotSupportedErrorType,
+} from './errors/transport.js'
 export type { ErrorType } from './errors/utils.js'
 
 export {

@@ -1,9 +1,11 @@
 import {
+  type Account,
   type Address,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
+  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 
@@ -30,7 +32,7 @@ export type UnisatBitcoinEvents = {
 }
 
 type UnisatConnectorProperties = {
-  getAccounts(): Promise<readonly Address[]>
+  getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<UnisatBitcoinProvider>
 } & UTXOWalletProvider
@@ -38,6 +40,7 @@ type UnisatConnectorProperties = {
 type UnisatBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getPublicKey(): Promise<string>
   signPsbt(
     psbtHex: string,
     options: {
@@ -119,7 +122,8 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await provider.requestAccounts()
+        await provider.requestAccounts()
+        const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -161,22 +165,28 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         throw new ProviderNotFoundError()
       }
       const accounts = await provider.getAccounts()
-      return accounts as Address[]
+      const address = accounts[0]
+      const publicKey = await provider.getPublicKey()
+      const { type, purpose } = getAddressInfo(address)
+
+      const account: Account = {
+        address,
+        addressType: type,
+        publicKey,
+        purpose,
+      }
+      return [account]
     },
     async getChainId() {
       return chainId!
     },
     async isAuthorized() {
       try {
-        const isDisconnected =
+        const isConnected =
           shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
-          (await config.storage?.getItem(`${this.id}.disconnected`))
-        if (isDisconnected) {
-          return false
-        }
-        const accounts = await withRetry(() => this.getAccounts())
-        return !!accounts.length
+          // check storage to see if a connection exists already
+          Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        return isConnected
       } catch {
         return false
       }
@@ -185,8 +195,9 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts: accounts as Address[],
+          accounts: newAccounts,
         })
       }
     },
