@@ -1,9 +1,9 @@
 import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
+  getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
-  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 

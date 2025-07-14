@@ -1,29 +1,28 @@
 import {
   type Account,
-  type Address,
   type BtcRpcRequestFn,
+  type ClientConfig as base_ClientConfig,
+  type Transport as base_Transport,
   type Chain,
   ChainNotConfiguredError,
   type Client,
   type Compute,
+  createClient,
   type ExactPartial,
   type LooseOmit,
   type OneOf,
   type RemoveUndefined,
-  type ClientConfig as base_ClientConfig,
-  type Transport as base_Transport,
-  createClient,
   uid,
   version,
 } from '@bigmi/core'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
-import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
+import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
 import type {
   ConnectorEventMap,
   CreateConnectorFn,
 } from '../types/connector.js'
 import type { Storage } from '../types/storage.js'
-import { type Emitter, type EventData, createEmitter } from './createEmitter.js'
+import { createEmitter, type Emitter, type EventData } from './createEmitter.js'
 import { createStorage, getDefaultStorage } from './createStorage.js'
 
 export function createConfig<
@@ -34,6 +33,7 @@ export function createConfig<
   parameters: CreateConfigParameters<chains, transports, connectorFns>
 ): Config<chains, transports, connectorFns> {
   const {
+    // biome-ignore lint/correctness/noUnusedVariables: used implicitly
     multiInjectedProviderDiscovery = true,
     storage = createStorage({
       key: 'bigmi',
@@ -503,10 +503,9 @@ export type CreateConfigParameters<
           | undefined
       })
     | {
-        client(parameters: { chain: chains[number] }): Client<
-          transports[chains[number]['id']],
-          chains[number]
-        >
+        client(parameters: {
+          chain: chains[number]
+        }): Client<transports[chains[number]['id']], chains[number]>
       }
   >
 >

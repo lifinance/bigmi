@@ -17,7 +17,7 @@ export function hashFn(queryKey: QueryKey): string {
   })
 }
 
-// biome-ignore lint/complexity/noBannedTypes:
+// biome-ignore lint/complexity/noBannedTypes: typeguard
 function isPlainObject(value: any): value is Object {
   if (!hasObjectPrototype(value)) {
     return false
@@ -36,7 +36,7 @@ function isPlainObject(value: any): value is Object {
   }
 
   // If constructor does not have an Object-specific method
-  // biome-ignore lint/suspicious/noPrototypeBuiltins: <explanation>
+  // biome-ignore lint/suspicious/noPrototypeBuiltins: part of the typeguard
   if (!prot.hasOwnProperty('isPrototypeOf')) {
     return false
   }

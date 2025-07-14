@@ -1,4 +1,4 @@
-import { Transaction, address } from 'bitcoinjs-lib'
+import { address, Transaction } from 'bitcoinjs-lib'
 import {
   TransactionNotFoundError,
   TransactionReceiptNotFoundError,

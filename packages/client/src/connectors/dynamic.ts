@@ -1,21 +1,21 @@
 import {
   type Account,
+  type Address,
   AddressType,
   BaseError,
-  type SignPsbtParameters,
   base64ToHex,
   hexToBase64,
-} from '@bigmi/core'
-import type { UTXOWalletProvider } from './types.js'
-
-import {
-  type Address,
   MethodNotSupportedRpcError,
+  type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { ProviderNotFoundError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
-import type { ProviderRequestParams, UTXOConnectorParameters } from './types.js'
+import type {
+  ProviderRequestParams,
+  UTXOConnectorParameters,
+  UTXOWalletProvider,
+} from './types.js'
 
 export type DynamicWalletConnectorEventMap = {
   accountChange(props: { accounts: string[] }): void

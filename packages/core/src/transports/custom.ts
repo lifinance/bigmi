@@ -23,7 +23,7 @@ export type CustomTransportConfig = {
 
 export type CustomTransport = Transport<
   'custom',
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
+  // biome-ignore lint/complexity/noBannedTypes: part of the types
   {},
   BitcoinProvider['request']
 >

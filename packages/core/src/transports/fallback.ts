@@ -43,9 +43,9 @@ type RankOptions = {
   /**
    * Ping method to determine latency.
    */
-  ping?: (parameters: { transport: ReturnType<Transport> }) =>
-    | Promise<unknown>
-    | undefined
+  ping?: (parameters: {
+    transport: ReturnType<Transport>
+  }) => Promise<unknown> | undefined
   /**
    * The number of previous samples to perform ranking on.
    * @default 10
