@@ -1,6 +1,5 @@
 import {
   type Account,
-  type Address,
   type BaseErrorType,
   type Compute,
   ConnectorAlreadyConnectedError,

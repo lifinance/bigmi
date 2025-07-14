@@ -2,11 +2,11 @@ import {
   type Account,
   type Address,
   BaseError,
+  getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 

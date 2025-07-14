@@ -1,5 +1,5 @@
 import { sha256 } from '@noble/hashes/sha256'
-import { type Decoded, bech32, bech32m } from 'bech32'
+import { bech32, bech32m, type Decoded } from 'bech32'
 import bs58 from 'bs58'
 
 import {

@@ -4,12 +4,12 @@ import {
   type AddressPurpose,
   type AddressType,
   BaseError,
+  base64ToHex,
+  hexToBase64,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  base64ToHex,
-  hexToBase64,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
@@ -68,9 +68,10 @@ type CtrlConnectorProperties = {
 type CtrlBitcoinProvider = {
   signPsbt({
     psbt,
-  }: { psbt: string; broadcast: boolean }): Promise<
-    CtrlResponse<CtrlSignPsbtResult>
-  >
+  }: {
+    psbt: string
+    broadcast: boolean
+  }): Promise<CtrlResponse<CtrlSignPsbtResult>>
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   request({

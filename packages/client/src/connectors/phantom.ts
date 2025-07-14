@@ -1,4 +1,4 @@
-import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
+import type { Account, SignPsbtParameters } from '@bigmi/core'
 import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,

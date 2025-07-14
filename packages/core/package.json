@@ -62,5 +62,9 @@
   "peerDependencies": {
     "bs58": "^6.0.0"
   },
-  "files": ["dist/**", "src/**", "!tsconfig.json"]
+  "files": [
+    "dist/**",
+    "src/**",
+    "!tsconfig.json"
+  ]
 }

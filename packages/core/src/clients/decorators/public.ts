@@ -28,22 +28,21 @@ import {
   getTransactions,
 } from '../../actions/getTransactions.js'
 import {
-  type GetUTXOTransactionParameters,
-  type GetUTXOTransactionReturnType,
-  getUTXOTransaction,
-} from '../../actions/getUTXOTransaction.js'
-import {
   type GetUTXOsParameters,
   type GetUTXOsReturnType,
   getUTXOs,
 } from '../../actions/getUTXOs.js'
+import {
+  type GetUTXOTransactionParameters,
+  type GetUTXOTransactionReturnType,
+  getUTXOTransaction,
+} from '../../actions/getUTXOTransaction.js'
 
 import type { Client } from '../../factories/createClient.js'
 import type { UTXOSchema } from '../../transports/types.js'
 import type { Account } from '../../types/account.js'
-import type { Transport } from '../../types/transport.js'
-
 import type { Chain } from '../../types/chain.js'
+import type { Transport } from '../../types/transport.js'
 
 export type PublicActions = {
   getBalance: (args: GetBalanceParameters) => Promise<GetBalanceReturnType>

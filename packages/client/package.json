@@ -55,5 +55,9 @@
   "peerDependencies": {
     "@tanstack/query-core": ">=5.68.0"
   },
-  "files": ["dist/**", "src/**", "!tsconfig.json"]
+  "files": [
+    "dist/**",
+    "src/**",
+    "!tsconfig.json"
+  ]
 }
