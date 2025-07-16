@@ -194,7 +194,7 @@ export function fallback<const transports extends readonly Transport[]>(
               }
 
               collectedErrors.push({
-                transport: transport.config.key,
+                transport: transport.config.name,
                 error: err as Error,
                 attempt: i + 1,
               })
