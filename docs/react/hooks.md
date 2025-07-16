@@ -84,10 +84,10 @@ Hook to create a connection between a client and a connector, authorizing the cl
 
 #### Returns
 
-- `connect()`: A function to run the connect logic syncronously
+- `connect()`: A function to run the connect logic synchronously
 - `connectAsync()`: A async connect function
 - `connectors`: Array of available wallet connectors
 
 ## `useReconnect`
 
-This hook reconnects to a wallet connector if a connection already exists or the client is already autorized to use the connector.
+This hook reconnects to a wallet connector if a connection already exists or the client is already authorized to use the connector.

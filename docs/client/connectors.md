@@ -25,14 +25,12 @@ Each wallet connector can be configured with specific options:
 ```typescript
 import { bitcoin } from '@bigmi/core'
 
-const connector = binance({
-  chainId: bitcoin.id,
-})
+const connector = binance()
 ```
 
 ## Custom Connectors
 
-You can create custom connectors by create a function that returns a `createConnectorFn` with some config properties, and methods implemented.
+You can create custom connectors by defining a function that returns a `createConnectorFn` with config properties and methods implemented.
 
 ```typescript
 import { createConnector } from '@bigmi/client'
@@ -45,12 +43,12 @@ export function customConnector(parameters) {
         icon: 'data:image/svg+xml', //data URI of image
 
         async setup() {
-            // method called when the connector is instatiate to run setup logic
+            // method called when the connector is instantiate to run setup logic
         },
 
         async getInternalProvider(){
             // method that returns the provider object from the wallet
-            // usually gotten from the window object
+            // usually obtained from the window object
         },
 
         async connect () {

@@ -54,13 +54,13 @@ const balance = await getBalance(client, { address })
 
 ## Error Types
 
-When performing actions, problems can occur, wrong configuration, network problems, a transaction not found.
+When performing actions, problems can occur such as wrong configuration, network problems, or a transaction not found.
 
 There are many error types that match exceptions thrown from different stages of execution.
 
 ### `InsufficientUTXOBalanceError`
 
-This error is thrown from the `getUTXOs` when an address doesn't enough utxos for a specified amount.
+This error is thrown from the `getUTXOs` when an address doesn't have enough utxos for a specified amount.
 
 ```typescript
   import { getUTXOs } from '@bigmi/core'
@@ -72,7 +72,7 @@ This error is thrown from the `getUTXOs` when an address doesn't enough utxos fo
     if (error instanceof InsufficientUTXOBalanceError ) {
       console.log("Your address doesn't have enough UTXOs")
     } else {
-      console.log("Some other error occured")
+      console.log("Some other error occurred")
     }
   } 
 

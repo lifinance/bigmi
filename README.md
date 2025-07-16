@@ -44,7 +44,7 @@ pnpm add @bigmi/client
 
 ### Node.js
 
-How to setup bigmi on the backend with node.js:
+How to setup Bigmi on the backend with Node.js:
 
 ```typescript
 // main.ts
@@ -114,12 +114,12 @@ import { binance, xverse, phantom } from '@bigmi/client'
 
 const chainId  = bitcoin.id
 
-// create bigmi config object
+// Create bigmi config object
 const config = createConfig({
     chains: [bitcoin],
     connectors: [binance({chainId}), xverse({chainId}), phantom({chainId})],
     client: ({ chain }) => createClient({ chain, transport: http() }),
-    ssr: true // if using Next.js or SSR
+    ssr: true // If using Next.js or SSR
 })
 
 
@@ -136,7 +136,7 @@ function App() {
 ```typescript
 // YourApp.tsx
 
-// import the hooks from bigmi/react library
+// Import the hooks from bigmi/react library
 import { useAccount, useBalance, useConnect } from '@bigmi/react'
 
 const { address, isConnected } = useAccount()

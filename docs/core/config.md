@@ -64,7 +64,7 @@ const clientWithBlockChair = createClient({
 
 ### Fallback Transport (recommended)
 
-This transport takes an array of transports, for when any of the transport fails, it falls back to another.
+This transport takes an array of transports, and falls back to another if any of them fails.
 
 ```typescript
 
