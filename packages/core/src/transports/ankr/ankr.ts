@@ -20,6 +20,7 @@ export const ankr = (config?: AnkrConfig) => {
   return utxo(
     `https://rpc.ankr.com/premium-http/btc_blockbook/${config.apiKey}/api/v2`,
     {
+      name: 'Ankr API',
       key: 'ankr',
       methods,
       ...config,

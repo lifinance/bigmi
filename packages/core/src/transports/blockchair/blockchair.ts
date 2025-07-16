@@ -10,6 +10,7 @@ type BlockchairConfig = {
 
 export const blockchair = (config?: BlockchairConfig) =>
   utxo(config?.baseUrl || 'https://api.blockchair.com', {
+    name: 'Blockchair API',
     key: 'blockchair',
     includeChainToURL: true,
     methods: {
