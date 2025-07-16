@@ -1,6 +1,6 @@
 'use client'
 
-import { type Config, type State, reconnect } from '@bigmi/client'
+import { type Config, reconnect, type State } from '@bigmi/client'
 
 import { type ReactElement, useEffect, useRef } from 'react'
 

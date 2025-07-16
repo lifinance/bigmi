@@ -1,11 +1,11 @@
 import {
   type Account,
   type Address,
+  getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  getAddressInfo,
   withRetry,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'

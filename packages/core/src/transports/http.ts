@@ -13,9 +13,9 @@ import type {
 } from '../types/transport.js'
 import { createBatchScheduler } from '../utils/createBatchScheduler.js'
 import {
+  getHttpRpcClient,
   type HttpRpcClientOptions,
   type RpcRequest,
-  getHttpRpcClient,
 } from './getHttpRpcClient.js'
 import { UTXOAPISchemaMethods } from './types.js'
 

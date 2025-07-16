@@ -23,7 +23,7 @@ export function poll<T>(
   }
 
   const watch = async () => {
-    let data: T | undefined = undefined
+    let data: T | undefined
     if (emitOnBegin) {
       data = await fn({ unpoll: unwatch })
     }

@@ -27,7 +27,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
 ) => {
   async function* fetchUTXOs() {
     let hasMore = true
-    let beforeBlock = undefined
+    let beforeBlock: number | undefined
 
     while (hasMore) {
       const apiUrl = urlWithParams(`${baseUrl}/addrs/${address}`, {

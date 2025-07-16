@@ -1,6 +1,6 @@
 import type { TransportConfig } from '../../types/transport.js'
 import type { HttpTransportConfig } from '../http.js'
-import type { UTXOAPISchema, UTXOMethod } from '../types.js'
+import type { UTXOMethod } from '../types.js'
 import { utxo } from '../utxo.js'
 import { ankrMethods } from './methods.js'
 

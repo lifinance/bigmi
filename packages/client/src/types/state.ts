@@ -1,5 +1,4 @@
-import type { Chain } from '@bigmi/core'
-import type { Compute, ExactPartial } from '@bigmi/core'
+import type { Chain, Compute, ExactPartial } from '@bigmi/core'
 import type { Connection } from './connection.js'
 
 export type State<

@@ -1,4 +1,4 @@
-import type { Account, Address, Chain } from '@bigmi/core'
+import type { Account, Chain } from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector } from '../types/connector.js'
 
