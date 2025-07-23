@@ -1,3 +1,4 @@
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type { BlockcypherBalanceResponse } from './blockcypher.types.js'
@@ -16,7 +17,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
   })) as unknown as BlockcypherBalanceResponse
   if (response.error) {
     return {
-      error: { code: -1, message: response.error },
+      error: { code: RpcErrorCode.INTERNAL_ERROR, message: response.error },
     }
   }
   return {

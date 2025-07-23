@@ -1,4 +1,5 @@
 import { RpcRequestError } from '../../errors/request.js'
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
@@ -53,7 +54,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
             },
           },
           error: {
-            code: -1,
+            code: RpcErrorCode.INTERNAL_ERROR,
             message: response.error,
           },
         })
