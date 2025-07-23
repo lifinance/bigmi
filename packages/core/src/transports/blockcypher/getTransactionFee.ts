@@ -1,7 +1,7 @@
-import { RpcErrorCode } from '../../errors/rpc.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type { BlockcypherTransactionReponse } from './blockcypher.types.js'
+import { getRpcErrorCode } from './utils.js'
 
 export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
   client,
@@ -19,7 +19,7 @@ export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
 
   if (response.error) {
     return {
-      error: { code: RpcErrorCode.INTERNAL_ERROR, message: response.error },
+      error: { code: getRpcErrorCode(response.error), message: response.error },
     }
   }
 

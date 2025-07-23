@@ -253,6 +253,7 @@ export function shouldThrow(error: Error) {
 
   if ('code' in error && typeof error.code === 'number') {
     if (
+      error.code === RpcErrorCode.INTERNAL_ERROR ||
       error.code === RpcErrorCode.USER_REJECTION ||
       error.code === 5000 // CAIP UserRejectedRequestError
     ) {

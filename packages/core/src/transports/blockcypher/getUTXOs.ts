@@ -1,5 +1,4 @@
 import { RpcRequestError } from '../../errors/request.js'
-import { RpcErrorCode } from '../../errors/rpc.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import type { UTXO } from '../../types/transaction.js'
 import { urlWithParams } from '../../utils/url.js'
@@ -8,6 +7,7 @@ import type {
   BlockcypherUTXO,
   BlockcypherUTXOsResponse,
 } from './blockcypher.types.js'
+import { getRpcErrorCode } from './utils.js'
 
 const blockcypherUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
   blockHeight: utxo.block_height,
@@ -54,7 +54,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
             },
           },
           error: {
-            code: RpcErrorCode.INTERNAL_ERROR,
+            code: getRpcErrorCode(response.error),
             message: response.error,
           },
         })

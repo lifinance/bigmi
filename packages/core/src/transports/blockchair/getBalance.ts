@@ -1,3 +1,4 @@
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type {
@@ -21,7 +22,10 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
   if (response.context?.code !== 200) {
     return {
       error: {
-        code: response.context?.code,
+        code:
+          response.context.code === 429
+            ? RpcErrorCode.ACCESS_DENIED
+            : RpcErrorCode.INTERNAL_ERROR,
         message: response.context?.error,
       },
     }
