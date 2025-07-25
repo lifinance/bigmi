@@ -7,6 +7,7 @@ import type {
   BlockcypherUTXO,
   BlockcypherUTXOsResponse,
 } from './blockcypher.types.js'
+import { getRpcErrorCode } from './utils.js'
 
 const blockcypherUTXOTransformer = (utxo: BlockcypherUTXO): UTXO => ({
   blockHeight: utxo.block_height,
@@ -53,7 +54,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
             },
           },
           error: {
-            code: -1,
+            code: getRpcErrorCode(response.error),
             message: response.error,
           },
         })

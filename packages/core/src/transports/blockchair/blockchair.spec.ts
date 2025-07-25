@@ -47,20 +47,24 @@ describe('Blockchair Transport', () => {
 
   describe('getBalance', () => {
     it('should fetch correct balance for valid address', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getBalanceReponse as BlockchairAddressBalanceData)
-      )
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(getBalanceReponse as BlockchairAddressBalanceData)
+        )
+      }
 
       const balance = await getBalance(publicClient, { address })
       expect(balance).toBeTypeOf('bigint')
     })
 
     it('should throw error for non-existent address', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(
-          getInvalidBalanceReponse as BlockchairAddressBalanceData
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getInvalidBalanceReponse as BlockchairAddressBalanceData
+          )
         )
-      )
+      }
 
       const nonExistentAddress =
         '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNaNUIBNSUENopnoidsacn'
@@ -72,11 +76,13 @@ describe('Blockchair Transport', () => {
 
   describe('getUTXOs', () => {
     it('should return utxos with correct structure', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(
-          getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+          )
         )
-      )
+      }
 
       const utxos = await getUTXOs(publicClient, { address })
 
@@ -91,27 +97,29 @@ describe('Blockchair Transport', () => {
     })
 
     it('should throw error when minValue exceeds balance', async () => {
-      vi.spyOn(global, 'fetch').mockImplementation((request) => {
-        const url = new URL(request.toString())
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockImplementation((request) => {
+          const url = new URL(request.toString())
 
-        if (url.pathname.includes('/addresses/balances')) {
-          return Promise.resolve(
-            createMockResponse(
-              getBalanceReponse as BlockchairAddressBalanceData
+          if (url.pathname.includes('/addresses/balances')) {
+            return Promise.resolve(
+              createMockResponse(
+                getBalanceReponse as BlockchairAddressBalanceData
+              )
             )
-          )
-        }
+          }
 
-        if (url.pathname.includes('/dashboards/addresses')) {
-          return Promise.resolve(
-            createMockResponse(
-              getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+          if (url.pathname.includes('/dashboards/addresses')) {
+            return Promise.resolve(
+              createMockResponse(
+                getUTXOsResponse as BlockchairResponse<BlockChairDashboardAddressResponse>
+              )
             )
-          )
-        }
+          }
 
-        throw new BaseError(`Unexpected URL: ${url.pathname}`)
-      })
+          throw new BaseError(`Unexpected URL: ${url.pathname}`)
+        })
+      }
 
       const hugeValue = 999999999999999999n
       await expect(
@@ -123,14 +131,26 @@ describe('Blockchair Transport', () => {
     })
 
     it('should handle empty UTXO response', async () => {
-      vi.spyOn(global, 'fetch').mockResolvedValue(
-        createMockResponse(getUTXOsInvalidResponse as BlockchairResponse<null>)
-      )
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getUTXOsInvalidResponse as BlockchairResponse<null>
+          )
+        )
+      }
 
       const emptyAddress = '12LRT14SgNFFQ3hMRThAyXNao24BBy5cyU'
-      const utxos = await getUTXOs(publicClient, { address: emptyAddress })
 
-      expect(utxos.length).toBe(0)
+      if (USE_MOCK) {
+        const utxos = await getUTXOs(publicClient, { address: emptyAddress })
+        expect(utxos.length).toBe(0)
+      } else {
+        await expect(
+          getUTXOs(publicClient, { address: emptyAddress })
+        ).rejects.toMatchObject({
+          status: 404,
+        })
+      }
     })
 
     describe('pagination', () => {
@@ -155,37 +175,39 @@ describe('Blockchair Transport', () => {
       })
 
       it('should handle pagination correctly', async () => {
-        vi.spyOn(global, 'fetch').mockImplementation((request) => {
-          const url = new URL(request.toString())
+        if (USE_MOCK) {
+          vi.spyOn(global, 'fetch').mockImplementation((request) => {
+            const url = new URL(request.toString())
 
-          if (url.pathname.includes('/addresses/balances')) {
-            return Promise.resolve(
-              createMockResponse({
-                data: {
-                  [addressWithManyUTXOs]: 1000000000000,
-                },
-                context: { code: 200 },
-              } as BlockchairResponse<BlockchairAddressBalanceData>)
-            )
-          }
-
-          if (url.pathname.includes('/dashboards/addresses')) {
-            const offset = Number.parseInt(
-              url.searchParams.get('offset')?.split(',')[1] || '0'
-            )
-            const limit = 100
-            return Promise.resolve(
-              createMockResponse(
-                createPaginatedMockResponse(
-                  offset,
-                  limit
-                ) as BlockchairResponse<BlockChairDashboardAddressResponse>
+            if (url.pathname.includes('/addresses/balances')) {
+              return Promise.resolve(
+                createMockResponse({
+                  data: {
+                    [addressWithManyUTXOs]: 1000000000000,
+                  },
+                  context: { code: 200 },
+                } as BlockchairResponse<BlockchairAddressBalanceData>)
               )
-            )
-          }
+            }
 
-          throw new BaseError(`Unexpected URL: ${url.pathname}`)
-        })
+            if (url.pathname.includes('/dashboards/addresses')) {
+              const offset = Number.parseInt(
+                url.searchParams.get('offset')?.split(',')[1] || '0'
+              )
+              const limit = 100
+              return Promise.resolve(
+                createMockResponse(
+                  createPaginatedMockResponse(
+                    offset,
+                    limit
+                  ) as BlockchairResponse<BlockChairDashboardAddressResponse>
+                )
+              )
+            }
+
+            throw new BaseError(`Unexpected URL: ${url.pathname}`)
+          })
+        }
 
         const utxos = await getUTXOs(publicClient, {
           address: addressWithManyUTXOs,
@@ -194,7 +216,9 @@ describe('Blockchair Transport', () => {
 
         expect(utxos.length).toBeGreaterThan(0)
         expect(new Set(utxos.map((utxo) => utxo.txId)).size).toBe(utxos.length)
-        expect(global.fetch).toHaveBeenCalled()
+        if (USE_MOCK) {
+          expect(global.fetch).toHaveBeenCalled()
+        }
 
         const totalValue = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
         expect(totalValue).toBeGreaterThanOrEqual(minValue)
