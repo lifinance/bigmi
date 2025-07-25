@@ -4,5 +4,5 @@ export function getRpcErrorCode(error: string): RpcErrorCode {
   if (error.toLowerCase().startsWith('rate limit exceeded')) {
     return RpcErrorCode.ACCESS_DENIED
   }
-  return RpcErrorCode.INTERNAL_ERROR
+  return RpcErrorCode.MISC_ERROR
 }

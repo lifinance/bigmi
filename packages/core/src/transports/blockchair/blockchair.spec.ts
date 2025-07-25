@@ -30,7 +30,7 @@ import type {
 const address = import.meta.env.VITE_TEST_ADDRESS
 const apiKey = import.meta.env.VITE_TEST_BLOCKCHAIR_KEY
 
-const USE_MOCK = false
+const USE_MOCK = true
 
 const publicClient = createClient({
   chain: bitcoin,
