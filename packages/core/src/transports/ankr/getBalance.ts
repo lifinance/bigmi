@@ -1,3 +1,4 @@
+import { RpcErrorCode } from '../../errors/rpc.js'
 import type { RpcMethodHandler } from '../types.js'
 import type { AnkrBalanceResponse } from './ankr.types.js'
 
@@ -16,7 +17,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
   })) as unknown as AnkrBalanceResponse
   if (response.error) {
     return {
-      error: { code: -1, message: response.error },
+      error: { code: RpcErrorCode.INTERNAL_ERROR, message: response.error },
     }
   }
   return {

@@ -1,3 +1,4 @@
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type { BlockchairTransactionResponse } from './blockchair.types.js'
@@ -20,7 +21,10 @@ export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
   if (response.context?.code !== 200) {
     return {
       error: {
-        code: response.context?.code,
+        code:
+          response.context.code === 429
+            ? RpcErrorCode.ACCESS_DENIED
+            : RpcErrorCode.INTERNAL_ERROR,
         message: response.context?.error,
       },
     }
