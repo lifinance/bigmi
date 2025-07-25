@@ -25,7 +25,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
         code:
           response.context.code === 429
             ? RpcErrorCode.ACCESS_DENIED
-            : RpcErrorCode.INTERNAL_ERROR,
+            : RpcErrorCode.MISC_ERROR,
         message: response.context?.error,
       },
     }

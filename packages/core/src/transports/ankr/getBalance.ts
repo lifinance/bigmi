@@ -17,7 +17,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
   })) as unknown as AnkrBalanceResponse
   if (response.error) {
     return {
-      error: { code: RpcErrorCode.INTERNAL_ERROR, message: response.error },
+      error: { code: RpcErrorCode.MISC_ERROR, message: response.error },
     }
   }
   return {

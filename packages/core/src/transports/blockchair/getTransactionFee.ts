@@ -24,7 +24,7 @@ export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
         code:
           response.context.code === 429
             ? RpcErrorCode.ACCESS_DENIED
-            : RpcErrorCode.INTERNAL_ERROR,
+            : RpcErrorCode.MISC_ERROR,
         message: response.context?.error,
       },
     }

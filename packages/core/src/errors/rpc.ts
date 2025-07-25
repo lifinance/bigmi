@@ -39,6 +39,10 @@ export enum RpcErrorCode {
    * The client does not have permission to access the requested resource.
    */
   ACCESS_DENIED = -32002,
+  /**
+   * Unknow generic errors
+   */
+  MISC_ERROR = -1,
 }
 
 export class UserRejectedRequestError extends BaseError {
