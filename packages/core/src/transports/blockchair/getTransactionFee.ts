@@ -18,7 +18,11 @@ export const getTransactionFee: RpcMethodHandler<'getTransactionFee'> = async (
     },
   })) as unknown as BlockchairTransactionResponse
 
-  if (response.context?.code !== 200) {
+  if (
+    response.data[txId] === undefined ||
+    response.context.error ||
+    response.context?.code !== 200
+  ) {
     return {
       error: {
         code:
