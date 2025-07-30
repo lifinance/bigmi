@@ -188,7 +188,11 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
     },
     async isAuthorized() {
       try {
-        return Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        if (shimDisconnect) {
+          return Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        }
+        const accounts = await this.getAccounts()
+        return !!accounts.length
       } catch {
         return false
       }
