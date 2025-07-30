@@ -40,7 +40,7 @@ export enum RpcErrorCode {
    */
   ACCESS_DENIED = -32002,
   /**
-   * Unknow generic errors
+   * Unknown generic errors
    */
   MISC_ERROR = -1,
 }
