@@ -172,7 +172,7 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
         if (isDisconnected) {
           return false
         }
-        const accounts = await withRetry(() => this.getAccounts())
+        const accounts = await this.getAccounts()
         return !!accounts.length
       } catch {
         return false
