@@ -194,11 +194,15 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
     },
     async isAuthorized() {
       try {
-        const isConnected =
+        const isDisconnected =
           shimDisconnect &&
-          // check storage to see if a connection exists already
-          Boolean(await config.storage?.getItem(`${this.id}.connected`))
-        return isConnected
+          // If shim exists in storage, connector is disconnected
+          (await config.storage?.getItem(`${this.id}.disconnected`))
+        if (isDisconnected) {
+          return false
+        }
+        const accounts = await withRetry(() => this.getAccounts())
+        return !!accounts.length
       } catch {
         return false
       }
