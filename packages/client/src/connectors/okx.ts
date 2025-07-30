@@ -4,7 +4,6 @@ import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
-  withRetry,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
