@@ -29,7 +29,8 @@
         "noUnusedLabels": "warn",
         "noUnusedVariables": "warn",
         "useExhaustiveDependencies": "error",
-        "useHookAtTopLevel": "error"
+        "useHookAtTopLevel": "error",
+        "noUnusedImports": "error"
       },
       "style": {
         "noDefaultExport": "off",

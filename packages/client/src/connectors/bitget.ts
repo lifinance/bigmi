@@ -7,7 +7,6 @@ import {
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  withRetry,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
@@ -141,6 +140,8 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         }
         return { accounts, chainId }
       } catch (error: any) {
+        // remove outdated shims and clean up events
+        await this.disconnect()
         throw new UserRejectedRequestError(error.message)
       }
     },
@@ -187,14 +188,10 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
     },
     async isAuthorized() {
       try {
-        const isDisconnected =
-          shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
-          (await config.storage?.getItem(`${this.id}.disconnected`))
-        if (isDisconnected) {
-          return false
+        if (shimDisconnect) {
+          return Boolean(await config.storage?.getItem(`${this.id}.connected`))
         }
-        const accounts = await withRetry(() => this.getAccounts())
+        const accounts = await this.getAccounts()
         return !!accounts.length
       } catch {
         return false
