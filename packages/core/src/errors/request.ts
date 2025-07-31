@@ -121,12 +121,14 @@ export class TimeoutError extends BaseError {
   constructor({
     body,
     url,
+    timeout,
   }: {
     body: { [x: string]: unknown } | { [y: string]: unknown }[]
     url: string
+    timeout: number
   }) {
     super('The request took too long to respond.', {
-      details: 'The request timed out.',
+      details: `The request timed out after ${timeout}ms.`,
       metaMessages: [`URL: ${getUrl(url)}`, `Request body: ${stringify(body)}`],
       name: 'TimeoutError',
     })
