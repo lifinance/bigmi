@@ -111,6 +111,286 @@ const account = useAccount()
 console.log('Bitcoin account address:', account.address);
 ```
 
+## Creating Bitcoin Transactions
+
+While Bigmi excels at blockchain data retrieval and transaction broadcasting, it doesn't include transaction creation functions. For generating valid transaction hex, we recommend using **bitcoinjs-lib** (which Bigmi already depends on).
+
+### Basic Transaction Creation
+
+Here's how to create a Bitcoin transaction using bitcoinjs-lib with Bigmi:
+
+```typescript
+import * as bitcoin from 'bitcoinjs-lib';
+import { 
+  createClient, 
+  getUTXOs, 
+  sendUTXOTransaction, 
+  waitForTransaction,
+  getBlockStats,
+  getBlockCount
+} from '@bigmi/core';
+
+async function createAndSendTransaction(
+  client: Client,
+  fromAddress: string,
+  toAddress: string,
+  amount: number, // in satoshis
+  privateKey: Buffer
+) {
+  // 1. Get UTXOs for the address using Bigmi
+  const utxos = await getUTXOs(client, { address: fromAddress });
+  
+  // 2. Create a new transaction using bitcoinjs-lib
+  const psbt = new bitcoin.Psbt();
+  
+  // 3. Add inputs from UTXOs
+  let inputValue = 0;
+  const estimatedFee = 1000; // You should calculate this properly
+  
+  for (const utxo of utxos) {
+    psbt.addInput({
+      hash: utxo.txId,
+      index: utxo.vout,
+      witnessUtxo: {
+        script: Buffer.from(utxo.scriptHex, 'hex'),
+        value: utxo.value,
+      },
+    });
+    inputValue += utxo.value;
+    if (inputValue >= amount + estimatedFee) break;
+  }
+  
+  // 4. Add recipient output
+  psbt.addOutput({
+    address: toAddress,
+    value: amount,
+  });
+  
+  // 5. Add change output if needed
+  const change = inputValue - amount - estimatedFee;
+  if (change > 546) { // Dust threshold
+    psbt.addOutput({
+      address: fromAddress,
+      value: change,
+    });
+  }
+  
+  // 6. Sign the transaction
+  const keyPair = bitcoin.ECPair.fromPrivateKey(privateKey);
+  psbt.signAllInputs(keyPair);
+  psbt.finalizeAllInputs();
+  
+  // 7. Get the raw transaction hex
+  const rawTx = psbt.extractTransaction().toHex();
+  
+  // 8. Broadcast using Bigmi
+  const txId = await sendUTXOTransaction(client, { hex: rawTx });
+  
+  // 9. Wait for confirmation using Bigmi
+  const confirmedTx = await waitForTransaction(client, {
+    txId,
+    txHex: rawTx,
+    senderAddress: fromAddress,
+    confirmations: 1,
+  });
+  
+  return confirmedTx;
+}
+```
+
+### Fee Estimation
+
+Proper fee estimation is crucial for transaction confirmation:
+
+```typescript
+async function estimateFee(
+  client: Client,
+  numInputs: number,
+  numOutputs: number
+): Promise<number> {
+  // Get recent block stats for fee estimation
+  const blockHeight = await getBlockCount(client);
+  const blockStats = await getBlockStats(client, {
+    blockNumber: blockHeight,
+    stats: ['avgfeerate']
+  });
+  
+  // Estimate transaction size
+  // P2WPKH: ~68 bytes per input, ~31 bytes per output, ~10 bytes overhead
+  const estimatedSize = (numInputs * 68) + (numOutputs * 31) + 10;
+  
+  // Calculate fee (satoshis per byte * size)
+  const feeRate = blockStats.avgfeerate || 1; // fallback to 1 sat/byte
+  return Math.ceil(feeRate * estimatedSize);
+}
+```
+
+### Complete Example with Error Handling
+
+```typescript
+import * as bitcoin from 'bitcoinjs-lib';
+import { createClient, getBalance, getUTXOs, sendUTXOTransaction, waitForTransaction } from '@bigmi/core';
+
+async function safeSendBitcoin(
+  client: Client,
+  fromAddress: string,
+  toAddress: string,
+  amount: number,
+  privateKey: Buffer
+) {
+  try {
+    // Check balance
+    const balance = await getBalance(client, { address: fromAddress });
+    if (balance < amount + 1000) {
+      throw new Error('Insufficient balance');
+    }
+    
+    // Get UTXOs
+    const utxos = await getUTXOs(client, {
+      address: fromAddress,
+      minValue: amount + 1000,
+    });
+    
+    if (utxos.length === 0) {
+      throw new Error('No UTXOs available');
+    }
+    
+    // Create transaction
+    const psbt = new bitcoin.Psbt();
+    
+    let totalInput = 0;
+    for (const utxo of utxos) {
+      psbt.addInput({
+        hash: utxo.txId,
+        index: utxo.vout,
+        witnessUtxo: {
+          script: Buffer.from(utxo.scriptHex, 'hex'),
+          value: utxo.value,
+        },
+      });
+      totalInput += utxo.value;
+    }
+    
+    // Add outputs
+    psbt.addOutput({
+      address: toAddress,
+      value: amount,
+    });
+    
+    // Calculate fee and change
+    const fee = await estimateFee(client, utxos.length, 2);
+    const change = totalInput - amount - fee;
+    
+    if (change < 0) {
+      throw new Error('Insufficient funds for fee');
+    }
+    
+    if (change > 546) { // Dust threshold
+      psbt.addOutput({
+        address: fromAddress,
+        value: change,
+      });
+    }
+    
+    // Sign and finalize
+    const keyPair = bitcoin.ECPair.fromPrivateKey(privateKey);
+    psbt.signAllInputs(keyPair);
+    psbt.finalizeAllInputs();
+    
+    // Get transaction hex
+    const txHex = psbt.extractTransaction().toHex();
+    
+    // Broadcast with Bigmi
+    const txId = await sendUTXOTransaction(client, { hex: txHex });
+    
+    // Wait for confirmation
+    const confirmed = await waitForTransaction(client, {
+      txId,
+      txHex,
+      senderAddress: fromAddress,
+      confirmations: 1,
+    });
+    
+    return {
+      txId,
+      fee,
+      confirmed,
+    };
+    
+  } catch (error) {
+    console.error('Transaction failed:', error);
+    throw error;
+  }
+}
+```
+
+### Working with Different Address Types
+
+```typescript
+import { getAddressInfo } from '@bigmi/core';
+
+function createInputForUTXO(utxo: UTXO, addressInfo: AddressInfo) {
+  const input: any = {
+    hash: utxo.txId,
+    index: utxo.vout,
+  };
+  
+  switch (addressInfo.type) {
+    case 'p2wpkh':
+    case 'p2wsh':
+      // Witness UTXOs for SegWit
+      input.witnessUtxo = {
+        script: Buffer.from(utxo.scriptHex, 'hex'),
+        value: utxo.value,
+      };
+      break;
+    case 'p2pkh':
+    case 'p2sh':
+      // Need full transaction for legacy
+      input.nonWitnessUtxo = Buffer.from(fullTransactionHex, 'hex');
+      break;
+  }
+  
+  return input;
+}
+```
+
+### RBF (Replace-By-Fee) Support
+
+Create transactions with RBF enabled for fee bumping:
+
+```typescript
+const psbt = new bitcoin.Psbt();
+
+// Add inputs with RBF sequence
+for (const utxo of utxos) {
+  psbt.addInput({
+    hash: utxo.txId,
+    index: utxo.vout,
+    sequence: 0xfffffffd, // RBF enabled
+    witnessUtxo: {
+      script: Buffer.from(utxo.scriptHex, 'hex'),
+      value: utxo.value,
+    },
+  });
+}
+```
+
+### Alternative Libraries
+
+While we recommend bitcoinjs-lib, you can also use:
+- **@scure/btc-signer** - Modern, audited Bitcoin transaction library
+- **bitcore-lib** - Alternative to bitcoinjs-lib
+- **bcoin** - Full Bitcoin implementation
+
+### Security Best Practices
+
+1. **Never expose private keys** in client-side code
+2. **Use hardware wallets** for production applications
+3. **Validate all inputs** before creating transactions
+4. **Test on testnet** before mainnet deployment
+5. **Implement proper error handling** for all edge cases
+
 ## Examples
 
 We are working on more examples to showcase Bigmi's capabilities. Stay tuned!
