@@ -10,6 +10,7 @@ type BlockcypherConfig = {
 
 export const blockcypher = (config?: BlockcypherConfig) =>
   utxo(config?.baseUrl || 'https://api.blockcypher.com/v1/btc/main', {
+    name: 'Blockcypher API',
     key: 'blockcypher',
     methods: {
       include: Object.keys(blockcypherMethods) as UTXOMethod[],

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.3](https://github.com/lifinance/bigmi/compare/v0.4.2...v0.4.3) (2025-07-31)
+
+
+### Bug Fixes
+
+* **connectors:** remove retry logic when checking if app isAuthorized ([#30](https://github.com/lifinance/bigmi/issues/30)) ([7709d68](https://github.com/lifinance/bigmi/commit/7709d68f67b19880940d68e288ac061ec4f074f8))
+
+### [0.4.2](https://github.com/lifinance/bigmi/compare/v0.4.1...v0.4.2) (2025-07-17)
+
 ### [0.4.1](https://github.com/lifinance/bigmi/compare/v0.4.0...v0.4.1) (2025-07-02)
 
 
