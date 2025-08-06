@@ -1,4 +1,5 @@
 import { RpcRequestError } from '../../errors/request.js'
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
 import type { UTXO } from '../../types/transaction.js'
 
@@ -57,7 +58,10 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
             },
           },
           error: {
-            code: response.context.code,
+            code:
+              response.context.code === 429
+                ? RpcErrorCode.ACCESS_DENIED
+                : RpcErrorCode.MISC_ERROR,
             message: response.context.error || 'Error fetching utxos',
           },
         })

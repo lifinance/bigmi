@@ -6,7 +6,6 @@ import {
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
-  withRetry,
 } from '@bigmi/core'
 
 import { createConnector } from '../factories/createConnector.js'
@@ -193,7 +192,7 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
         if (isDisconnected) {
           return false
         }
-        const accounts = await withRetry(() => this.getAccounts())
+        const accounts = await this.getAccounts()
         return !!accounts.length
       } catch {
         return false

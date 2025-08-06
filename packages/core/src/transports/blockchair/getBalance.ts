@@ -1,3 +1,4 @@
+import { RpcErrorCode } from '../../errors/rpc.js'
 import { urlWithParams } from '../../utils/url.js'
 import type { RpcMethodHandler } from '../types.js'
 import type {
@@ -18,10 +19,17 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
     url: apiUrl,
     fetchOptions: { method: 'GET' },
   })) as unknown as BlockchairResponse<BlockchairAddressBalanceData>
-  if (response.context?.code !== 200) {
+  if (
+    response.data[address] === undefined ||
+    response.context.error ||
+    response.context?.code !== 200
+  ) {
     return {
       error: {
-        code: response.context?.code,
+        code:
+          response.context.code === 429
+            ? RpcErrorCode.ACCESS_DENIED
+            : RpcErrorCode.MISC_ERROR,
         message: response.context?.error,
       },
     }
