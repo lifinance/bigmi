@@ -6,7 +6,6 @@ export type GetConnectorsReturnType<config extends Config = Config> =
 
 let previousConnectors: readonly Connector[] = []
 
-/** https://wagmi.sh/core/api/actions/getConnectors */
 export function getConnectors<config extends Config>(
   config: config
 ): GetConnectorsReturnType<config> {

@@ -170,6 +170,7 @@ export {
   type ChainConfig,
   type ChainFormatter,
   type ChainFormatters,
+  ChainId,
   Network,
 } from './types/chain.js'
 export type {

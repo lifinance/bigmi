@@ -4,6 +4,7 @@ import {
   type ClientConfig as base_ClientConfig,
   type Transport as base_Transport,
   type Chain,
+  type ChainId,
   ChainNotConfiguredError,
   type Client,
   type Compute,
@@ -87,7 +88,7 @@ export function createConfig<
     return connector
   }
 
-  const clients = new Map<number, Client<Transport, chains[number]>>()
+  const clients = new Map<ChainId, Client<Transport, chains[number]>>()
   function getClient<chainId extends chains[number]['id']>(
     config: { chainId?: chainId | chains[number]['id'] | undefined } = {}
   ): Client<Transport, Extract<chains[number], { id: chainId }>> {
@@ -258,15 +259,18 @@ export function createConfig<
 
   function validatePersistedChainId(
     persistedState: unknown,
-    defaultChainId: number
+    defaultChainId: ChainId
   ) {
-    return persistedState &&
+    const chainId =
+      persistedState &&
       typeof persistedState === 'object' &&
       'chainId' in persistedState &&
-      typeof persistedState.chainId === 'number' &&
+      typeof persistedState.chainId === 'string' &&
       chains.getState().some((x) => x.id === persistedState.chainId)
-      ? persistedState.chainId
-      : defaultChainId
+        ? persistedState.chainId
+        : defaultChainId
+
+    return chainId as ChainId
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,7 +611,7 @@ export type PartializedState = Compute<
 
 export type Connection = {
   accounts: readonly [Account, ...Account[]]
-  chainId: number
+  chainId: ChainId
   connector: Connector
 }
 

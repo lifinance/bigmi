@@ -1,3 +1,12 @@
+export enum ChainId {
+  BITCOIN_MAINNET = 'BITCOIN_MAINNET',
+  BITCOIN_TESTNET = 'BITCOIN_TESTNET',
+  BITCOIN_TESTNET4 = 'BITCOIN_TESTNET4',
+  BITCOIN_SIGNET = 'BITCOIN_SIGNET',
+  FRACTAL_BITCOIN_MAINNET = 'FRACTAL_BITCOIN_MAINNET',
+  FRACTAL_BITCOIN_TESTNET = 'FRACTAL_BITCOIN_TESTNET',
+}
+
 export enum Network {
   Mainnet = 'mainnet',
   Testnet = 'testnet',
@@ -18,10 +27,8 @@ export type Chain<
       }
     | undefined
   /** ID in number form */
-  id: number
-  /**
-   * Chain network
-   */
+  id: ChainId
+  /** Network chain is on, testnet, mainnet, etc */
   network: Network
   /** Human-readable name */
   name: string

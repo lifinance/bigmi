@@ -200,8 +200,7 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         })
       }
     },
-    onChainChanged(chain) {
-      const chainId = Number(chain)
+    onChainChanged(chainId) {
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect(_error) {

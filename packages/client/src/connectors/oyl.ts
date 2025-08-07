@@ -179,8 +179,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
         })
       }
     },
-    async onChainChanged(chain) {
-      const chainId = Number(chain)
+    async onChainChanged(chainId) {
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect() {

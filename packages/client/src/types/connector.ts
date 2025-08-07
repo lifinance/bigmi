@@ -1,6 +1,7 @@
 import type {
   Account,
   Chain,
+  ChainId,
   Client,
   Compute,
   HttpRpcClient,
@@ -18,9 +19,9 @@ export type Connector<
 export type ConnectorEventMap = {
   change: {
     accounts?: readonly Account[] | undefined
-    chainId?: number | undefined
+    chainId?: ChainId | undefined
   }
-  connect: { accounts: readonly Account[]; chainId: number }
+  connect: { accounts: readonly Account[]; chainId: ChainId }
   disconnect: never
   error: { error: Error }
   message: { type: string; data?: unknown | undefined }
@@ -48,25 +49,28 @@ export type CreateConnectorFn<
     setup?(): Promise<void>
     connect(
       parameters?:
-        | { chainId?: number | undefined; isReconnecting?: boolean | undefined }
+        | {
+            chainId?: ChainId | undefined
+            isReconnecting?: boolean | undefined
+          }
         | undefined
     ): Promise<{
       accounts: readonly Account[]
-      chainId: number
+      chainId: ChainId
     }>
     disconnect(): Promise<void>
     getAccounts(): Promise<readonly Account[]>
-    getChainId(): Promise<number>
+    getChainId(): Promise<ChainId>
     getProvider(
-      parameters?: { chainId?: number | undefined } | undefined
+      parameters?: { chainId?: ChainId | undefined } | undefined
     ): Promise<provider>
     getClient?(
-      parameters?: { chainId?: number | undefined } | undefined
+      parameters?: { chainId?: ChainId | undefined } | undefined
     ): Promise<Client>
     isAuthorized(): Promise<boolean>
 
     onAccountsChanged(accounts: Account[]): void
-    onChainChanged(chainId: string): void
+    onChainChanged(chainId: ChainId): void
     onConnect?(connectInfo: ProviderConnectInfo): void
     onDisconnect(error?: Error | undefined): void
     onMessage?(message: ProviderMessage): void
@@ -74,7 +78,7 @@ export type CreateConnectorFn<
 >
 
 interface ProviderConnectInfo {
-  readonly chainId: string
+  readonly chainId: ChainId
 }
 
 interface ProviderMessage {

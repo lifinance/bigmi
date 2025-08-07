@@ -225,8 +225,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         accounts,
       })
     },
-    onChainChanged(chain) {
-      const chainId = Number(chain)
+    onChainChanged(chainId) {
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect(_error) {

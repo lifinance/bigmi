@@ -1,5 +1,5 @@
 import type { Address } from '../types/address.js'
-import type { Network } from '../types/chain.js'
+import type { ChainId, Network } from '../types/chain.js'
 
 import { BaseError } from './base.js'
 
@@ -70,8 +70,8 @@ export class ConnectorChainMismatchError extends BaseError {
     connectionChainId,
     connectorChainId,
   }: {
-    connectionChainId: number
-    connectorChainId: number
+    connectionChainId: ChainId
+    connectorChainId: ChainId
   }) {
     super(
       `The current chain of the connector (id: ${connectorChainId}) does not match the connection's chain (id: ${connectionChainId}).`,
