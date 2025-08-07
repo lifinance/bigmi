@@ -1,3 +1,9 @@
+export enum Network {
+  Mainnet = 'mainnet',
+  Testnet = 'testnet',
+  Regtest = 'regtest',
+}
+
 export type Chain<
   formatters extends ChainFormatters | undefined = ChainFormatters | undefined,
   custom extends Record<string, unknown> | undefined =
@@ -13,6 +19,10 @@ export type Chain<
     | undefined
   /** ID in number form */
   id: number
+  /**
+   * Chain network
+   */
+  network: Network
   /** Human-readable name */
   name: string
   /** Collection of RPC endpoints */

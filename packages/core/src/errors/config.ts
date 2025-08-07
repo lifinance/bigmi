@@ -1,4 +1,5 @@
 import type { Address } from '../types/address.js'
+import type { Network } from '../types/chain.js'
 
 import { BaseError } from './base.js'
 
@@ -78,6 +79,31 @@ export class ConnectorChainMismatchError extends BaseError {
         metaMessages: [
           `Current Chain ID:  ${connectorChainId}`,
           `Expected Chain ID: ${connectionChainId}`,
+        ],
+      }
+    )
+  }
+}
+
+export type ConnectorNetworkMismatchErrorType =
+  ConnectorAccountNotFoundError & {
+    name: 'ConnectorNetworkMismatchError'
+  }
+export class ConnectorNetworkMismatchError extends BaseError {
+  override name = 'ConnectorNetworkMismatchError'
+  constructor({
+    connectionNetwork,
+    connectorNetwork,
+  }: {
+    connectionNetwork: Network
+    connectorNetwork: Network
+  }) {
+    super(
+      `The current network of the connector (${connectorNetwork}) does not match the connection's network (${connectionNetwork}).`,
+      {
+        metaMessages: [
+          `Current Network:  ${connectorNetwork}`,
+          `Expected Network: ${connectionNetwork}`,
         ],
       }
     )

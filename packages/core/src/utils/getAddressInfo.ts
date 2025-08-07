@@ -7,8 +7,8 @@ import {
   type AddressInfo,
   type AddressPurpose,
   AddressType,
-  Network,
 } from '../types/address.js'
+import { Network } from '../types/chain.js'
 
 const addressTypes: {
   [key: number]: { type: AddressType; network: Network }

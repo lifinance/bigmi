@@ -162,15 +162,15 @@ export {
   type AddressInfo,
   type AddressPurpose,
   AddressType,
-  Network,
 } from './types/address.js'
 export type { BlockTag } from './types/block.js'
 export type { BlockStats, BlockStatsKeys } from './types/blockStats.js'
-export type {
-  Chain,
-  ChainConfig,
-  ChainFormatter,
-  ChainFormatters,
+export {
+  type Chain,
+  type ChainConfig,
+  type ChainFormatter,
+  type ChainFormatters,
+  Network,
 } from './types/chain.js'
 export type {
   Client,
