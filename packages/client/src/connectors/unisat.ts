@@ -1,6 +1,7 @@
 import {
   type Account,
   type Address,
+  ChainId,
   getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -14,6 +15,35 @@ import type {
   UTXOConnectorParameters,
   UTXOWalletProvider,
 } from './types.js'
+
+export enum UnisatBitcoinChainEnum {
+  BITCOIN_MAINNET = 'BITCOIN_MAINNET',
+  BITCOIN_TESTNET = 'BITCOIN_TESTNET',
+  BITCOIN_TESTNET4 = 'BITCOIN_TESTNET4',
+  BITCOIN_SIGNET = 'BITCOIN_SIGNET',
+  FRACTAL_BITCOIN_MAINNET = 'FRACTAL_BITCOIN_MAINNET',
+  FRACTAL_BITCOIN_TESTNET = 'FRACTAL_BITCOIN_TESTNET',
+}
+
+export const UnisatBitcoinChainIdMap: Record<UnisatBitcoinChainEnum, ChainId> =
+  {
+    [UnisatBitcoinChainEnum.BITCOIN_MAINNET]: ChainId.BITCOIN_MAINNET,
+    [UnisatBitcoinChainEnum.BITCOIN_TESTNET]: ChainId.BITCOIN_TESTNET,
+    [UnisatBitcoinChainEnum.BITCOIN_TESTNET4]: ChainId.BITCOIN_TESTNET4,
+    [UnisatBitcoinChainEnum.BITCOIN_SIGNET]: ChainId.BITCOIN_SIGNET,
+    [UnisatBitcoinChainEnum.FRACTAL_BITCOIN_MAINNET]:
+      ChainId.FRACTAL_BITCOIN_MAINNET,
+    [UnisatBitcoinChainEnum.FRACTAL_BITCOIN_TESTNET]:
+      ChainId.FRACTAL_BITCOIN_TESTNET,
+  }
+
+export type UnisatBitcoinNetwork = 'livenet' | 'testnet'
+
+export type UnisatBitcoinChain = {
+  enum: UnisatBitcoinChainEnum
+  name: string
+  network: UnisatBitcoinNetwork
+}
 
 export type UnisatBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -51,6 +81,8 @@ type UnisatBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
+  getChain(): Promise<UnisatBitcoinChain>
+  switchChain(chain: UnisatBitcoinChainEnum): Promise<UnisatBitcoinChain>
 } & UnisatBitcoinEvents
 
 unisat.type = 'UTXO' as const
@@ -177,7 +209,16 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      return chainId!
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const chain = await provider.getChain()
+        return UnisatBitcoinChainIdMap[chain.enum]
+      } catch {
+        return chainId!
+      }
     },
     async isAuthorized() {
       try {
