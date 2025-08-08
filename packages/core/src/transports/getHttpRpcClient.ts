@@ -98,7 +98,11 @@ export function getHttpRpcClient(
             return response
           },
           {
-            errorInstance: new TimeoutError({ body: body ?? {}, url }),
+            errorInstance: new TimeoutError({
+              body: body ?? {},
+              url: params.url ?? url,
+              timeout,
+            }),
             timeout,
             signal: true,
           }
