@@ -2,6 +2,7 @@ import type { Account, AddressPurpose, SignPsbtParameters } from '@bigmi/core'
 import {
   base64ToHex,
   ChainId,
+  ChainNotConfiguredError,
   hexToBase64,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -27,8 +28,8 @@ export type XverseStacksNetwork = 'Mainnet' | 'Testnet'
 
 export type XverseNetworkChangeEventParams = {
   type: 'network_change'
-  bitcoin: XverseBitcoinNetwork
-  stacks: XverseStacksNetwork
+  bitcoin: { name: XverseBitcoinNetwork }
+  stacks: { name: XverseStacksNetwork }
   addresses: Account[]
 }
 
@@ -72,7 +73,10 @@ interface RequestPermissionsResponse {
 }
 
 interface GetNetworkResponse {
-  result?: { bitcoin: XverseBitcoinNetwork; stacks: XverseStacksNetwork }
+  result?: {
+    bitcoin: { name: XverseBitcoinNetwork }
+    stacks: { name: XverseStacksNetwork }
+  }
   error?: Error
 }
 
@@ -98,7 +102,7 @@ type XverseBitcoinProvider = {
 
 xverse.type = 'UTXO' as const
 export function xverse(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { shimDisconnect = true } = parameters
   let accountChange: ((accounts: Account[]) => void) | undefined
   let networkChange:
     | ((event: XverseNetworkChangeEventParams) => void)
@@ -191,8 +195,11 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       }
 
       if (!networkChange) {
-        networkChange = (event: XverseNetworkChangeEventParams) =>
-          this.onChainChanged(XverseBitcoinChainIdMap[event.bitcoin])
+        networkChange = (event: XverseNetworkChangeEventParams) => {
+          return this.onChainChanged(
+            XverseBitcoinChainIdMap[event.bitcoin.name]
+          )
+        }
         provider.addListener('networkChange', networkChange)
       }
       if (shimDisconnect) {
@@ -242,19 +249,25 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       return accounts.result.addresses
     },
     async getChainId() {
-      try {
-        const provider = await this.getInternalProvider()
-        if (!provider) {
-          throw new ProviderNotFoundError()
-        }
-        const network = await provider.request('wallet_getNetwork')
-        if (!network.result) {
-          throw new UserRejectedRequestError(network.error?.message!)
-        }
-        return XverseBitcoinChainIdMap[network.result.bitcoin]
-      } catch {
-        return chainId!
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
       }
+      const network = await provider.request('wallet_getNetwork')
+
+      if (!network.result) {
+        throw new UserRejectedRequestError(network.error?.message!)
+      }
+
+      const xverseChain: ChainId =
+        XverseBitcoinChainIdMap[network.result.bitcoin.name]
+      const isChainConfigured = Array.from(config.chains).some(
+        (x) => x.id === xverseChain
+      )
+      if (!isChainConfigured) {
+        throw new ChainNotConfiguredError(xverseChain)
+      }
+      return xverseChain
     },
     async isAuthorized() {
       try {
@@ -273,8 +286,10 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         accounts,
       })
     },
-    onChainChanged(chainId) {
-      config.emitter.emit('change', { chainId })
+    async onChainChanged() {
+      const chainId = await this.getChainId()
+      const { accounts } = await this.connect()
+      config.emitter.emit('change', { chainId, accounts })
     },
     async onDisconnect(_error) {
       config.emitter.emit('disconnect')

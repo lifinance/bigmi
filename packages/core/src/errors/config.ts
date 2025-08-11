@@ -8,8 +8,8 @@ export type ChainNotConfiguredErrorType = ChainNotConfiguredError & {
 }
 export class ChainNotConfiguredError extends BaseError {
   override name = 'ChainNotConfiguredError'
-  constructor() {
-    super('Chain not configured.')
+  constructor(chainId?: ChainId) {
+    super(`Chain ${chainId ? `: ${chainId}` : ''} not configured.`)
   }
 }
 
