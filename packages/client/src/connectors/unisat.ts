@@ -37,7 +37,22 @@ export const UnisatBitcoinChainIdMap: Record<UnisatBitcoinChainEnum, ChainId> =
       ChainId.FRACTAL_BITCOIN_TESTNET,
   }
 
+const ChainIdToUnisatMap = Object.fromEntries(
+  Object.entries(UnisatBitcoinChainIdMap).map(([unisatChain, chainId]) => [
+    chainId,
+    unisatChain,
+  ])
+) as Record<ChainId, UnisatBitcoinChainEnum>
+
 export type UnisatBitcoinNetwork = 'livenet' | 'testnet'
+
+export const UnisatBitcoinNetworkChainIdMap: Record<
+  UnisatBitcoinNetwork,
+  ChainId
+> = {
+  livenet: ChainId.BITCOIN_MAINNET,
+  testnet: ChainId.BITCOIN_TESTNET,
+}
 
 export type UnisatBitcoinChain = {
   enum: UnisatBitcoinChainEnum
@@ -47,6 +62,7 @@ export type UnisatBitcoinChain = {
 
 export type UnisatBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
+  networkChanged(network: UnisatBitcoinNetwork): void
 }
 
 export type UnisatBitcoinEvents = {
@@ -87,8 +103,9 @@ type UnisatBitcoinProvider = {
 
 unisat.type = 'UTXO' as const
 export function unisat(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
+  let chainChanged: ((network: UnisatBitcoinNetwork) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     UnisatConnectorProperties
@@ -162,6 +179,12 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
           provider.addListener('accountsChanged', accountsChanged)
         }
 
+        if (!chainChanged) {
+          chainChanged = (network: UnisatBitcoinNetwork) =>
+            this.onChainChanged(UnisatBitcoinNetworkChainIdMap[network])
+          provider.addListener('networkChanged', chainChanged)
+        }
+
         // Remove disconnected shim if it exists
         if (shimDisconnect) {
           await Promise.all([
@@ -180,6 +203,11 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       if (accountsChanged) {
         provider?.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
+      }
+
+      if (chainChanged) {
+        provider?.removeListener('networkChanged', chainChanged)
+        chainChanged = undefined
       }
 
       // Add shim signalling connector is disconnected
@@ -209,16 +237,12 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      try {
-        const provider = await this.getInternalProvider()
-        if (!provider) {
-          throw new ProviderNotFoundError()
-        }
-        const chain = await provider.getChain()
-        return UnisatBitcoinChainIdMap[chain.enum]
-      } catch {
-        return chainId!
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
       }
+      const chain = await provider.getChain()
+      return UnisatBitcoinChainIdMap[chain.enum]
     },
     async isAuthorized() {
       try {
@@ -227,6 +251,19 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
           // check storage to see if a connection exists already
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
         return isConnected
+      } catch {
+        return false
+      }
+    },
+    async switchChain({ chainId }) {
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const unisatChainId = ChainIdToUnisatMap[chainId]
+        const chain = await provider.switchChain(unisatChainId)
+        return Boolean(chain)
       } catch {
         return false
       }
@@ -241,8 +278,10 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         })
       }
     },
-    onChainChanged(chainId) {
-      config.emitter.emit('change', { chainId })
+    async onChainChanged() {
+      const chainId = await this.getChainId()
+      const accounts = await this.getAccounts()
+      config.emitter.emit('change', { chainId, accounts })
     },
     async onDisconnect(_error) {
       // No need to remove `${this.id}.disconnected` from storage because `onDisconnect` is typically

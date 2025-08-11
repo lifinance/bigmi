@@ -68,6 +68,7 @@ export type CreateConnectorFn<
       parameters?: { chainId?: ChainId | undefined } | undefined
     ): Promise<Client>
     isAuthorized(): Promise<boolean>
+    switchChain?(parameters: { chainId: ChainId }): Promise<boolean>
 
     onAccountsChanged(accounts: Account[]): void
     onChainChanged(chainId: ChainId): void

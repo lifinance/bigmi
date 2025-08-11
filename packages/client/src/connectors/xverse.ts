@@ -2,7 +2,6 @@ import type { Account, AddressPurpose, SignPsbtParameters } from '@bigmi/core'
 import {
   base64ToHex,
   ChainId,
-  ChainNotConfiguredError,
   hexToBase64,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -104,9 +103,7 @@ xverse.type = 'UTXO' as const
 export function xverse(parameters: UTXOConnectorParameters = {}) {
   const { shimDisconnect = true } = parameters
   let accountChange: ((accounts: Account[]) => void) | undefined
-  let networkChange:
-    | ((event: XverseNetworkChangeEventParams) => void)
-    | undefined
+  let chainChange: ((event: XverseNetworkChangeEventParams) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     XverseConnectorProperties
@@ -194,13 +191,10 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         provider.addListener('accountChange', accountChange)
       }
 
-      if (!networkChange) {
-        networkChange = (event: XverseNetworkChangeEventParams) => {
-          return this.onChainChanged(
-            XverseBitcoinChainIdMap[event.bitcoin.name]
-          )
-        }
-        provider.addListener('networkChange', networkChange)
+      if (!chainChange) {
+        chainChange = (event: XverseNetworkChangeEventParams) =>
+          this.onChainChanged(XverseBitcoinChainIdMap[event.bitcoin.name])
+        provider.addListener('networkChange', chainChange)
       }
       if (shimDisconnect) {
         // Remove disconnected shim if it exists
@@ -222,9 +216,9 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         accountChange = undefined
       }
 
-      if (networkChange) {
-        provider.removeListener?.('networkChange', networkChange)
-        networkChange = undefined
+      if (chainChange) {
+        provider.removeListener?.('networkChange', chainChange)
+        chainChange = undefined
       }
 
       // Add shim signalling connector is disconnected
@@ -259,15 +253,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
         throw new UserRejectedRequestError(network.error?.message!)
       }
 
-      const xverseChain: ChainId =
-        XverseBitcoinChainIdMap[network.result.bitcoin.name]
-      const isChainConfigured = Array.from(config.chains).some(
-        (x) => x.id === xverseChain
-      )
-      if (!isChainConfigured) {
-        throw new ChainNotConfiguredError(xverseChain)
-      }
-      return xverseChain
+      return XverseBitcoinChainIdMap[network.result.bitcoin.name]
     },
     async isAuthorized() {
       try {
