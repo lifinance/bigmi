@@ -5,6 +5,8 @@ export enum ChainId {
   BITCOIN_SIGNET = 'bitcoin:signet',
   FRACTAL_BITCOIN_MAINNET = 'fractal:mainnet',
   FRACTAL_BITCOIN_TESTNET = 'fractal:testnet',
+  STACKS_MAINNET = 'stacks:mainnet',
+  STACKS_TESTNET = 'stacks:testnet',
 }
 
 export enum Network {
