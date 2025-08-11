@@ -164,7 +164,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
           })
 
           if (signedPsbt?.error) {
-            throw new Error(signedPsbt?.error)
+            throw signedPsbt?.error
           }
           return base64ToHex(signedPsbt?.result?.psbt)
         }
