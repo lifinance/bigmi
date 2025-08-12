@@ -2,6 +2,7 @@ import {
   type Account,
   type Address,
   BaseError,
+  ChainId,
   getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -16,8 +17,27 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
+export type BitgetBitcoinNetworks = 'livenet' | 'testnet' | 'signet'
+
+export const BitgetBitcoinNetworkChainIdMap: Record<
+  BitgetBitcoinNetworks,
+  ChainId
+> = {
+  livenet: ChainId.BITCOIN_MAINNET,
+  testnet: ChainId.BITCOIN_TESTNET,
+  signet: ChainId.BITCOIN_SIGNET,
+}
+
+const ChainIdToBitgetMap = Object.fromEntries(
+  Object.entries(BitgetBitcoinNetworkChainIdMap).map(([network, chainId]) => [
+    chainId,
+    network,
+  ])
+) as Record<ChainId, BitgetBitcoinNetworks>
+
 export type BitgetBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
+  networkChanged(network: BitgetBitcoinNetworks): void
 }
 
 export type BitgetBitcoinEvents = {
@@ -41,6 +61,8 @@ type BitgetBitcoinProvider = {
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
   getPublicKey(): Promise<string>
+  getNetwork(): Promise<BitgetBitcoinNetworks>
+  switchNetwork(network: BitgetBitcoinNetworks): Promise<BitgetBitcoinNetworks>
   signPsbt(
     psbtHex: string,
     options: {
@@ -56,8 +78,9 @@ type BitgetBitcoinProvider = {
 
 bitget.type = 'UTXO' as const
 export function bitget(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
+  let chainChanged: ((network: BitgetBitcoinNetworks) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     BitgetConnectorProperties
@@ -131,6 +154,12 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
           provider.addListener('accountsChanged', accountsChanged)
         }
 
+        if (!chainChanged) {
+          chainChanged = (network: BitgetBitcoinNetworks) =>
+            this.onChainChanged(BitgetBitcoinNetworkChainIdMap[network])
+          provider.addListener('networkChanged', chainChanged)
+        }
+
         // Remove disconnected shim if it exists
         if (shimDisconnect) {
           await Promise.all([
@@ -151,6 +180,11 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       if (accountsChanged) {
         provider?.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
+      }
+
+      if (chainChanged) {
+        provider?.removeListener('networkChanged', chainChanged)
+        chainChanged = undefined
       }
 
       // Add shim signalling connector is disconnected
@@ -184,7 +218,12 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      return chainId!
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
+      }
+      const network = await provider.getNetwork()
+      return BitgetBitcoinNetworkChainIdMap[network]
     },
     async isAuthorized() {
       try {
@@ -193,6 +232,22 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         }
         const accounts = await this.getAccounts()
         return !!accounts.length
+      } catch {
+        return false
+      }
+    },
+    async switchChain({ chainId }) {
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const network = ChainIdToBitgetMap[chainId]
+        if (!network) {
+          return false
+        }
+        const result = await provider.switchNetwork(network)
+        return Boolean(result)
       } catch {
         return false
       }

@@ -1,6 +1,7 @@
 import {
   type Account,
   type Address,
+  ChainId,
   getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -14,8 +15,26 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
+export type OneKeyBitcoinNetwork = 'livenet' | 'testnet'
+
+export const OneKeyBitcoinNetworkChainIdMap: Record<
+  OneKeyBitcoinNetwork,
+  ChainId
+> = {
+  livenet: ChainId.BITCOIN_MAINNET,
+  testnet: ChainId.BITCOIN_TESTNET,
+}
+
+const ChainIdToOneKeyMap = Object.fromEntries(
+  Object.entries(OneKeyBitcoinNetworkChainIdMap).map(([network, chainId]) => [
+    chainId,
+    network,
+  ])
+) as Record<ChainId, OneKeyBitcoinNetwork>
+
 export type OneKeyBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
+  networkChanged(network: OneKeyBitcoinNetwork): void
 }
 
 export type OneKeyBitcoinEvents = {
@@ -33,6 +52,7 @@ type OneKeyConnectorProperties = {
   getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<OneKeyBitcoinProvider>
+  switchChain({ chainId }: { chainId: ChainId }): Promise<boolean>
 } & UTXOWalletProvider
 
 type OneKeyBitcoinProvider = {
@@ -50,12 +70,15 @@ type OneKeyBitcoinProvider = {
       autoFinalized?: boolean
     }
   ): Promise<string>
+  getNetwork(): Promise<OneKeyBitcoinNetwork>
+  switchNetwork(network: OneKeyBitcoinNetwork): Promise<OneKeyBitcoinNetwork>
 } & OneKeyBitcoinEvents
 
 onekey.type = 'UTXO' as const
 export function onekey(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
+  let chainChanged: ((network: OneKeyBitcoinNetwork) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     OneKeyConnectorProperties
@@ -126,6 +149,12 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
           provider.addListener('accountsChanged', accountsChanged)
         }
 
+        if (!chainChanged) {
+          chainChanged = (network: OneKeyBitcoinNetwork) =>
+            this.onChainChanged(OneKeyBitcoinNetworkChainIdMap[network])
+          provider.addListener('networkChanged', chainChanged)
+        }
+
         // Remove disconnected shim if it exists
         if (shimDisconnect) {
           await Promise.all([
@@ -144,6 +173,11 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
       if (accountsChanged) {
         provider?.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
+      }
+
+      if (chainChanged) {
+        provider?.removeListener('networkChanged', chainChanged)
+        chainChanged = undefined
       }
 
       // Add shim signalling connector is disconnected
@@ -173,7 +207,12 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      return chainId!
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
+      }
+      const network = await provider.getNetwork()
+      return OneKeyBitcoinNetworkChainIdMap[network]
     },
     async isAuthorized() {
       try {
@@ -190,6 +229,22 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
         return false
       }
     },
+    async switchChain({ chainId }) {
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const network = ChainIdToOneKeyMap[chainId]
+        if (!network) {
+          return false
+        }
+        const result = await provider.switchNetwork(network)
+        return Boolean(result)
+      } catch {
+        return false
+      }
+    },
     async onAccountsChanged(accounts) {
       if (accounts.length === 0) {
         this.onDisconnect()
@@ -200,8 +255,9 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
         })
       }
     },
-    onChainChanged(chainId) {
-      config.emitter.emit('change', { chainId })
+    async onChainChanged(chainId: ChainId) {
+      const accounts = await this.getAccounts()
+      config.emitter.emit('change', { chainId, accounts })
     },
     async onDisconnect(_error) {
       // No need to remove `${this.id}.disconnected` from storage because `onDisconnect` is typically

@@ -1,6 +1,7 @@
 import {
   type Account,
   type Address,
+  ChainId,
   getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -15,8 +16,27 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
+export type BinanceBitcoinNetworks = 'livenet' | 'testnet' | 'signet'
+
+export const BinanceBitcoinNetworkChainIdMap: Record<
+  BinanceBitcoinNetworks,
+  ChainId
+> = {
+  livenet: ChainId.BITCOIN_MAINNET,
+  testnet: ChainId.BITCOIN_TESTNET,
+  signet: ChainId.BITCOIN_SIGNET,
+}
+
+const ChainIdToBinanceMap = Object.fromEntries(
+  Object.entries(BinanceBitcoinNetworkChainIdMap).map(([network, chainId]) => [
+    chainId,
+    network,
+  ])
+) as Record<ChainId, BinanceBitcoinNetworks>
+
 export type BinanceBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
+  networkChanged(network: BinanceBitcoinNetworks): void
 }
 
 export type BinanceBitcoinEvents = {
@@ -34,12 +54,15 @@ type BinanceConnectorProperties = {
   getAccounts(): Promise<readonly Account[]>
   onAccountsChanged(accounts: Address[]): void
   getInternalProvider(): Promise<BinanceBitcoinProvider>
+  switchChain({ chainId }: { chainId: ChainId }): Promise<boolean>
 } & UTXOWalletProvider
 
 type BinanceBitcoinProvider = {
   getPublicKey(): Promise<string>
   requestAccounts(): Promise<Address[]>
   getAccounts(): Promise<Address[]>
+  getNetwork(): Promise<BinanceBitcoinNetworks>
+  switchNetwork(network: BinanceBitcoinNetworks): Promise<boolean>
   signPsbt(
     psbtHex: string,
     options: {
@@ -55,8 +78,9 @@ type BinanceBitcoinProvider = {
 
 binance.type = 'UTXO' as const
 export function binance(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
+  let chainChanged: ((network: BinanceBitcoinNetworks) => void) | undefined
   return createConnector<
     UTXOWalletProvider | undefined,
     BinanceConnectorProperties
@@ -134,6 +158,12 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
           provider.addListener('accountsChanged', accountsChanged)
         }
 
+        if (!chainChanged) {
+          chainChanged = (network: BinanceBitcoinNetworks) =>
+            this.onChainChanged(BinanceBitcoinNetworkChainIdMap[network])
+          provider.addListener('networkChanged', chainChanged)
+        }
+
         // Remove disconnected shim if it exists
         if (shimDisconnect) {
           await Promise.all([
@@ -152,6 +182,11 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
       if (accountsChanged) {
         provider?.removeListener('accountsChanged', accountsChanged)
         accountsChanged = undefined
+      }
+
+      if (chainChanged) {
+        provider?.removeListener('networkChanged', chainChanged)
+        chainChanged = undefined
       }
 
       // Add shim signalling connector is disconnected
@@ -181,7 +216,12 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      return chainId!
+      const provider = await this.getInternalProvider()
+      if (!provider) {
+        throw new ProviderNotFoundError()
+      }
+      const network = await provider.getNetwork()
+      return BinanceBitcoinNetworkChainIdMap[network]
     },
     async isAuthorized() {
       try {
@@ -198,6 +238,22 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
         return false
       }
     },
+    async switchChain({ chainId }) {
+      try {
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          throw new ProviderNotFoundError()
+        }
+        const network = ChainIdToBinanceMap[chainId]
+        if (!network) {
+          return false
+        }
+        const result = await provider.switchNetwork(network)
+        return Boolean(result)
+      } catch {
+        return false
+      }
+    },
     async onAccountsChanged(accounts) {
       if (accounts.length === 0) {
         this.onDisconnect()
@@ -208,8 +264,9 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
         })
       }
     },
-    onChainChanged(chainId) {
-      config.emitter.emit('change', { chainId })
+    async onChainChanged(chainId: ChainId) {
+      const accounts = await this.getAccounts()
+      config.emitter.emit('change', { chainId, accounts })
     },
     async onDisconnect(_error) {
       // No need to remove `${this.id}.disconnected` from storage because `onDisconnect` is typically

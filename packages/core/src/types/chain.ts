@@ -12,7 +12,9 @@ export enum ChainId {
 export enum Network {
   Mainnet = 'mainnet',
   Testnet = 'testnet',
+  Testnet4 = 'testnet4',
   Regtest = 'regtest',
+  Signet = 'signet',
 }
 
 export type Chain<
