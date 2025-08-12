@@ -31,38 +31,33 @@ Bigmi is modularized into several packages, each suited to different use cases:
 ```sh
 pnpm add @bigmi/react
 ```
+
 ```sh
 pnpm add @bigmi/core
 ```
+
 ```sh
 pnpm add @bigmi/client
 ```
 
 ## Getting Started
 
-Here is an example of a basic usage:
+### Node.js
 
-```tsx
-import { useConfig } from '@bigmi/react'
+How to setup Bigmi on the backend with Node.js:
+
+```typescript
+// main.ts
 import {
-  type UTXOSchema,
+  createClient,
   bitcoin,
-  getBalance,
-  getBlockCount,
+  blockchair,
   sendUTXOTransaction,
   waitForTransaction,
-  createClient, 
-  fallback, 
-  rpcSchema
-  ankr,
-  blockchair,
-  blockcypher,
-  mempool
+  getBalance,
 } from '@bigmi/core'
-import { useAccount } from '@bigmi/react'
 
-
-// Create a public client for interactions with the Bitcoin
+// Create a client for Bitcoin mainnet
 const publicClient = createClient({
   chain: bitcoin,
   rpcSchema: rpcSchema<UTXOSchema>(),
@@ -103,23 +98,79 @@ const transaction = await waitForTransaction(publicClient, {
 });
 
 console.log('Transaction confirmed:', transaction);
+ 
+```
 
-// Getting account information inside the React application
-const bigmiConfig = useConfig()
-const account = useAccount()
+### React
 
-console.log('Bitcoin account address:', account.address);
+Simple bigmi setup with a react app:
+
+```typescript
+// App.tsx
+
+import { bitcoin, http, createClient } from '@bigmi/core'
+import { BigmiProvider, createConfig } from '@bigmi/react'
+import { binance, xverse, phantom } from '@bigmi/client'
+
+const chainId  = bitcoin.id
+
+// Create bigmi config object
+const config = createConfig({
+    chains: [bitcoin],
+    connectors: [binance({chainId}), xverse({chainId}), phantom({chainId})],
+    client: ({ chain }) => createClient({ chain, transport: http() }),
+    ssr: true // If using Next.js or SSR
+})
+
+
+function App() {
+  return (
+    // Wrap your application with the necessary providers:
+    <BigmiProvider config={config}>
+      <YourApp />
+    </BigmiProvider>
+  )
+}
+```
+
+```typescript
+// YourApp.tsx
+
+// Import the hooks from bigmi/react library
+import { useAccount, useBalance, useConnect } from '@bigmi/react'
+
+const { address, isConnected } = useAccount()
+const { balance } = useBalance()
+const { connect } = useConnect()
+
+function YourApp() {
+  return (
+    <div>
+      {isConnected ? (
+        <p>Connected: {address}: {balance}BTC</p>
+      ) : (
+        <button onClick={connect}>Connect Wallet</button>
+      )}
+    </div>
+  )
+}
 ```
 
 ## Examples
 
-We are working on more examples to showcase Bigmi's capabilities. Stay tuned!
+- [See Node.js examples](./docs/core/examples.md)
+- [See React examples](./docs/react/examples.md)
 
-In the meantime, explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for inspiration.
+You can explore the [LI.FI Widget](https://github.com/lifinance/widget) and [LI.FI SDK](https://github.com/lifinance/sdk) for detailed production examples.
 
 ## Documentation
 
-Detailed documentation is coming soon. For now, refer to the source code and type definitions for guidance.
+- [Learn more about Configuration](./docs/core/config.md)
+- [See Core Docs](./docs/core/index.md)
+- [See Client Docs](./docs/client/index.md)
+- [See React Docs](./docs/react/index.md)
+
+- [Want to add support for your wallet?](./docs/client/connectors.md)
 
 ## Support
 
