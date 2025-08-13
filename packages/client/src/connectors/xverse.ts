@@ -8,7 +8,7 @@ import {
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
-
+import { debounce } from '../utils/debounce.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -99,11 +99,18 @@ type XverseBitcoinProvider = {
   request(method: 'wallet_getNetwork'): Promise<GetNetworkResponse>
 } & XverseBitcoinEvents
 
+type ChainChangeHandler =
+  | (((event: XverseNetworkChangeEventParams) => void) & {
+      cancel?: () => void
+    })
+  | undefined
+
 xverse.type = 'UTXO' as const
 export function xverse(parameters: UTXOConnectorParameters = {}) {
   const { shimDisconnect = true } = parameters
   let accountChange: ((accounts: Account[]) => void) | undefined
-  let chainChange: ((event: XverseNetworkChangeEventParams) => void) | undefined
+  let chainChange: ChainChangeHandler
+
   return createConnector<
     UTXOWalletProvider | undefined,
     XverseConnectorProperties
@@ -192,8 +199,12 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       }
 
       if (!chainChange) {
-        chainChange = (event: XverseNetworkChangeEventParams) =>
-          this.onChainChanged(XverseBitcoinChainIdMap[event.bitcoin.name])
+        // debounced because xverse wallet calls the event handler twice in rapid succession
+        chainChange = debounce(
+          (event: XverseNetworkChangeEventParams) =>
+            this.onChainChanged(XverseBitcoinChainIdMap[event.bitcoin.name]),
+          300
+        )
         provider.addListener('networkChange', chainChange)
       }
       if (shimDisconnect) {
@@ -218,6 +229,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
 
       if (chainChange) {
         provider.removeListener?.('networkChange', chainChange)
+        chainChange.cancel?.() // check for existing call and cancel
         chainChange = undefined
       }
 
@@ -273,8 +285,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       })
     },
     async onChainChanged() {
-      const chainId = await this.getChainId()
-      const { accounts } = await this.connect()
+      const { accounts, chainId } = await this.connect()
       config.emitter.emit('change', { chainId, accounts })
     },
     async onDisconnect(_error) {
