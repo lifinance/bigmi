@@ -79,7 +79,7 @@ export async function reconnect(
     }
 
     // If we already have an instance of this connector's provider,
-    // then we have already checked it
+    // then we don't want to connect to it again
     if (providers.some((x) => x === provider)) {
       continue
     }
