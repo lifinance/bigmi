@@ -8,8 +8,9 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-
+import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -25,24 +26,21 @@ export enum UnisatBitcoinChainEnum {
   FRACTAL_BITCOIN_TESTNET = 'FRACTAL_BITCOIN_TESTNET',
 }
 
-export const UnisatBitcoinChainIdMap: Record<UnisatBitcoinChainEnum, ChainId> =
-  {
-    [UnisatBitcoinChainEnum.BITCOIN_MAINNET]: ChainId.BITCOIN_MAINNET,
-    [UnisatBitcoinChainEnum.BITCOIN_TESTNET]: ChainId.BITCOIN_TESTNET,
-    [UnisatBitcoinChainEnum.BITCOIN_TESTNET4]: ChainId.BITCOIN_TESTNET4,
-    [UnisatBitcoinChainEnum.BITCOIN_SIGNET]: ChainId.BITCOIN_SIGNET,
-    [UnisatBitcoinChainEnum.FRACTAL_BITCOIN_MAINNET]:
+const { forward: UnisatBitcoinChainIdMap, reverse: ChainIdToUnisatMap } =
+  createBidirectionalMap<UnisatBitcoinChainEnum, ChainId>([
+    [UnisatBitcoinChainEnum.BITCOIN_MAINNET, ChainId.BITCOIN_MAINNET],
+    [UnisatBitcoinChainEnum.BITCOIN_TESTNET, ChainId.BITCOIN_TESTNET],
+    [UnisatBitcoinChainEnum.BITCOIN_TESTNET4, ChainId.BITCOIN_TESTNET4],
+    [UnisatBitcoinChainEnum.BITCOIN_SIGNET, ChainId.BITCOIN_SIGNET],
+    [
+      UnisatBitcoinChainEnum.FRACTAL_BITCOIN_MAINNET,
       ChainId.FRACTAL_BITCOIN_MAINNET,
-    [UnisatBitcoinChainEnum.FRACTAL_BITCOIN_TESTNET]:
+    ],
+    [
+      UnisatBitcoinChainEnum.FRACTAL_BITCOIN_TESTNET,
       ChainId.FRACTAL_BITCOIN_TESTNET,
-  }
-
-const ChainIdToUnisatMap = Object.fromEntries(
-  Object.entries(UnisatBitcoinChainIdMap).map(([unisatChain, chainId]) => [
-    chainId,
-    unisatChain,
-  ])
-) as Record<ChainId, UnisatBitcoinChainEnum>
+    ],
+  ] as const)
 
 export type UnisatBitcoinNetwork = 'livenet' | 'testnet'
 
@@ -261,7 +259,12 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
         if (!provider) {
           throw new ProviderNotFoundError()
         }
+
         const unisatChainId = ChainIdToUnisatMap[chainId]
+        if (!unisatChainId) {
+          throw new ChainNotSupportedError(chainId, unisat.name)
+        }
+
         const chain = await provider.switchChain(unisatChainId)
         return Boolean(chain)
       } catch {

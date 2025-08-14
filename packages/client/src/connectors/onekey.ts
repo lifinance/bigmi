@@ -8,7 +8,9 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -17,20 +19,11 @@ import type {
 
 export type OneKeyBitcoinNetwork = 'livenet' | 'testnet'
 
-export const OneKeyBitcoinNetworkChainIdMap: Record<
-  OneKeyBitcoinNetwork,
-  ChainId
-> = {
-  livenet: ChainId.BITCOIN_MAINNET,
-  testnet: ChainId.BITCOIN_TESTNET,
-}
-
-const ChainIdToOneKeyMap = Object.fromEntries(
-  Object.entries(OneKeyBitcoinNetworkChainIdMap).map(([network, chainId]) => [
-    chainId,
-    network,
-  ])
-) as Record<ChainId, OneKeyBitcoinNetwork>
+const { forward: OneKeyBitcoinNetworkChainIdMap, reverse: ChainIdToOneKeyMap } =
+  createBidirectionalMap<OneKeyBitcoinNetwork, ChainId>([
+    ['livenet', ChainId.BITCOIN_MAINNET],
+    ['testnet', ChainId.BITCOIN_TESTNET],
+  ] as const)
 
 export type OneKeyBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -237,7 +230,7 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
         }
         const network = ChainIdToOneKeyMap[chainId]
         if (!network) {
-          return false
+          throw new ChainNotSupportedError(chainId, onekey.name)
         }
         const result = await provider.switchNetwork(network)
         return Boolean(result)

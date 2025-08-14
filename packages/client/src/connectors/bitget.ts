@@ -9,8 +9,9 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-
+import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -19,21 +20,12 @@ import type {
 
 export type BitgetBitcoinNetworks = 'livenet' | 'testnet' | 'signet'
 
-export const BitgetBitcoinNetworkChainIdMap: Record<
-  BitgetBitcoinNetworks,
-  ChainId
-> = {
-  livenet: ChainId.BITCOIN_MAINNET,
-  testnet: ChainId.BITCOIN_TESTNET,
-  signet: ChainId.BITCOIN_SIGNET,
-}
-
-const ChainIdToBitgetMap = Object.fromEntries(
-  Object.entries(BitgetBitcoinNetworkChainIdMap).map(([network, chainId]) => [
-    chainId,
-    network,
-  ])
-) as Record<ChainId, BitgetBitcoinNetworks>
+const { forward: BitgetBitcoinNetworkChainIdMap, reverse: ChainIdToBitgetMap } =
+  createBidirectionalMap<BitgetBitcoinNetworks, ChainId>([
+    ['livenet', ChainId.BITCOIN_MAINNET],
+    ['testnet', ChainId.BITCOIN_TESTNET],
+    ['signet', ChainId.BITCOIN_SIGNET],
+  ] as const)
 
 export type BitgetBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
@@ -242,9 +234,10 @@ export function bitget(parameters: UTXOConnectorParameters = {}) {
         if (!provider) {
           throw new ProviderNotFoundError()
         }
+
         const network = ChainIdToBitgetMap[chainId]
         if (!network) {
-          return false
+          throw new ChainNotSupportedError(chainId, bitget.name)
         }
         const result = await provider.switchNetwork(network)
         return Boolean(result)
