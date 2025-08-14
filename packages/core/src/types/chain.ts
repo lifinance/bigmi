@@ -30,8 +30,6 @@ export type Chain<
     | undefined
   /** ID in number form */
   id: ChainId
-  /** Network chain is on, testnet, mainnet, etc */
-  network: Network
   /** Human-readable name */
   name: string
   /** Collection of RPC endpoints */

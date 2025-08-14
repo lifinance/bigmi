@@ -1,10 +1,9 @@
-import { ChainId, Network } from '../types/chain.js'
+import { ChainId } from '../types/chain.js'
 import { defineChain } from './defineChain.js'
 
 export const bitcoinSignet = /*#__PURE__*/ defineChain({
   id: ChainId.BITCOIN_SIGNET,
   name: 'Bitcoin Signet',
-  network: Network.Testnet,
   nativeCurrency: { name: 'Bitcoin', symbol: 'BTC', decimals: 8 },
   rpcUrls: {
     default: {
@@ -19,4 +18,5 @@ export const bitcoinSignet = /*#__PURE__*/ defineChain({
       url: 'https://mempool.space/signet',
     },
   },
+  testnet: true,
 })
