@@ -16,7 +16,6 @@ export type UseConnectorsParameters<config extends Config = Config> =
 export type UseConnectorsReturnType<config extends Config = Config> =
   GetConnectorsReturnType<config>
 
-/** https://wagmi.sh/react/api/hooks/useConnectors */
 export function useConnectors<
   config extends Config = ResolvedRegister['config'],
 >(

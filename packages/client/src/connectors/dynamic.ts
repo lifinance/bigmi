@@ -226,8 +226,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
         })
       }
     },
-    onChainChanged(chain) {
-      const chainId = Number(chain)
+    onChainChanged(chainId) {
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect(_error) {
