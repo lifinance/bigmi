@@ -79,7 +79,7 @@ export function buildRequest<request extends BtcRpcRequestFn<RpcSchema>>(
               if (error && error instanceof HttpRequestError) {
                 const retryAfter = error?.headers?.get('Retry-After')
                 if (retryAfter?.match(/\d/)) {
-                  return Number.parseInt(retryAfter) * 1000
+                  return Number.parseInt(retryAfter, 10) * 1000
                 }
               }
 

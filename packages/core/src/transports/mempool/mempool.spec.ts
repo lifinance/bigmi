@@ -1,28 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getBalance } from '../../actions/getBalance'
-import { getTransactionFee } from '../../actions/getTransactionFee'
-import { getTransactions } from '../../actions/getTransactions'
-import { bitcoin } from '../../chains/bitcoin'
-import { BaseError } from '../../errors/base'
-import { createClient, rpcSchema } from '../../factories/createClient'
-import { createMockResponse } from '../../test/utils'
+import { getBalance } from '../../actions/getBalance.js'
+import { getTransactionFee } from '../../actions/getTransactionFee.js'
+import { getTransactions } from '../../actions/getTransactions.js'
+import { bitcoin } from '../../chains/bitcoin.js'
+import { BaseError } from '../../errors/base.js'
+import { createClient, rpcSchema } from '../../factories/createClient.js'
+import { createMockResponse } from '../../test/utils.js'
 import {
   INVALID_TX_ID,
   TX_FEE,
   VALID_TX_ID,
-} from '../__mocks__/getTransactionFee'
-import type { UTXOSchema } from '../types'
+} from '../__mocks__/getTransactionFee.js'
+import type { UTXOSchema } from '../types.js'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
 import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
 import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
-import { mempool } from './mempool'
+import { mempool } from './mempool.js'
 import type {
   MempoolBalanceResponse,
   MempoolErrorResponse,
   MempoolUTXOTransactionsResponse,
-} from './mempool.types'
+} from './mempool.types.js'
 
 const address = import.meta.env.VITE_TEST_ADDRESS
 
