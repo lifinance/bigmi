@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getBalance } from '../../actions/getBalance'
-import { getTransactionFee } from '../../actions/getTransactionFee'
-import { getUTXOs } from '../../actions/getUTXOs'
-import { bitcoin } from '../../chains/bitcoin'
-import { BaseError } from '../../errors/base'
-import { InsufficientUTXOBalanceError } from '../../errors/utxo'
-import { createClient, rpcSchema } from '../../factories/createClient'
-import { createMockResponse } from '../../test/utils'
+import { getBalance } from '../../actions/getBalance.js'
+import { getTransactionFee } from '../../actions/getTransactionFee.js'
+import { getUTXOs } from '../../actions/getUTXOs.js'
+import { bitcoin } from '../../chains/bitcoin.js'
+import { BaseError } from '../../errors/base.js'
+import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
+import { createClient, rpcSchema } from '../../factories/createClient.js'
+import { createMockResponse } from '../../test/utils.js'
 import {
   INVALID_TX_ID,
   TX_FEE,
   VALID_TX_ID,
-} from '../__mocks__/getTransactionFee'
-import type { UTXOSchema } from '../types'
+} from '../__mocks__/getTransactionFee.js'
+import type { UTXOSchema } from '../types.js'
 import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
 import getBalanceReponse from './__mocks__/getBalance/valid.json'
 import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
@@ -25,7 +25,7 @@ import type {
   BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
   BlockchairResponse,
-} from './blockchair.types'
+} from './blockchair.types.js'
 
 const address = import.meta.env.VITE_TEST_ADDRESS
 const apiKey = import.meta.env.VITE_TEST_BLOCKCHAIR_KEY
@@ -192,7 +192,8 @@ describe('Blockchair Transport', () => {
 
             if (url.pathname.includes('/dashboards/addresses')) {
               const offset = Number.parseInt(
-                url.searchParams.get('offset')?.split(',')[1] || '0'
+                url.searchParams.get('offset')?.split(',')[1] || '0',
+                10
               )
               const limit = 100
               return Promise.resolve(

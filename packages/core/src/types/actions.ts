@@ -1,14 +1,13 @@
 import type {
   SendUTXOTransactionParameters,
   SendUTXOTransactionReturnType,
-} from '../actions/sendUTXOTransaction'
-
-import type { WaitForTransactionReceiptParameters } from '../actions/waitForTransaction'
+} from '../actions/sendUTXOTransaction.js'
+import type { WaitForTransactionReceiptParameters } from '../actions/waitForTransaction.js'
 import type {
   SignPsbtParameters,
   SignPsbtReturnType,
-} from '../transports/types'
-import type { UTXOTransaction } from './transaction'
+} from '../transports/types.js'
+import type { UTXOTransaction } from './transaction.js'
 
 export type WaitForTransactionReceiptReturnType = UTXOTransaction
 

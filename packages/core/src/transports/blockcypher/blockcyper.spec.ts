@@ -10,7 +10,7 @@ import {
   INVALID_TX_ID,
   TX_FEE,
   VALID_TX_ID,
-} from '../__mocks__/getTransactionFee'
+} from '../__mocks__/getTransactionFee.js'
 import type { UTXOSchema } from '../types.js'
 import getBalanceInValidResponse from './__mocks__/getBalance/invalid.json'
 import getBalanceValidResponse from './__mocks__/getBalance/valid.json'
