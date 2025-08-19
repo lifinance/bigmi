@@ -1,4 +1,5 @@
-import type { Address, Network } from '../types/address.js'
+import type { Address } from '../types/address.js'
+import type { Network } from '../types/chain.js'
 import { getAddressInfo } from './getAddressInfo.js'
 
 export const isAddress = (address: string, network?: Network): boolean => {

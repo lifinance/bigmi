@@ -1,7 +1,8 @@
+import { ChainId } from '../types/chain.js'
 import { defineChain } from './defineChain.js'
 
 export const bitcoin = /*#__PURE__*/ defineChain({
-  id: 20000000000001,
+  id: ChainId.BITCOIN_MAINNET,
   name: 'Bitcoin',
   nativeCurrency: { name: 'Bitcoin', symbol: 'BTC', decimals: 8 },
   rpcUrls: {

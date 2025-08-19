@@ -10,7 +10,6 @@ export type WatchConnectorsParameters<config extends Config = Config> = {
 
 export type WatchConnectorsReturnType = () => void
 
-/** https://wagmi.sh/core/api/actions/watchConnectors */
 export function watchConnectors<config extends Config>(
   config: config,
   parameters: WatchConnectorsParameters<config>

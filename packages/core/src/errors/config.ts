@@ -1,4 +1,5 @@
 import type { Address } from '../types/address.js'
+import type { ChainId, Network } from '../types/chain.js'
 
 import { BaseError } from './base.js'
 
@@ -7,8 +8,8 @@ export type ChainNotConfiguredErrorType = ChainNotConfiguredError & {
 }
 export class ChainNotConfiguredError extends BaseError {
   override name = 'ChainNotConfiguredError'
-  constructor() {
-    super('Chain not configured.')
+  constructor(chainId?: ChainId) {
+    super(`Chain ${chainId ? `: ${chainId}` : ''} not configured.`)
   }
 }
 
@@ -69,8 +70,8 @@ export class ConnectorChainMismatchError extends BaseError {
     connectionChainId,
     connectorChainId,
   }: {
-    connectionChainId: number
-    connectorChainId: number
+    connectionChainId: ChainId
+    connectorChainId: ChainId
   }) {
     super(
       `The current chain of the connector (id: ${connectorChainId}) does not match the connection's chain (id: ${connectionChainId}).`,
@@ -78,6 +79,31 @@ export class ConnectorChainMismatchError extends BaseError {
         metaMessages: [
           `Current Chain ID:  ${connectorChainId}`,
           `Expected Chain ID: ${connectionChainId}`,
+        ],
+      }
+    )
+  }
+}
+
+export type ConnectorNetworkMismatchErrorType =
+  ConnectorAccountNotFoundError & {
+    name: 'ConnectorNetworkMismatchError'
+  }
+export class ConnectorNetworkMismatchError extends BaseError {
+  override name = 'ConnectorNetworkMismatchError'
+  constructor({
+    connectionNetwork,
+    connectorNetwork,
+  }: {
+    connectionNetwork: Network
+    connectorNetwork: Network
+  }) {
+    super(
+      `The current network of the connector (${connectorNetwork}) does not match the connection's network (${connectionNetwork}).`,
+      {
+        metaMessages: [
+          `Current Network:  ${connectorNetwork}`,
+          `Expected Network: ${connectionNetwork}`,
         ],
       }
     )

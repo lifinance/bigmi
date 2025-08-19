@@ -1,4 +1,4 @@
-import type { Account, Chain } from '@bigmi/core'
+import type { Account, Chain, ChainId } from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector } from '../types/connector.js'
 
@@ -11,7 +11,7 @@ export type GetAccountReturnType<
       account: Account
       accounts: readonly [Account, ...Account[]]
       chain: chain | undefined
-      chainId: number
+      chainId: ChainId
       connector: Connector
       isConnected: true
       isConnecting: false
@@ -23,7 +23,7 @@ export type GetAccountReturnType<
       account: Account | undefined
       accounts: readonly Account[] | undefined
       chain: chain | undefined
-      chainId: number | undefined
+      chainId: ChainId | undefined
       connector: Connector | undefined
       isConnected: boolean
       isConnecting: false
@@ -35,7 +35,7 @@ export type GetAccountReturnType<
       account: Account | undefined
       accounts: readonly Account[] | undefined
       chain: chain | undefined
-      chainId: number | undefined
+      chainId: ChainId | undefined
       connector: Connector | undefined
       isConnected: false
       isReconnecting: false
@@ -56,7 +56,6 @@ export type GetAccountReturnType<
       status: 'disconnected'
     }
 
-/** https://wagmi.sh/core/api/actions/getAccount */
 export function getAccount<C extends Config>(
   config: C
 ): GetAccountReturnType<C> {

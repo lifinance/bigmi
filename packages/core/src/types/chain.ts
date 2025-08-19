@@ -1,3 +1,20 @@
+export enum ChainId {
+  BITCOIN_MAINNET = 'bitcoin:mainnet',
+  BITCOIN_TESTNET = 'bitcoin:testnet',
+  BITCOIN_TESTNET4 = 'bitcoin:testnet4',
+  BITCOIN_SIGNET = 'bitcoin:signet',
+  FRACTAL_BITCOIN_MAINNET = 'fractal:mainnet',
+  FRACTAL_BITCOIN_TESTNET = 'fractal:testnet',
+  STACKS_MAINNET = 'stacks:mainnet',
+  STACKS_TESTNET = 'stacks:testnet',
+}
+
+export enum Network {
+  Mainnet = 'mainnet',
+  Testnet = 'testnet',
+  Regtest = 'regtest',
+}
+
 export type Chain<
   formatters extends ChainFormatters | undefined = ChainFormatters | undefined,
   custom extends Record<string, unknown> | undefined =
@@ -12,7 +29,7 @@ export type Chain<
       }
     | undefined
   /** ID in number form */
-  id: number
+  id: ChainId
   /** Human-readable name */
   name: string
   /** Collection of RPC endpoints */

@@ -1,5 +1,6 @@
 import type {
   BtcRpcRequestFn,
+  ChainId,
   RpcParameters,
   UTXOSchema,
   UTXOWalletSchema,
@@ -12,7 +13,7 @@ export type UTXOConnectorParameters = {
    * @default true
    */
   shimDisconnect?: boolean
-  chainId?: number
+  chainId?: ChainId
 }
 
 export type ProviderRequestParams = RpcParameters<
