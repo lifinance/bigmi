@@ -1,26 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getBalance } from '../../actions/getBalance'
-import { getTransactionFee } from '../../actions/getTransactionFee'
-import { getTransactions } from '../../actions/getTransactions'
-import { bitcoin } from '../../chains/bitcoin'
-import { createClient, rpcSchema } from '../../factories/createClient'
-import { createMockResponse } from '../../test/utils'
+import { getBalance } from '../../actions/getBalance.js'
+import { getTransactionFee } from '../../actions/getTransactionFee.js'
+import { getTransactions } from '../../actions/getTransactions.js'
+import { bitcoin } from '../../chains/bitcoin.js'
+import { createClient, rpcSchema } from '../../factories/createClient.js'
+import { createMockResponse } from '../../test/utils.js'
 import {
   INVALID_TX_ID,
   TX_FEE,
   VALID_TX_ID,
-} from '../__mocks__/getTransactionFee'
-import type { UTXOSchema } from '../types'
+} from '../__mocks__/getTransactionFee.js'
+import type { UTXOSchema } from '../types.js'
 import getBalanceResponse from './__mocks__/getBalance/valid.json'
 import getInValidTransactionFeeResponse from './__mocks__/getTransactionFee/invalid.json'
 import getValidTransactionFeeResponse from './__mocks__/getTransactionFee/valid.json'
 import getTransactionsValidResponse from './__mocks__/getTransactions/valid.json'
-import { ankr } from './ankr'
+import { ankr } from './ankr.js'
 import type {
   AnkrAddressWithTxnsResponse,
   AnkrBalanceResponse,
   AnkrTxnResponse,
-} from './ankr.types'
+} from './ankr.types.js'
 
 const ANKR_KEY = import.meta.env.VITE_TEST_ANKR_KEY
 const address = import.meta.env.VITE_TEST_ADDRESS

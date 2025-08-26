@@ -3,7 +3,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/*.md", "!**/*.lock"]
+    "includes": ["**", "!**/*.md", "!**/*.lock", "!**/*.svelte", "!**/*.vue"]
   },
   "formatter": {
     "enabled": true,
@@ -26,11 +26,17 @@
         "noCommaOperator": "warn"
       },
       "correctness": {
-        "noUnusedLabels": "warn",
-        "noUnusedVariables": "warn",
+        "noUnusedLabels": "error",
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
         "useExhaustiveDependencies": "error",
         "useHookAtTopLevel": "error",
-        "noUnusedImports": "error"
+        "useImportExtensions": {
+          "level": "error",
+          "options": {
+            "forceJsExtensions": true
+          }
+        }
       },
       "style": {
         "noDefaultExport": "off",
@@ -68,6 +74,11 @@
         "rules": {
           "suspicious": {
             "noConsole": "off"
+          },
+          "correctness": {
+            "useImportExtensions": {
+              "level": "off"
+            }
           }
         }
       }
