@@ -28,14 +28,6 @@ export enum UnisatBitcoinChainEnum {
 
 export type UnisatBitcoinNetwork = 'livenet' | 'testnet'
 
-export const UnisatBitcoinNetworkChainIdMap: Record<
-  UnisatBitcoinNetwork,
-  ChainId
-> = {
-  livenet: ChainId.BITCOIN_MAINNET,
-  testnet: ChainId.BITCOIN_TESTNET,
-}
-
 export type UnisatBitcoinChain = {
   enum: UnisatBitcoinChainEnum
   name: string
@@ -85,6 +77,12 @@ type UnisatBitcoinProvider = {
 
 unisat.type = 'UTXO' as const
 export function unisat(parameters: UTXOConnectorParameters = {}) {
+  const UnisatBitcoinNetworkChainIdMap: Record<UnisatBitcoinNetwork, ChainId> =
+    {
+      livenet: ChainId.BITCOIN_MAINNET,
+      testnet: ChainId.BITCOIN_TESTNET,
+    }
+
   const { forward: UnisatBitcoinChainIdMap, reverse: ChainIdToUnisatMap } =
     createBidirectionalMap<UnisatBitcoinChainEnum, ChainId>([
       [UnisatBitcoinChainEnum.BITCOIN_MAINNET, ChainId.BITCOIN_MAINNET],
