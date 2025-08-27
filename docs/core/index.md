@@ -11,8 +11,7 @@ This document provides a comprehensive reference for the `@bigmi/core` package, 
 Creates a new Bitcoin client instance.
 
 ```typescript
-import { createClient, bitcoin } from '@bigmi/core'
-import { mempool } from '@bigmi/core'
+import { createClient, bitcoin, mempool } from '@bigmi/core'
 
 const client = createClient({
   chain: bitcoin,

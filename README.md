@@ -112,12 +112,10 @@ import { bitcoin, http, createClient } from '@bigmi/core'
 import { BigmiProvider, createConfig } from '@bigmi/react'
 import { binance, xverse, phantom } from '@bigmi/client'
 
-const chainId  = bitcoin.id
-
 // Create bigmi config object
 const config = createConfig({
     chains: [bitcoin],
-    connectors: [binance({chainId}), xverse({chainId}), phantom({chainId})],
+    connectors: [binance(), xverse(), phantom()],
     client: ({ chain }) => createClient({ chain, transport: http() }),
     ssr: true // If using Next.js or SSR
 })

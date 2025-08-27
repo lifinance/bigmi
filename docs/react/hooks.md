@@ -22,20 +22,21 @@ The current Bigmi configuration.
 Hook to access the connected account information.
 
 ```typescript
-import { useAccount } from '@bigmi/react'
+import { useAccount, useConnect } from '@bigmi/react'
 
 function Component() {
-  const { address, isConnected, connect, disconnect } = useAccount()
+  const { address, isConnected, connector: activeWallet } = useAccount()
+  const { connect, connectors } = useConnect()
   
   return (
     <div>
       {isConnected ? (
         <>
           <p>Connected: {address}</p>
-          <button onClick={disconnect}>Disconnect</button>
+          <button onClick={() => activeWallet.disconnect()}>Disconnect</button>
         </>
       ) : (
-        <button onClick={connect}>Connect Wallet</button>
+        <button onClick={() => connect({connector: connectors[0]})}>Connect Wallet</button>
       )}
     </div>
   )
@@ -46,8 +47,6 @@ function Component() {
 
 - `address`: The connected Bitcoin address
 - `isConnected`: Whether a wallet is connected
-- `connect`: Function to connect to a wallet
-- `disconnect`: Function to disconnect the wallet
 
 ## `useConnectors`
 
