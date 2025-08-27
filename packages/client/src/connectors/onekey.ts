@@ -19,12 +19,6 @@ import type {
 
 export type OneKeyBitcoinNetwork = 'livenet' | 'testnet'
 
-const { forward: OneKeyBitcoinNetworkChainIdMap, reverse: ChainIdToOneKeyMap } =
-  createBidirectionalMap<OneKeyBitcoinNetwork, ChainId>([
-    ['livenet', ChainId.BITCOIN_MAINNET],
-    ['testnet', ChainId.BITCOIN_TESTNET],
-  ] as const)
-
 export type OneKeyBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
   networkChanged(network: OneKeyBitcoinNetwork): void
@@ -69,6 +63,13 @@ type OneKeyBitcoinProvider = {
 
 onekey.type = 'UTXO' as const
 export function onekey(parameters: UTXOConnectorParameters = {}) {
+  const {
+    forward: OneKeyBitcoinNetworkChainIdMap,
+    reverse: ChainIdToOneKeyMap,
+  } = createBidirectionalMap<OneKeyBitcoinNetwork, ChainId>([
+    ['livenet', ChainId.BITCOIN_MAINNET],
+    ['testnet', ChainId.BITCOIN_TESTNET],
+  ] as const)
   const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   let chainChanged: ((network: OneKeyBitcoinNetwork) => void) | undefined

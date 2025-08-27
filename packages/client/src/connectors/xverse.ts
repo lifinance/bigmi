@@ -15,13 +15,6 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
-export const XverseBitcoinChainIdMap: Record<XverseBitcoinNetwork, ChainId> = {
-  Mainnet: ChainId.BITCOIN_MAINNET,
-  Testnet: ChainId.BITCOIN_TESTNET,
-  Testnet4: ChainId.BITCOIN_TESTNET4,
-  Signet: ChainId.BITCOIN_SIGNET,
-}
-
 export type XverseBitcoinNetwork = 'Mainnet' | 'Testnet' | 'Testnet4' | 'Signet'
 export type XverseStacksNetwork = 'Mainnet' | 'Testnet'
 
@@ -107,6 +100,12 @@ type ChainChangeHandler =
 
 xverse.type = 'UTXO' as const
 export function xverse(parameters: UTXOConnectorParameters = {}) {
+  const XverseBitcoinChainIdMap: Record<XverseBitcoinNetwork, ChainId> = {
+    Mainnet: ChainId.BITCOIN_MAINNET,
+    Testnet: ChainId.BITCOIN_TESTNET,
+    Testnet4: ChainId.BITCOIN_TESTNET4,
+    Signet: ChainId.BITCOIN_SIGNET,
+  }
   const { shimDisconnect = true } = parameters
   let accountChange: ((accounts: Account[]) => void) | undefined
   let chainChange: ChainChangeHandler

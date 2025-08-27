@@ -20,13 +20,6 @@ import type {
 
 export type BitgetBitcoinNetworks = 'livenet' | 'testnet' | 'signet'
 
-const { forward: BitgetBitcoinNetworkChainIdMap, reverse: ChainIdToBitgetMap } =
-  createBidirectionalMap<BitgetBitcoinNetworks, ChainId>([
-    ['livenet', ChainId.BITCOIN_MAINNET],
-    ['testnet', ChainId.BITCOIN_TESTNET],
-    ['signet', ChainId.BITCOIN_SIGNET],
-  ] as const)
-
 export type BitgetBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
   networkChanged(network: BitgetBitcoinNetworks): void
@@ -70,6 +63,14 @@ type BitgetBitcoinProvider = {
 
 bitget.type = 'UTXO' as const
 export function bitget(parameters: UTXOConnectorParameters = {}) {
+  const {
+    forward: BitgetBitcoinNetworkChainIdMap,
+    reverse: ChainIdToBitgetMap,
+  } = createBidirectionalMap<BitgetBitcoinNetworks, ChainId>([
+    ['livenet', ChainId.BITCOIN_MAINNET],
+    ['testnet', ChainId.BITCOIN_TESTNET],
+    ['signet', ChainId.BITCOIN_SIGNET],
+  ] as const)
   const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   let chainChanged: ((network: BitgetBitcoinNetworks) => void) | undefined

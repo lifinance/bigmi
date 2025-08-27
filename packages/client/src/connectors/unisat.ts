@@ -26,22 +26,6 @@ export enum UnisatBitcoinChainEnum {
   FRACTAL_BITCOIN_TESTNET = 'FRACTAL_BITCOIN_TESTNET',
 }
 
-const { forward: UnisatBitcoinChainIdMap, reverse: ChainIdToUnisatMap } =
-  createBidirectionalMap<UnisatBitcoinChainEnum, ChainId>([
-    [UnisatBitcoinChainEnum.BITCOIN_MAINNET, ChainId.BITCOIN_MAINNET],
-    [UnisatBitcoinChainEnum.BITCOIN_TESTNET, ChainId.BITCOIN_TESTNET],
-    [UnisatBitcoinChainEnum.BITCOIN_TESTNET4, ChainId.BITCOIN_TESTNET4],
-    [UnisatBitcoinChainEnum.BITCOIN_SIGNET, ChainId.BITCOIN_SIGNET],
-    [
-      UnisatBitcoinChainEnum.FRACTAL_BITCOIN_MAINNET,
-      ChainId.FRACTAL_BITCOIN_MAINNET,
-    ],
-    [
-      UnisatBitcoinChainEnum.FRACTAL_BITCOIN_TESTNET,
-      ChainId.FRACTAL_BITCOIN_TESTNET,
-    ],
-  ] as const)
-
 export type UnisatBitcoinNetwork = 'livenet' | 'testnet'
 
 export const UnisatBitcoinNetworkChainIdMap: Record<
@@ -101,6 +85,21 @@ type UnisatBitcoinProvider = {
 
 unisat.type = 'UTXO' as const
 export function unisat(parameters: UTXOConnectorParameters = {}) {
+  const { forward: UnisatBitcoinChainIdMap, reverse: ChainIdToUnisatMap } =
+    createBidirectionalMap<UnisatBitcoinChainEnum, ChainId>([
+      [UnisatBitcoinChainEnum.BITCOIN_MAINNET, ChainId.BITCOIN_MAINNET],
+      [UnisatBitcoinChainEnum.BITCOIN_TESTNET, ChainId.BITCOIN_TESTNET],
+      [UnisatBitcoinChainEnum.BITCOIN_TESTNET4, ChainId.BITCOIN_TESTNET4],
+      [UnisatBitcoinChainEnum.BITCOIN_SIGNET, ChainId.BITCOIN_SIGNET],
+      [
+        UnisatBitcoinChainEnum.FRACTAL_BITCOIN_MAINNET,
+        ChainId.FRACTAL_BITCOIN_MAINNET,
+      ],
+      [
+        UnisatBitcoinChainEnum.FRACTAL_BITCOIN_TESTNET,
+        ChainId.FRACTAL_BITCOIN_TESTNET,
+      ],
+    ] as const)
   const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   let chainChanged: ((network: UnisatBitcoinNetwork) => void) | undefined

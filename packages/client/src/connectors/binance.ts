@@ -19,13 +19,6 @@ import type {
 
 export type BinanceBitcoinNetworks = 'livenet' | 'testnet' | 'signet'
 
-const { forward: BinanceBitcoinNetworkChainIdMap, reverse: ReverseChainIdMap } =
-  createBidirectionalMap<BinanceBitcoinNetworks, ChainId>([
-    ['livenet', ChainId.BITCOIN_MAINNET],
-    ['testnet', ChainId.BITCOIN_TESTNET],
-    ['signet', ChainId.BITCOIN_SIGNET],
-  ] as const)
-
 export type BinanceBitcoinEventMap = {
   accountsChanged(accounts: Address[]): void
   networkChanged(network: BinanceBitcoinNetworks): void
@@ -70,6 +63,14 @@ type BinanceBitcoinProvider = {
 
 binance.type = 'UTXO' as const
 export function binance(parameters: UTXOConnectorParameters = {}) {
+  const {
+    forward: BinanceBitcoinNetworkChainIdMap,
+    reverse: ReverseChainIdMap,
+  } = createBidirectionalMap<BinanceBitcoinNetworks, ChainId>([
+    ['livenet', ChainId.BITCOIN_MAINNET],
+    ['testnet', ChainId.BITCOIN_TESTNET],
+    ['signet', ChainId.BITCOIN_SIGNET],
+  ] as const)
   const { shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   let chainChanged: ((network: BinanceBitcoinNetworks) => void) | undefined
