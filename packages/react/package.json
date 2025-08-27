@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/react",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "React primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
