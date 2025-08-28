@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/lifinance/bigmi/compare/v0.4.5...v0.5.0) (2025-08-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* change chainId to enum (#31)
+
+* change chainId to enum ([#31](https://github.com/lifinance/bigmi/issues/31)) ([4e93517](https://github.com/lifinance/bigmi/commit/4e93517e50353ffe949c7fd7cebd3313a9d2d69e))
+
 ### [0.4.5](https://github.com/lifinance/bigmi/compare/v0.4.4...v0.4.5) (2025-08-27)
 
 ### [0.4.4](https://github.com/lifinance/bigmi/compare/v0.4.3...v0.4.4) (2025-08-18)
