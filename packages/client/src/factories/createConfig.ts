@@ -5,7 +5,6 @@ import {
   type Transport as base_Transport,
   type Chain,
   type ChainId,
-  ChainNotConfiguredError,
   type Client,
   type Compute,
   createClient,
@@ -18,6 +17,7 @@ import {
 } from '@bigmi/core'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
+import { ChainNotConfiguredError } from '../errors/config.js'
 import type {
   ConnectorEventMap,
   CreateConnectorFn,
@@ -28,7 +28,7 @@ import { createStorage, getDefaultStorage } from './createStorage.js'
 
 export function createConfig<
   const chains extends readonly [Chain, ...Chain[]],
-  transports extends Record<chains[number]['id'], Transport>,
+  transports extends Partial<Record<ChainId, Transport>>,
   const connectorFns extends readonly CreateConnectorFn[],
 >(
   parameters: CreateConfigParameters<chains, transports, connectorFns>
@@ -158,11 +158,15 @@ export function createConfig<
         }
       }
 
+      const transport = rest.transports[chainId]
+      if (!transport) {
+        throw new ChainNotConfiguredError()
+      }
+
       client = createClient({
         ...properties,
         chain,
-        transport: (parameters) =>
-          rest.transports[chainId]({ ...parameters, connectors }),
+        transport: (parameters) => transport({ ...parameters, connectors }),
       })
     }
 
@@ -485,9 +489,8 @@ export function createConfig<
 
 export type CreateConfigParameters<
   chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
-  transports extends Record<chains[number]['id'], Transport> = Record<
-    chains[number]['id'],
-    Transport
+  transports extends Partial<Record<ChainId, Transport>> = Partial<
+    Record<ChainId, Transport>
   >,
   connectorFns extends
     readonly CreateConnectorFn[] = readonly CreateConnectorFn[],
@@ -509,16 +512,15 @@ export type CreateConfigParameters<
     | {
         client(parameters: {
           chain: chains[number]
-        }): Client<transports[chains[number]['id']], chains[number]>
+        }): Client<Transport, chains[number]>
       }
   >
 >
 
 export type Config<
   chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
-  transports extends Record<chains[number]['id'], Transport> = Record<
-    chains[number]['id'],
-    Transport
+  transports extends Partial<Record<ChainId, Transport>> = Partial<
+    Record<ChainId, Transport>
   >,
   connectorFns extends
     readonly CreateConnectorFn[] = readonly CreateConnectorFn[],
@@ -544,20 +546,18 @@ export type Config<
 
   getClient<chainId extends chains[number]['id']>(parameters?: {
     chainId?: chainId | chains[number]['id'] | undefined
-  }): Client<transports[chainId], Extract<chains[number], { id: chainId }>>
+  }): Client<Transport, Extract<chains[number], { id: chainId }>>
 
   /**
    * Not part of versioned API, proceed with caution.
    * @internal
    */
-  _internal: Internal<chains, transports>
+  _internal: Internal<transports>
 }
 
 type Internal<
-  chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
-  transports extends Record<chains[number]['id'], Transport> = Record<
-    chains[number]['id'],
-    Transport
+  transports extends Partial<Record<ChainId, Transport>> = Partial<
+    Record<ChainId, Transport>
   >,
 > = {
   readonly store: Mutate<StoreApi<any>, [['zustand/persist', any]]>

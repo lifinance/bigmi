@@ -8,7 +8,7 @@ import {
   type AddressPurpose,
   AddressType,
 } from '../types/address.js'
-import { Network } from '../types/chain.js'
+import { ChainId, Network } from '../types/chain.js'
 
 const addressTypes: {
   [key: number]: { type: AddressType; network: Network }
@@ -150,5 +150,20 @@ const getAddressPurpose = (type: AddressType): AddressPurpose => {
       return 'payment'
     default:
       throw new Error('Invalid address type')
+  }
+}
+
+export const getAddressChainId = (address: Address): ChainId => {
+  const addressInfo = getAddressInfo(address)
+
+  switch (addressInfo.network) {
+    case Network.Mainnet:
+      return ChainId.BITCOIN_MAINNET
+    case Network.Testnet:
+      return ChainId.BITCOIN_TESTNET
+    case Network.Regtest:
+      return ChainId.BITCOIN_SIGNET
+    default:
+      return ChainId.BITCOIN_MAINNET
   }
 }

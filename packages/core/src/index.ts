@@ -72,14 +72,7 @@ export {
 } from './errors/address.js'
 export { BaseError, type BaseErrorType } from './errors/base.js'
 export { BlockNotFoundError } from './errors/block.js'
-export {
-  ChainNotConfiguredError,
-  ConnectorAccountNotFoundError,
-  ConnectorAlreadyConnectedError,
-  ConnectorChainMismatchError,
-  ConnectorNotConnectedError,
-  ConnectorNotFoundError,
-} from './errors/config.js'
+
 export { ProviderNotFoundError } from './errors/provider.js'
 export {
   HttpRequestError,
@@ -214,7 +207,7 @@ export {
   stringToHex,
 } from './utils/converter.js'
 export { deepEqual } from './utils/deepEqual.js'
-export { getAddressInfo } from './utils/getAddressInfo.js'
+export { getAddressChainId, getAddressInfo } from './utils/getAddressInfo.js'
 export { isAddress as isUTXOAddress } from './utils/isAddress.js'
 export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'

@@ -1,9 +1,11 @@
 import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
+  getAddressChainId,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 
 import type {
@@ -116,7 +118,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       }
 
       const accounts = await this.getAccounts()
-      const chainId = await this.getChainId()
+      const chainId = getAddressChainId(accounts[0].address)
 
       // Remove disconnected shim if it exists
       if (shimDisconnect) {
@@ -154,7 +156,16 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       return accounts.result.addresses
     },
     async getChainId() {
-      return chainId!
+      // If chainId is provided in parameters, use it
+      if (chainId) {
+        return chainId
+      }
+      // Otherwise, detect chain ID from the first account's address
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {

@@ -1,13 +1,12 @@
-import {
-  type Account,
-  type BaseErrorType,
-  type ChainId,
-  type Compute,
-  ConnectorAlreadyConnectedError,
-  type ErrorType,
-  type UserRejectedRequestError,
+import type {
+  Account,
+  BaseErrorType,
+  ChainId,
+  Compute,
+  ErrorType,
+  UserRejectedRequestError,
 } from '@bigmi/core'
-
+import { ConnectorAlreadyConnectedError } from '../errors/connectors.js'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector, CreateConnectorFn } from '../types/connector.js'
 import type { ChainIdParameter } from './getConnectorClient.js'

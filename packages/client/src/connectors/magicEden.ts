@@ -1,14 +1,15 @@
 import {
   type Account,
   base64ToHex,
+  getAddressChainId,
   hexToBase64,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
-
 import { createUnsecuredToken } from '../utils/createUnsecuredToken.js'
 import type {
   ProviderRequestParams,
@@ -111,8 +112,7 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
       }
       try {
         const accounts = await this.getAccounts()
-
-        const chainId = await this.getChainId()
+        const chainId = getAddressChainId(accounts[0].address)
 
         if (!accountsChanged) {
           accountsChanged = this.onAccountsChanged.bind(this)
@@ -162,7 +162,15 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
       return addresses.filter((account) => account.purpose === 'payment')
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {

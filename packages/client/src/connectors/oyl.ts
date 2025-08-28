@@ -6,8 +6,9 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { getAddressChainId } from '@bigmi/core/src/utils/getAddressInfo.js'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
-
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -151,7 +152,16 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
       ]
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {
