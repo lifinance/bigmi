@@ -68,6 +68,18 @@ export type {
   XverseBitcoinEvents,
 } from './connectors/xverse.js'
 export { xverse } from './connectors/xverse.js'
+export {
+  ChainNotSupportedError,
+  ConnectorAccountNotFoundError,
+  ConnectorAlreadyConnectedError,
+  ConnectorChainIdDetectionError,
+  ConnectorChainMismatchError,
+  ConnectorNetworkMismatchError,
+  ConnectorNotConnectedError,
+  ConnectorNotFoundError,
+  ConnectorUnavailableReconnectingError,
+  ProviderNotFoundError,
+} from './errors/connectors.js'
 export { type Config, createConfig } from './factories/createConfig.js'
 export type {
   ConnectData,

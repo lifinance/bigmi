@@ -1,12 +1,10 @@
 import type { Account, Client, Compute } from '@bigmi/core'
+import { createClient, custom, parseAccount } from '@bigmi/core'
 import {
   ConnectorAccountNotFoundError,
   ConnectorChainMismatchError,
   ConnectorNotConnectedError,
-  createClient,
-  custom,
-  parseAccount,
-} from '@bigmi/core'
+} from '../errors/connectors.js'
 import type { Config } from '../factories/createConfig.js'
 import type { Connection } from '../types/connection.js'
 import type { Connector } from '../types/connector.js'

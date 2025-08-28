@@ -1,11 +1,12 @@
 import type { Account, SignPsbtParameters } from '@bigmi/core'
 import {
+  getAddressChainId,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
-
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -117,7 +118,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
       }
       try {
         const accounts = await this.getAccounts()
-        const chainId = await this.getChainId()
+        const chainId = getAddressChainId(accounts[0].address)
 
         if (!accountsChanged) {
           accountsChanged = this.onAccountsChanged.bind(this)
@@ -161,7 +162,15 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
       return accounts.filter((account) => account.purpose === 'payment')
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {

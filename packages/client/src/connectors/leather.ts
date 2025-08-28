@@ -1,9 +1,11 @@
 import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
+  getAddressChainId,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 
 import type {
@@ -114,19 +116,22 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+      try {
+        const accounts = await this.getAccounts()
+        const chainId = getAddressChainId(accounts[0].address)
 
-      const accounts = await this.getAccounts()
-      const chainId = await this.getChainId()
+        // Remove disconnected shim if it exists
+        if (shimDisconnect) {
+          await Promise.all([
+            config.storage?.setItem(`${this.id}.connected`, true),
+            config.storage?.removeItem(`${this.id}.disconnected`),
+          ])
+        }
 
-      // Remove disconnected shim if it exists
-      if (shimDisconnect) {
-        await Promise.all([
-          config.storage?.setItem(`${this.id}.connected`, true),
-          config.storage?.removeItem(`${this.id}.disconnected`),
-        ])
+        return { accounts, chainId }
+      } catch (error: any) {
+        throw new UserRejectedRequestError(error.message)
       }
-
-      return { accounts, chainId }
     },
     async disconnect() {
       const provider = await this.getInternalProvider()
@@ -154,13 +159,19 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       return accounts.result.addresses
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {
         const isConnected =
           shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
         return isConnected
       } catch {

@@ -1,10 +1,12 @@
 import type { Account, Address, SignPsbtParameters } from '@bigmi/core'
 import {
+  getAddressChainId,
   getAddressInfo,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
+import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 
 import { createConnector } from '../factories/createConnector.js'
 
@@ -191,7 +193,15 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
       return [account]
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async isAuthorized() {
       try {

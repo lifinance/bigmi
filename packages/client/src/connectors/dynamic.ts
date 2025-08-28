@@ -4,12 +4,16 @@ import {
   AddressType,
   BaseError,
   base64ToHex,
+  getAddressChainId,
   hexToBase64,
   MethodNotSupportedRpcError,
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { ProviderNotFoundError } from '../errors/connectors.js'
+import {
+  ConnectorChainIdDetectionError,
+  ProviderNotFoundError,
+} from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 import type {
   ProviderRequestParams,
@@ -157,7 +161,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       }
       try {
         const accounts = await this.getAccounts()
-        const chainId = await this.getChainId()
+        const chainId = getAddressChainId(accounts[0].address)
 
         if (!accountChanged) {
           accountChanged = this.onAccountsChanged.bind(this)
@@ -211,7 +215,15 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       ]
     },
     async getChainId() {
-      return chainId!
+      if (chainId) {
+        return chainId
+      }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorChainIdDetectionError({ connector: this.name })
+      }
+      return getAddressChainId(accounts[0].address)
     },
     async getInternalProvider() {
       return wallet.connector

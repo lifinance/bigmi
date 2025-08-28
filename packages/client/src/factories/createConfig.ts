@@ -5,7 +5,6 @@ import {
   type Transport as base_Transport,
   type Chain,
   type ChainId,
-  ChainNotConfiguredError,
   type Client,
   type Compute,
   createClient,
@@ -18,6 +17,7 @@ import {
 } from '@bigmi/core'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
+import { ChainNotConfiguredError } from '../errors/config.js'
 import type {
   ConnectorEventMap,
   CreateConnectorFn,
