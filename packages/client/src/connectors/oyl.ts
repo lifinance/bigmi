@@ -1,12 +1,12 @@
 import {
   type Account,
   AddressType,
+  getAddressChainId,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { getAddressChainId } from '@bigmi/core/src/utils/getAddressInfo.js'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 import type {
