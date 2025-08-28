@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.1](https://github.com/lifinance/bigmi/compare/v0.5.0...v0.5.1) (2025-08-28)
+
+
+### Bug Fixes
+
+* update connectors to determine chain id based on address ([#33](https://github.com/lifinance/bigmi/issues/33)) ([ae969c9](https://github.com/lifinance/bigmi/commit/ae969c909f6ca4376e4e2468152309251a983910))
+
 ## [0.5.0](https://github.com/lifinance/bigmi/compare/v0.4.5...v0.5.0) (2025-08-28)
 
 
