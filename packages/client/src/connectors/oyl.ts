@@ -101,7 +101,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
     async connect() {
       try {
         const accounts = await this.getAccounts()
-        const chainId = await this.getChainId()
+        const chainId = getAddressChainId(accounts[0].address)
 
         if (!accountsChanged) {
           accountsChanged = this.onAccountsChanged.bind(this)

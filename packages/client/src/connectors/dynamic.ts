@@ -215,11 +215,10 @@ export function dynamic(parameters: DynamicConnectorParameters) {
       ]
     },
     async getChainId() {
-      // If chainId is provided in parameters, use it
       if (chainId) {
         return chainId
       }
-      // Otherwise, detect chain ID from the first account's address
+
       const accounts = await this.getAccounts()
       if (accounts.length === 0) {
         throw new ConnectorChainIdDetectionError({ connector: this.name })

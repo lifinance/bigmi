@@ -116,19 +116,22 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+      try {
+        const accounts = await this.getAccounts()
+        const chainId = getAddressChainId(accounts[0].address)
 
-      const accounts = await this.getAccounts()
-      const chainId = getAddressChainId(accounts[0].address)
+        // Remove disconnected shim if it exists
+        if (shimDisconnect) {
+          await Promise.all([
+            config.storage?.setItem(`${this.id}.connected`, true),
+            config.storage?.removeItem(`${this.id}.disconnected`),
+          ])
+        }
 
-      // Remove disconnected shim if it exists
-      if (shimDisconnect) {
-        await Promise.all([
-          config.storage?.setItem(`${this.id}.connected`, true),
-          config.storage?.removeItem(`${this.id}.disconnected`),
-        ])
+        return { accounts, chainId }
+      } catch (error: any) {
+        throw new UserRejectedRequestError(error.message)
       }
-
-      return { accounts, chainId }
     },
     async disconnect() {
       const provider = await this.getInternalProvider()
@@ -156,11 +159,9 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       return accounts.result.addresses
     },
     async getChainId() {
-      // If chainId is provided in parameters, use it
       if (chainId) {
         return chainId
       }
-      // Otherwise, detect chain ID from the first account's address
       const accounts = await this.getAccounts()
       if (accounts.length === 0) {
         throw new ConnectorChainIdDetectionError({ connector: this.name })
@@ -171,7 +172,6 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       try {
         const isConnected =
           shimDisconnect &&
-          // If shim exists in storage, connector is disconnected
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
         return isConnected
       } catch {
