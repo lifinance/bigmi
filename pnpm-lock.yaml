@@ -27,8 +27,8 @@ importers:
         specifier: ^19.1.12
         version: 19.1.12
       '@types/react-dom':
-        specifier: ^19.1.8
-        version: 19.1.8(@types/react@19.1.12)
+        specifier: ^19.1.9
+        version: 19.1.9(@types/react@19.1.12)
       cpy-cli:
         specifier: ^6.0.0
         version: 6.0.0
@@ -902,8 +902,8 @@ packages:
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
-  '@types/react-dom@19.1.8':
-    resolution: {integrity: sha512-xG7xaBMJCpcK0RpN8jDbAACQo54ycO6h4dSSmgv8+fu6ZIAdANkx/WsawASUjVXYfy+J9AbUpRMNNEsXCDfDBQ==}
+  '@types/react-dom@19.1.9':
+    resolution: {integrity: sha512-qXRuZaOsAdXKFyOhRBg6Lqqc0yay13vN7KrIg4L7N4aaHN68ma9OK3NE1BoDFgFOTfM7zg+3/8+2n8rLUH3OKQ==}
     peerDependencies:
       '@types/react': ^19.0.0
 
@@ -4605,7 +4605,7 @@ snapshots:
 
   '@types/normalize-package-data@2.4.4': {}
 
-  '@types/react-dom@19.1.8(@types/react@19.1.12)':
+  '@types/react-dom@19.1.9(@types/react@19.1.12)':
     dependencies:
       '@types/react': 19.1.12
 
