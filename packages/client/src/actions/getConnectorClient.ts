@@ -1,4 +1,4 @@
-import type { Account, Client, Compute, Transport } from '@bigmi/core'
+import type { Account, Client, Compute } from '@bigmi/core'
 import { createClient, custom, parseAccount } from '@bigmi/core'
 import {
   ConnectorAccountNotFoundError,
@@ -27,7 +27,11 @@ export type GetConnectorClientReturnType<
   chainId extends
     config['chains'][number]['id'] = config['chains'][number]['id'],
 > = Compute<
-  Client<Transport, Extract<config['chains'][number], { id: chainId }>, Account>
+  Client<
+    config['_internal']['transports'][chainId],
+    Extract<config['chains'][number], { id: chainId }>,
+    Account
+  >
 >
 
 export type ConnectorParameter = {
