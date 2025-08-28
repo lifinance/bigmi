@@ -1,6 +1,7 @@
 import {
   type Account,
   type BaseErrorType,
+  type ChainId,
   type Compute,
   ConnectorAlreadyConnectedError,
   type ErrorType,
@@ -39,9 +40,7 @@ export type ConnectParameters<
 
 export type ConnectReturnType<config extends Config = Config> = {
   accounts: readonly [Account, ...Account[]]
-  chainId:
-    | config['chains'][number]['id']
-    | (number extends config['chains'][number]['id'] ? number : number & {})
+  chainId: config['chains'][number]['id'] | ChainId
 }
 
 export type ConnectErrorType =

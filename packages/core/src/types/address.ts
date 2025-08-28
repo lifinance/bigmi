@@ -1,12 +1,8 @@
+import type { Network } from './chain.js'
+
 export type Address = string
 
 export type AddressPurpose = 'payment' | 'ordinals' | 'stacks'
-
-export enum Network {
-  Mainnet = 'mainnet',
-  Testnet = 'testnet',
-  Regtest = 'regtest',
-}
 
 export enum AddressType {
   p2pkh = 'p2pkh',
