@@ -517,7 +517,7 @@ export type CreateConfigParameters<
 export type Config<
   chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
   transports extends Record<chains[number]['id'], Transport> = Record<
-    string,
+    chains[number]['id'],
     Transport
   >,
   connectorFns extends
