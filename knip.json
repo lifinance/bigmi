@@ -1,0 +1,15 @@
+{
+  "ignore": [
+    "packages/react/src/version.ts",
+    "packages/client/src/version.ts",
+    "packages/core/src/vite-env.d.ts"
+  ],
+  "ignoreDependencies": [
+    "react-dom",
+    "@vitest/coverage-v8",
+    "cpy-cli",
+    "@types/react-dom",
+    "eventemitter3",
+    "zustand"
+  ]
+}
