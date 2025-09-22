@@ -49,20 +49,20 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.2",
+    "@biomejs/biome": "^2.2.4",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@types/node": "^24.3.0",
-    "@types/react": "^19.1.12",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "cpy-cli": "^6.0.0",
-    "fs-extra": "^11.3.1",
+    "fs-extra": "^11.3.2",
     "husky": "^9.1.7",
-    "knip": "^5.63.1",
-    "lerna": "8.2.3",
-    "lint-staged": "^16.1.5",
+    "knip": "^5.64.0",
+    "lerna": "8.2.4",
+    "lint-staged": "^16.2.0",
     "standard-version": "^9.5.0",
     "typescript": "^5.9.2"
   },
-  "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
+  "packageManager": "pnpm@10.17.0+sha512.fce8a3dd29a4ed2ec566fb53efbb04d8c44a0f05bc6f24a73046910fb9c3ce7afa35a0980500668fa3573345bd644644fa98338fa168235c80f4aa17aa17fbef"
 }
