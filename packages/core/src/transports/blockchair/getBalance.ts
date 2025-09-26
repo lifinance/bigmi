@@ -19,6 +19,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
     url: apiUrl,
     fetchOptions: { method: 'GET' },
   })) as unknown as BlockchairResponse<BlockchairAddressBalanceData>
+
   if (
     response.data[address] === undefined ||
     response.context.error ||
@@ -34,6 +35,7 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
       },
     }
   }
+
   return {
     result: BigInt(response.data[address]),
   }
