@@ -28,6 +28,15 @@ const publicClient = createClient({
   ]),
 })
 
+const blockchairFirstClient = createClient({
+  chain: bitcoin,
+  rpcSchema: rpcSchema<UTXOSchema>(),
+  transport: fallback([
+    blockchair({ apiKey }),
+    blockcypher({ apiKey: blockCypherKey }),
+  ]),
+})
+
 describe('Fallback Transport', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -59,7 +68,7 @@ describe('Fallback Transport', () => {
       expect(utxos.length).toBeGreaterThan(0)
     })
 
-    it('should fallback to blockcypher when fetching with a zero balance address', async () => {
+    it('blockchair first client should fallback to blockcypher when fetching with a zero balance address', async () => {
       vi.spyOn(global, 'fetch').mockImplementation((request) => {
         const url = new URL(request.toString())
         if (url.hostname.includes('blockcypher')) {
@@ -70,7 +79,7 @@ describe('Fallback Transport', () => {
           createMockResponse(blockchairZeroBalanceResponse)
         )
       })
-      const utxos = await getUTXOs(publicClient, { address })
+      const utxos = await getUTXOs(blockchairFirstClient, { address })
       expect(utxos.length).toBeGreaterThan(0)
     })
 
