@@ -7,6 +7,7 @@ import { createClient, rpcSchema } from '../factories/createClient.js'
 import { createMockResponse } from '../test/utils.js'
 import blockchairLimitedResponse from './blockchair/__mocks__/getUTXOs/rateLimited.json'
 import blockchairValidResponse from './blockchair/__mocks__/getUTXOs/valid.json'
+import blockchairZeroBalanceResponse from './blockchair/__mocks__/getUTXOs/zeroBalance.json'
 import { blockchair } from './blockchair/blockchair.js'
 import blockcypherLimitedResponse from './blockcypher/__mocks__/getUTXOs/rateLimited.json'
 import blockcypherValidResponse from './blockcypher/__mocks__/getUTXOs/valid.json'
@@ -54,6 +55,21 @@ describe('Fallback Transport', () => {
         return Promise.resolve(createMockResponse(blockchairValidResponse))
       })
 
+      const utxos = await getUTXOs(publicClient, { address })
+      expect(utxos.length).toBeGreaterThan(0)
+    })
+
+    it('should fallback to blockcypher when fetching with a zero balance address', async () => {
+      vi.spyOn(global, 'fetch').mockImplementation((request) => {
+        const url = new URL(request.toString())
+        if (url.hostname.includes('blockcypher')) {
+          return Promise.resolve(createMockResponse(blockcypherValidResponse))
+        }
+
+        return Promise.resolve(
+          createMockResponse(blockchairZeroBalanceResponse)
+        )
+      })
       const utxos = await getUTXOs(publicClient, { address })
       expect(utxos.length).toBeGreaterThan(0)
     })

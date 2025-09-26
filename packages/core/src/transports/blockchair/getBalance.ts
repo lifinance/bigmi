@@ -20,7 +20,11 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
     fetchOptions: { method: 'GET' },
   })) as unknown as BlockchairResponse<BlockchairAddressBalanceData>
 
-  if (response.context.error || response.context?.code !== 200) {
+  if (
+    response.data[address] === undefined ||
+    response.context.error ||
+    response.context?.code !== 200
+  ) {
     return {
       error: {
         code:
@@ -29,12 +33,6 @@ export const getBalance: RpcMethodHandler<'getBalance'> = async (
             : RpcErrorCode.MISC_ERROR,
         message: response.context?.error,
       },
-    }
-  }
-
-  if (response.data[address] === undefined) {
-    return {
-      result: 0n,
     }
   }
 

@@ -91,7 +91,7 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   }
 
   if (minValue) {
-    const { error, result: balance = 0n } = await getBalance(
+    const { error, result: balance } = await getBalance(
       client,
       { baseUrl, apiKey },
       { address }
@@ -100,6 +100,12 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
     if (error) {
       throw new BaseError('Error fetching balance', {
         cause: error,
+      })
+    }
+
+    if (balance === undefined) {
+      throw new BaseError('Balance is undefined', {
+        cause: new Error('Unable to determine balance'),
       })
     }
 
