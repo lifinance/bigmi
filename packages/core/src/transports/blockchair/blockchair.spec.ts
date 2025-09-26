@@ -57,7 +57,7 @@ describe('Blockchair Transport', () => {
       expect(balance).toBeTypeOf('bigint')
     })
 
-    it('should throw error for non-existent address', async () => {
+    it('should return 0n for a non-existent or a zero balance address', async () => {
       if (USE_MOCK) {
         vi.spyOn(global, 'fetch').mockResolvedValue(
           createMockResponse(
@@ -70,7 +70,7 @@ describe('Blockchair Transport', () => {
         '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNaNUIBNSUENopnoidsacn'
       await expect(
         getBalance(publicClient, { address: nonExistentAddress })
-      ).rejects.toThrow()
+      ).resolves.toEqual(0n)
     })
   })
 
