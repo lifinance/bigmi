@@ -1,3 +1,4 @@
+import { BaseError } from '../../errors/base.js'
 import { RpcRequestError } from '../../errors/request.js'
 import { RpcErrorCode } from '../../errors/rpc.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
@@ -90,11 +91,24 @@ export const getUTXOs: RpcMethodHandler<'getUTXOs'> = async (
   }
 
   if (minValue) {
-    const { result: balance } = await getBalance(
+    const { error, result: balance } = await getBalance(
       client,
       { baseUrl, apiKey },
       { address }
     )
+
+    if (error) {
+      throw new BaseError('Error fetching balance', {
+        cause: error,
+      })
+    }
+
+    if (balance === undefined) {
+      throw new BaseError('Balance is undefined', {
+        cause: new Error('Unable to determine balance'),
+      })
+    }
+
     if (minValue > Number(balance)) {
       throw new InsufficientUTXOBalanceError({
         minValue,

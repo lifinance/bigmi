@@ -15,6 +15,7 @@ import {
 import type { UTXOSchema } from '../types.js'
 import getInvalidBalanceReponse from './__mocks__/getBalance/invalidAddress.json'
 import getBalanceReponse from './__mocks__/getBalance/valid.json'
+import getZeroBalanceReponse from './__mocks__/getBalance/zeroBalance.json'
 import getTransactionFeeInvalidResponse from './__mocks__/getTransactionFee/invalid.json'
 import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.json'
 import getUTXOsInvalidResponse from './__mocks__/getUTXOs/invalidAddress.json'
@@ -72,6 +73,21 @@ describe('Blockchair Transport', () => {
         getBalance(publicClient, { address: nonExistentAddress })
       ).rejects.toThrow()
     })
+  })
+
+  it('should throw error for zero balance address', async () => {
+    if (USE_MOCK) {
+      vi.spyOn(global, 'fetch').mockResolvedValue(
+        createMockResponse(
+          getZeroBalanceReponse as BlockchairAddressBalanceData
+        )
+      )
+    }
+
+    const zeroBalanceAddress = '12LRT14SgNFFQ3hMRThAyXNao24BBy5cyU'
+    await expect(
+      getBalance(publicClient, { address: zeroBalanceAddress })
+    ).rejects.toThrow()
   })
 
   describe('getUTXOs', () => {
