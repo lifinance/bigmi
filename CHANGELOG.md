@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.4](https://github.com/lifinance/bigmi/compare/v0.5.3...v0.5.4) (2025-09-29)
+
+
+### Bug Fixes
+
+* **blockchair:** handle zero balance addresses edge case ([#35](https://github.com/lifinance/bigmi/issues/35)) ([a57c5fd](https://github.com/lifinance/bigmi/commit/a57c5fd49ec22df2dd6165725ce2750d81f3267e))
+
 ### [0.5.3](https://github.com/lifinance/bigmi/compare/v0.5.2...v0.5.3) (2025-09-22)
 
 ### [0.5.2](https://github.com/lifinance/bigmi/compare/v0.5.1...v0.5.2) (2025-08-28)
