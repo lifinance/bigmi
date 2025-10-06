@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/lifinance/bigmi/compare/v0.5.4...v0.6.0) (2025-10-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* bump packages
+
+* bump packages ([3576fa5](https://github.com/lifinance/bigmi/commit/3576fa55cd7ed3492f29f96a8cff6274313477ff))
+
 ### [0.5.4](https://github.com/lifinance/bigmi/compare/v0.5.3...v0.5.4) (2025-09-29)
 
 
