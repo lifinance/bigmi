@@ -56,7 +56,7 @@ type LeatherBitcoinProvider = {
 
 leather.type = 'UTXO' as const
 export function leather(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = true } = parameters
+  const { chainId, shimDisconnect = false } = parameters
   return createConnector<
     UTXOWalletProvider | undefined,
     LeatherConnectorProperties
