@@ -71,16 +71,29 @@ export async function reconnect(
         )
       : connectors
 
+  // Add this before the connectionPromises mapping
+  const processedProviders = new Set()
+
   // Try to connect to each connector in parallel
   const connectionPromises = sorted.map(async (connector) => {
     try {
       // Check provider
-      const provider = await withTimeout(() => connector.getProvider(), {
-        timeout: 5000,
-      })
+      const provider = await withTimeout(
+        () => connector.getProvider().catch(() => undefined),
+        {
+          timeout: 5000,
+        }
+      )
       if (!provider) {
         return null
       }
+
+      // If we already have an instance of this connector's provider,
+      // then we don't want to connect to it again
+      if (processedProviders.has(provider)) {
+        return null
+      }
+      processedProviders.add(provider)
 
       // Check authorization
       const isAuthorized = await withTimeout(() => connector.isAuthorized(), {
