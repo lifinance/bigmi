@@ -56,7 +56,7 @@ type LeatherBitcoinProvider = {
 
 leather.type = 'UTXO' as const
 export function leather(parameters: UTXOConnectorParameters = {}) {
-  const { chainId, shimDisconnect = false } = parameters
+  const { chainId, shimDisconnect = true } = parameters
   return createConnector<
     UTXOWalletProvider | undefined,
     LeatherConnectorProperties
@@ -124,6 +124,10 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
         if (shimDisconnect) {
           await Promise.all([
             config.storage?.setItem(`${this.id}.connected`, true),
+            config.storage?.setItem(
+              `${this.id}.lastConnected`,
+              Date.now().toString()
+            ),
             config.storage?.removeItem(`${this.id}.disconnected`),
           ])
         }
@@ -144,6 +148,8 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
         await Promise.all([
           config.storage?.setItem(`${this.id}.disconnected`, true),
           config.storage?.removeItem(`${this.id}.connected`),
+          config.storage?.removeItem(`${this.id}.accounts`),
+          config.storage?.removeItem(`${this.id}.lastConnected`),
         ])
       }
     },
@@ -152,10 +158,25 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       if (!provider) {
         throw new ProviderNotFoundError()
       }
+      if (shimDisconnect && (await this.isAuthorized())) {
+        const accounts = await config.storage?.getItem(`${this.id}.accounts`)
+        if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+          return accounts as Account[]
+        }
+      }
       const accounts = await provider.request('getAddresses')
+
       if (!accounts.result) {
         throw new UserRejectedRequestError(accounts.error?.message!)
       }
+
+      if (shimDisconnect) {
+        await config.storage?.setItem(
+          `${this.id}.accounts`,
+          accounts.result.addresses
+        )
+      }
+
       return accounts.result.addresses
     },
     async getChainId() {
@@ -170,10 +191,28 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
     },
     async isAuthorized() {
       try {
-        const isConnected =
-          shimDisconnect &&
-          Boolean(await config.storage?.getItem(`${this.id}.connected`))
-        return isConnected
+        if (!shimDisconnect) {
+          return false
+        }
+        const lastConnected: string | undefined | null =
+          await config.storage?.getItem(`${this.id}.lastConnected`)
+        if (!lastConnected) {
+          return false
+        }
+
+        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+        const isExpired = Date.now() - parseInt(lastConnected, 10) > oneDayAgo
+        if (isExpired) {
+          await Promise.all([
+            config.storage?.setItem(`${this.id}.disconnected`, true),
+            config.storage?.removeItem(`${this.id}.connected`),
+            config.storage?.removeItem(`${this.id}.accounts`),
+            config.storage?.removeItem(`${this.id}.lastConnected`),
+          ])
+          return false
+        }
+
+        return !isExpired
       } catch {
         return false
       }
