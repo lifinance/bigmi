@@ -200,7 +200,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
           return false
         }
 
-        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+        const oneDayAgo = 24 * 60 * 60 * 1000 // 24 hours
         const isExpired = Date.now() - parseInt(lastConnected, 10) > oneDayAgo
         if (isExpired) {
           await Promise.all([
