@@ -47,7 +47,8 @@
         },
         "noConfusingVoidType": "off",
         "noExplicitAny": "off",
-        "noArrayIndexKey": "off"
+        "noArrayIndexKey": "off",
+        "noNonNullAssertedOptionalChain": "warn"
       }
     }
   },
