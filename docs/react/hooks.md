@@ -26,14 +26,14 @@ import { useAccount, useConnect } from '@bigmi/react'
 
 function Component() {
   // Property 'address' does not exist on type 'UseAccountReturnType<Config>'.ts(2339)
-  const { address, isConnected, connector: activeWallet } = useAccount()
+  const { account , isConnected, connector: activeWallet } = useAccount()
   const { connect, connectors } = useConnect()
   
   return (
     <div>
       {isConnected ? (
         <>
-          <p>Connected: {address}</p>
+          <p>Connected: {account.address}</p>
           <button onClick={() => activeWallet.disconnect()}>Disconnect</button>
         </>
       ) : (
