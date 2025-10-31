@@ -25,6 +25,7 @@ Hook to access the connected account information.
 import { useAccount, useConnect } from '@bigmi/react'
 
 function Component() {
+  // Property 'address' does not exist on type 'UseAccountReturnType<Config>'.ts(2339)
   const { address, isConnected, connector: activeWallet } = useAccount()
   const { connect, connectors } = useConnect()
   
