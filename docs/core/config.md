@@ -86,10 +86,10 @@ const client = createClient({
 We only have a chain definition for bitcoin mainnet, custom chains can be created using the `defineChain` util.
 
 ```typescript
-import { defineChain } from '@bigmi/core'
+import { defineChain, ChainId } from '@bigmi/core'
 
 const testnet4 = defineChain({
-  id: 20000000000004,
+  id: ChainId.BITCOIN_TESTNET4,
   name: 'Bitcoin Testnet4',
   nativeCurrency: { name: 'Bitcoin', symbol: 'BTC', decimals: 8 },
   rpcUrls: {
