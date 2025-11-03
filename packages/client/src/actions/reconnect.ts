@@ -2,6 +2,7 @@ import {
   type Account,
   type Compute,
   type ErrorType,
+  retryUntil,
   withTimeout,
 } from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
@@ -77,12 +78,10 @@ export async function reconnect(
   // Try to connect to each connector in parallel
   const connectionPromises = sorted.map(async (connector) => {
     try {
-      // Check provider
-      const provider = await withTimeout(
+      // Check provider - poll every 100ms for up to 5s waiting for browser extension to inject it
+      const provider = await retryUntil(
         () => connector.getProvider().catch(() => undefined),
-        {
-          timeout: 5000,
-        }
+        { timeout: 5000, interval: 100 }
       )
       if (!provider) {
         return null
@@ -108,7 +107,7 @@ export async function reconnect(
         () => connector.connect({ isReconnecting: true }),
         { timeout: 5000 }
       )
-      if (!data) {
+      if (!data || !data.accounts || data.accounts.length === 0) {
         return null
       }
 

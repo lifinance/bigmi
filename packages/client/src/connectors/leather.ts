@@ -200,8 +200,20 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
           return false
         }
 
+        const timestamp = parseInt(lastConnected, 10)
+        if (Number.isNaN(timestamp) || timestamp <= 0) {
+          // Invalid timestamp, clean up storage
+          await Promise.all([
+            config.storage?.setItem(`${this.id}.disconnected`, true),
+            config.storage?.removeItem(`${this.id}.connected`),
+            config.storage?.removeItem(`${this.id}.accounts`),
+            config.storage?.removeItem(`${this.id}.lastConnected`),
+          ])
+          return false
+        }
+
         const oneDayAgo = 24 * 60 * 60 * 1000 // 24 hours
-        const isExpired = Date.now() - parseInt(lastConnected, 10) > oneDayAgo
+        const isExpired = Date.now() - timestamp > oneDayAgo
         if (isExpired) {
           await Promise.all([
             config.storage?.setItem(`${this.id}.disconnected`, true),
