@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/core",
-  "version": "0.6.1",
+  "version": "0.6.3-alpha.0",
   "description": "TypeScript library for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",

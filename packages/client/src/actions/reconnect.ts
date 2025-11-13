@@ -1,4 +1,10 @@
-import type { Account, Compute, ErrorType } from '@bigmi/core'
+import {
+  type Account,
+  type Compute,
+  type ErrorType,
+  retryUntil,
+  withTimeout,
+} from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
 import type { Connection } from '../types/connection.js'
 import type { Connector, CreateConnectorFn } from '../types/connector.js'
@@ -19,6 +25,7 @@ export async function reconnect(
   parameters: ReconnectParameters = {}
 ): Promise<ReconnectReturnType> {
   // If already reconnecting, do nothing
+
   if (isReconnecting) {
     return []
   }
@@ -65,74 +72,93 @@ export async function reconnect(
         )
       : connectors
 
-  // Iterate through each connector and try to connect
-  let connected = false
-  const connections: Connection[] = []
-  const providers: unknown[] = []
-  for (const connector of sorted) {
-    const provider = await connector.getProvider().catch(() => undefined)
-    if (!provider) {
-      continue
-    }
+  // Add this before the connectionPromises mapping
+  const processedProviders = new Set()
 
-    // If we already have an instance of this connector's provider,
-    // then we don't want to connect to it again
-    if (providers.some((x) => x === provider)) {
-      continue
-    }
-
-    const isAuthorized = await connector.isAuthorized()
-    if (!isAuthorized) {
-      continue
-    }
-
-    const data = await connector
-      .connect({ isReconnecting: true })
-      .catch(() => null)
-    if (!data) {
-      continue
-    }
-
-    connector.emitter.off('connect', config._internal.events.connect)
-    connector.emitter.on('change', config._internal.events.change)
-    connector.emitter.on('disconnect', config._internal.events.disconnect)
-
-    config.setState((x) => {
-      const connections = new Map(connected ? x.connections : new Map()).set(
-        connector.uid,
-        { accounts: data.accounts, chainId: data.chainId, connector }
+  // Try to connect to each connector in parallel
+  const connectionPromises = sorted.map(async (connector) => {
+    try {
+      // Check provider - poll every 100ms for up to 5s waiting for browser extension to inject it
+      const provider = await retryUntil(
+        () => connector.getProvider().catch(() => undefined),
+        { timeout: 5000, interval: 100 }
       )
-      return {
-        ...x,
-        current: connected ? x.current : connector.uid,
-        connections,
+      if (!provider) {
+        return null
       }
-    })
-    connections.push({
-      accounts: data.accounts as readonly [Account, ...Account[]],
-      chainId: data.chainId,
-      connector,
-    })
-    providers.push(provider)
-    connected = true
+
+      // If we already have an instance of this connector's provider,
+      // then we don't want to connect to it again
+      if (processedProviders.has(provider)) {
+        return null
+      }
+      processedProviders.add(provider)
+
+      // Check authorization
+      const isAuthorized = await withTimeout(() => connector.isAuthorized(), {
+        timeout: 5000,
+      })
+      if (!isAuthorized) {
+        return null
+      }
+
+      // Attempt connection
+      const data = await withTimeout(
+        () => connector.connect({ isReconnecting: true }),
+        { timeout: 5000 }
+      )
+      if (!data || !data.accounts || data.accounts.length === 0) {
+        return null
+      }
+
+      // Setup events
+      connector.emitter.off('connect', config._internal.events.connect)
+      connector.emitter.on('change', config._internal.events.change)
+      connector.emitter.on('disconnect', config._internal.events.disconnect)
+
+      // Update config state immediately when this connector succeeds
+      config.setState((x) => {
+        const connections = new Map(x.connections)
+        connections.set(connector.uid, {
+          accounts: data.accounts as readonly [Account, ...Account[]],
+          chainId: data.chainId,
+          connector,
+        })
+
+        return {
+          ...x,
+          connections,
+          current: x.current || connector.uid, // Set as current if none exists
+          status: 'connected',
+        }
+      })
+
+      return { connector, data }
+    } catch {
+      return null
+    }
+  })
+
+  const connectionResults = await Promise.allSettled(connectionPromises)
+
+  const connections: Connection[] = []
+
+  for (const result of connectionResults) {
+    if (result.status === 'fulfilled' && result.value) {
+      const { connector, data } = result.value
+      connections.push({
+        accounts: data.accounts as readonly [Account, ...Account[]],
+        chainId: data.chainId,
+        connector,
+      })
+    }
   }
 
-  // Prevent overwriting connected status from race condition
-  if (
-    config.state.status === 'reconnecting' ||
-    config.state.status === 'connecting'
-  ) {
-    // If connecting didn't succeed, set to disconnected
-    if (!connected) {
-      config.setState((x) => ({
-        ...x,
-        connections: new Map(),
-        current: null,
-        status: 'disconnected',
-      }))
-    } else {
-      config.setState((x) => ({ ...x, status: 'connected' }))
-    }
+  if (connections.length === 0) {
+    config.setState((x) => ({
+      ...x,
+      status: 'disconnected',
+    }))
   }
 
   isReconnecting = false
