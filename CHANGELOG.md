@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.2](https://github.com/lifinance/bigmi/compare/v0.6.1...v0.6.2) (2025-11-13)
+
+
+### Bug Fixes
+
+* **leather-wallet:** cache wallet connection with daily expiry and improve wallet reconnection reliability ([#36](https://github.com/lifinance/bigmi/issues/36)) ([fcff06e](https://github.com/lifinance/bigmi/commit/fcff06e19426154750b775f7a1b83f5c6db038dd))
+
 ### [0.6.1](https://github.com/lifinance/bigmi/compare/v0.6.0...v0.6.1) (2025-10-29)
 
 ## [0.6.0](https://github.com/lifinance/bigmi/compare/v0.5.4...v0.6.0) (2025-10-06)
