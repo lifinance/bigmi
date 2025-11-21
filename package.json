@@ -9,12 +9,11 @@
     "clean:cache": "pnpm store prune",
     "clean:modules": "find . -name \"node_modules\" -type d -prune -exec rm -rf {} +",
     "clean:modules:trash": "find . -name \"node_modules\" -type d -prune -exec trash {} +",
-    "release": "pnpm release:version && pnpm release:build && pnpm standard-version -a",
-    "release:alpha": "pnpm release:version --preid alpha && pnpm release:build && pnpm standard-version -a --prerelease alpha --skip.changelog",
-    "release:beta": "pnpm release:version --preid beta && pnpm release:build && pnpm standard-version -a --prerelease beta --skip.changelog",
+    "release": "pnpm release:version && pnpm build && pnpm standard-version -a -s",
+    "release:alpha": "pnpm release:version --preid alpha && pnpm build && pnpm standard-version -a -s --prerelease alpha --skip.changelog",
+    "release:beta": "pnpm release:version --preid beta && pnpm build && pnpm standard-version -a -s --prerelease beta --skip.changelog",
     "release:version": "lerna version --no-changelog --no-push --no-git-tag-version --no-private",
-    "release:build": "pnpm -r --parallel release:build",
-    "release:publish:build": "pnpm release:build && pnpm -r --parallel build:prerelease",
+    "release:publish:build": "pnpm -r --parallel build:prerelease",
     "release:publish": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag latest && pnpm release:clean",
     "release:publish:alpha": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag alpha && pnpm release:clean",
     "release:publish:beta": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag beta && pnpm release:clean",
@@ -24,23 +23,17 @@
     "check:write:unsafe": "biome check --write --unsafe",
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
-    "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
-    "pre-push": "pnpm test",
-    "prepare": "husky",
-    "postinstall": "husky",
     "test": "pnpm -r --parallel test",
     "coverage": "pnpm -r --parallel coverage",
     "link:all": "pnpm -r exec pnpm link --global",
     "unlink:all": "pnpm -r exec pnpm unlink --global",
     "knip:all": "knip",
     "knip:check": "knip --dependencies --files --no-config-hints --exclude binaries",
-    "knip:write": "pnpm knip:check --fix"
-  },
-  "lint-staged": {
-    "*": [
-      "pnpm pre-commit",
-      "bash -c 'pnpm knip:check'"
-    ]
+    "knip:write": "pnpm knip:check --fix",
+    "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps && pnpm knip:check",
+    "pre-push": "pnpm test",
+    "prepare": "husky",
+    "postinstall": "husky"
   },
   "standard-version": {
     "scripts": {
@@ -60,7 +53,6 @@
     "husky": "^9.1.7",
     "knip": "^5.69.1",
     "lerna": "9.0.0",
-    "lint-staged": "^16.2.6",
     "standard-version": "^9.5.0",
     "typescript": "^5.9.3"
   },
