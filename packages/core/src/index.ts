@@ -1,4 +1,3 @@
-// Exporting actions
 export { getBalance } from './actions/getBalance.js'
 export type {
   GetBlockParameters,
@@ -53,10 +52,8 @@ export type {
   WatchBlockNumberReturnType,
 } from './actions/watchBlockNumber.js'
 export { watchBlockNumber } from './actions/watchBlockNumber.js'
-// Exporting chains
 export { bitcoin } from './chains/bitcoin.js'
 export { defineChain } from './chains/defineChain.js'
-// Exporting clients
 export {
   type PublicActions,
   publicActions,
@@ -65,14 +62,12 @@ export {
   type WalletActions,
   walletActions,
 } from './clients/decorators/wallet.js'
-// Exporting errors
 export {
   InvalidAddressError,
   type InvalidAddressErrorType,
 } from './errors/address.js'
 export { BaseError, type BaseErrorType } from './errors/base.js'
 export { BlockNotFoundError } from './errors/block.js'
-
 export { ProviderNotFoundError } from './errors/provider.js'
 export {
   HttpRequestError,
@@ -105,10 +100,8 @@ export {
   InsufficientUTXOBalanceError,
   type InsufficientUTXOBalanceErrorType,
 } from './errors/utxo.js'
-// Exporting factories
 export { createClient, rpcSchema } from './factories/createClient.js'
 export { ankr } from './transports/ankr/ankr.js'
-// Exporting transports
 export { ankrMethods } from './transports/ankr/methods.js'
 export { blockchair } from './transports/blockchair/blockchair.js'
 export { blockchairMethods } from './transports/blockchair/methods.js'
@@ -148,7 +141,6 @@ export type {
   UTXOWalletSchema,
 } from './transports/types.js'
 export { utxo } from './transports/utxo.js'
-// Exporting types
 export type { Account } from './types/account.js'
 export {
   type Address,
@@ -197,7 +189,6 @@ export type {
   RemoveUndefined,
   UnionStrictOmit,
 } from './types/utils.js'
-// Exporting utils
 export { cancelTransaction } from './utils/cancelTransaction.js'
 export {
   base64ToHex,

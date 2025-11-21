@@ -12,14 +12,8 @@ export async function formatPackageFile() {
 
   await copy(originalPackageJsonPath, packageTmpPath)
 
-  const {
-    nyc,
-    scripts,
-    devDependencies,
-    workspaces,
-    files,
-    ...packageDataOther
-  } = JSON.parse(packageData)
+  const { nyc, scripts, devDependencies, workspaces, ...packageDataOther } =
+    JSON.parse(packageData)
 
   const newPackageData = {
     ...packageDataOther,

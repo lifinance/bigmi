@@ -1,5 +1,3 @@
-// Actions
-
 export {
   type ConnectErrorType,
   type ConnectParameters,
@@ -88,9 +86,6 @@ export type {
   ConnectVariables,
 } from './query/connect.js'
 export { connectMutationOptions } from './query/connect.js'
-
-// queries
 export { hashFn } from './query/utils.js'
 export type { Connector, CreateConnectorFn } from './types/connector.js'
-// client types
 export type { State } from './types/state.js'

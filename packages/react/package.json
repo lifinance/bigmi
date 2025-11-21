@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/react",
-  "version": "0.6.2",
+  "version": "0.6.3-alpha.3",
   "description": "React primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -14,7 +14,6 @@
     "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
     "build:clean": "rm -rf tsconfig.tsbuildinfo ./dist/tsconfig.tsbuildinfo",
     "build:version": "node ../../scripts/version.js",
-    "release:build": "pnpm build",
     "clean": "pnpm build:clean && rm -rf dist",
     "check:types": "tsc --noEmit",
     "check:circular-deps": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx')",
@@ -60,7 +59,12 @@
   },
   "files": [
     "dist/**",
-    "src/**",
+    "!dist/**/*.tsbuildinfo",
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!**/__mocks__/**",
+    "!*.tmp",
+    "!*.env",
     "!tsconfig.json"
   ]
 }

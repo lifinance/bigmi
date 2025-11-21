@@ -1,4 +1,4 @@
-name: Release & Publish Beta
+name: Release & Publish
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/pnpm-install
       - name: Build
-        run: pnpm release:build
+        run: pnpm build
       - name: Publish to npm
         run: |
           pnpm release:publish${{ contains(github.ref_name, 'alpha') && ':alpha' || contains(github.ref_name, 'beta') && ':beta' || '' }}
