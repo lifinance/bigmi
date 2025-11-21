@@ -62,6 +62,7 @@
     "!dist/**/*.tsbuildinfo",
     "src/**/*.ts",
     "!src/**/*.spec.ts",
+    "!**/__mocks__/**",
     "!*.tmp",
     "!*.env",
     "!tsconfig.json"
