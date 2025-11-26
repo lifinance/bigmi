@@ -1,5 +1,5 @@
 {
-  "version": "0.6.3-alpha.3",
+  "version": "0.6.3",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -47,12 +47,12 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "^24.10.1",
-    "@types/react": "^19.2.6",
+    "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "cpy-cli": "^6.0.0",
     "fs-extra": "^11.3.2",
     "husky": "^9.1.7",
-    "knip": "^5.70.1",
+    "knip": "^5.70.2",
     "lerna": "9.0.1",
     "standard-version": "^9.5.0",
     "typescript": "^5.9.3"
