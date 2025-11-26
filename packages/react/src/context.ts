@@ -1,7 +1,6 @@
 'use client'
 import type { State } from '@bigmi/client'
 import { createContext, createElement, type PropsWithChildren } from 'react'
-
 import { Hydrate } from './hydrate.js'
 import type { ResolvedRegister } from './types.js'
 

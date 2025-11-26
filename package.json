@@ -1,5 +1,5 @@
 {
-  "version": "0.6.2",
+  "version": "0.6.3-alpha.3",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -9,12 +9,12 @@
     "clean:cache": "pnpm store prune",
     "clean:modules": "find . -name \"node_modules\" -type d -prune -exec rm -rf {} +",
     "clean:modules:trash": "find . -name \"node_modules\" -type d -prune -exec trash {} +",
-    "release": "pnpm release:version && pnpm release:build && pnpm standard-version -a",
-    "release:alpha": "pnpm release:version --preid alpha && pnpm release:build && pnpm standard-version -a --prerelease alpha --skip.changelog",
-    "release:beta": "pnpm release:version --preid beta && pnpm release:build && pnpm standard-version -a --prerelease beta --skip.changelog",
+    "regen": "rm -rf pnpm-lock.yaml && pnpm clean:modules && corepack use pnpm@latest",
+    "release": "pnpm release:version && pnpm build && pnpm standard-version -a -s",
+    "release:alpha": "pnpm release:version --preid alpha && pnpm build && pnpm standard-version -a -s --prerelease alpha --skip.changelog",
+    "release:beta": "pnpm release:version --preid beta && pnpm build && pnpm standard-version -a -s --prerelease beta --skip.changelog",
     "release:version": "lerna version --no-changelog --no-push --no-git-tag-version --no-private",
-    "release:build": "pnpm -r --parallel release:build",
-    "release:publish:build": "pnpm release:build && pnpm -r --parallel build:prerelease",
+    "release:publish:build": "pnpm -r --parallel build:prerelease",
     "release:publish": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag latest && pnpm release:clean",
     "release:publish:alpha": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag alpha && pnpm release:clean",
     "release:publish:beta": "pnpm release:publish:build && pnpm -r publish --access public --no-git-checks --tag beta && pnpm release:clean",
@@ -24,23 +24,17 @@
     "check:write:unsafe": "biome check --write --unsafe",
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
-    "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps",
-    "pre-push": "pnpm test",
-    "prepare": "husky",
-    "postinstall": "husky",
     "test": "pnpm -r --parallel test",
     "coverage": "pnpm -r --parallel coverage",
     "link:all": "pnpm -r exec pnpm link --global",
     "unlink:all": "pnpm -r exec pnpm unlink --global",
     "knip:all": "knip",
     "knip:check": "knip --dependencies --files --no-config-hints --exclude binaries",
-    "knip:write": "pnpm knip:check --fix"
-  },
-  "lint-staged": {
-    "*": [
-      "pnpm pre-commit",
-      "bash -c 'pnpm knip:check'"
-    ]
+    "knip:write": "pnpm knip:check --fix",
+    "pre-commit": "pnpm check && pnpm check:types && pnpm check:circular-deps && pnpm knip:check",
+    "pre-push": "pnpm test",
+    "prepare": "husky",
+    "postinstall": "husky"
   },
   "standard-version": {
     "scripts": {
@@ -49,20 +43,19 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.5",
+    "@biomejs/biome": "^2.3.7",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "^24.10.1",
-    "@types/react": "^19.2.4",
+    "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
     "cpy-cli": "^6.0.0",
     "fs-extra": "^11.3.2",
     "husky": "^9.1.7",
-    "knip": "^5.69.1",
-    "lerna": "9.0.0",
-    "lint-staged": "^16.2.6",
+    "knip": "^5.70.1",
+    "lerna": "9.0.1",
     "standard-version": "^9.5.0",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
+  "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b"
 }
