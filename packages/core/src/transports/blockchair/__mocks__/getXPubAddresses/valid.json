@@ -1,0 +1,76 @@
+{
+  "data": {
+    "xpub6CcGTthbwnbxsMRuEF3XoYdekGtnGTsbiZ4ZKeqMC1UuqPYqh2xQj9hbEQj8AB9EuGeFHz4o3hWayZm5ahr5fyV2SNfNyA6htsZngM1DFBz": {
+      "xpub": {
+        "address_count": 3,
+        "balance": 1000000,
+        "balance_usd": 50000,
+        "received": 5000000,
+        "spent": 4000000,
+        "output_count": 10,
+        "unspent_output_count": 3,
+        "first_seen_receiving": "2020-01-01 00:00:00",
+        "last_seen_receiving": "2024-12-01 00:00:00",
+        "first_seen_spending": "2020-01-02 00:00:00",
+        "last_seen_spending": "2024-11-01 00:00:00",
+        "transaction_count": 5
+      },
+      "addresses": {
+        "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa": {
+          "type": "pubkeyhash",
+          "script_hex": "76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac",
+          "balance": 500000,
+          "balance_usd": 25000,
+          "received": 2500000,
+          "received_usd": 125000,
+          "spent": 2000000,
+          "spent_usd": 100000,
+          "output_count": 5,
+          "unspent_output_count": 2,
+          "first_seen_receiving": "2020-01-01 00:00:00",
+          "last_seen_receiving": "2024-12-01 00:00:00",
+          "first_seen_spending": "2020-01-02 00:00:00",
+          "last_seen_spending": "2024-11-01 00:00:00",
+          "path": "m/0/0"
+        },
+        "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2": {
+          "type": "pubkeyhash",
+          "script_hex": "76a91477f4c9ee75e449a74fb21f8db781947734b25a8c88ac",
+          "balance": 300000,
+          "balance_usd": 15000,
+          "received": 1500000,
+          "received_usd": 75000,
+          "spent": 1200000,
+          "spent_usd": 60000,
+          "output_count": 3,
+          "unspent_output_count": 1,
+          "first_seen_receiving": "2020-02-01 00:00:00",
+          "last_seen_receiving": "2024-10-01 00:00:00",
+          "first_seen_spending": "2020-02-02 00:00:00",
+          "last_seen_spending": "2024-09-01 00:00:00",
+          "path": "m/0/1"
+        },
+        "3J98t1WpEZ73CNmYviecrnyiWrnqRhWNLy": {
+          "type": "scripthash",
+          "script_hex": "a914b472a266d0bd89c13706a4132ccfb16f7c3b9fcb87",
+          "balance": 200000,
+          "balance_usd": 10000,
+          "received": 1000000,
+          "received_usd": 50000,
+          "spent": 800000,
+          "spent_usd": 40000,
+          "output_count": 2,
+          "unspent_output_count": 0,
+          "first_seen_receiving": "2020-03-01 00:00:00",
+          "last_seen_receiving": "2024-08-01 00:00:00",
+          "first_seen_spending": "2020-03-02 00:00:00",
+          "last_seen_spending": "2024-07-01 00:00:00",
+          "path": "m/0/2"
+        }
+      }
+    }
+  },
+  "context": {
+    "code": 200
+  }
+}

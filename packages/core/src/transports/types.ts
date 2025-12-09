@@ -1,3 +1,4 @@
+import type { Address } from '../types/address.js'
 import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
@@ -44,6 +45,21 @@ export type UTXOAPISchema = [
       minValue?: number
     }
     ReturnType: Array<UTXO>
+  },
+  {
+    Method: 'getXPubAddresses'
+    Parameters: {
+      xPubKey: string
+    }
+    ReturnType: {
+      meta: {
+        balance: bigint
+      }
+      addresses: Array<{
+        address: Address
+        balance: bigint
+      }>
+    }
   },
 ]
 

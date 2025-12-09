@@ -58,6 +58,34 @@ export type BlockchairResponse<T = any> = {
   }
 }
 
+export type BlockchairXpubDashboardAddressResponse =
+  BlockchairDashboardAddress & {
+    path: string
+  }
+
+export type BlockchairXpubData = {
+  address_count: number
+  balance: number
+  balance_usd: number
+  received: number
+  spent: number
+  output_count: number
+  unspent_output_count: number
+  first_seen_receiving: string
+  last_seen_receiving: string
+  first_seen_spending: string
+  last_seen_spending: string
+  transaction_count: number
+}
+
+export type BlockchairXpubResponse = Record<
+  string,
+  {
+    xpub: BlockchairXpubData
+    addresses: Record<string, BlockchairXpubDashboardAddressResponse>
+  }
+>
+
 export type BlockchairTransactionResponse = BlockchairResponse<
   Record<string, BlockchairTransaction>
 >
