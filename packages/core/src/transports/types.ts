@@ -1,6 +1,6 @@
-import type { Address } from '../types/address.js'
 import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
+import type { xPubAccount } from '../types/xpub.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
 export const UTXOAPISchemaMethods: UTXOMethod[] = [
@@ -8,6 +8,7 @@ export const UTXOAPISchemaMethods: UTXOMethod[] = [
   'getTransactions',
   'getUTXOs',
   'getTransactionFee',
+  'getXPubAddresses',
 ]
 
 export type UTXOAPISchema = [
@@ -51,15 +52,7 @@ export type UTXOAPISchema = [
     Parameters: {
       xPubKey: string
     }
-    ReturnType: {
-      meta: {
-        balance: bigint
-      }
-      addresses: Array<{
-        address: Address
-        balance: bigint
-      }>
-    }
+    ReturnType: xPubAccount
   },
 ]
 

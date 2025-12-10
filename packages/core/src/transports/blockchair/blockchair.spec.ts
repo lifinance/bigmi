@@ -300,14 +300,13 @@ describe('Blockchair Transport', () => {
           'xpub6CcGTthbwnbxsMRuEF3XoYdekGtnGTsbiZ4ZKeqMC1UuqPYqh2xQj9hbEQj8AB9EuGeFHz4o3hWayZm5ahr5fyV2SNfNyA6htsZngM1DFBz',
       })
 
-      expect(response.meta).toBeDefined()
-      expect(response.meta.balance).toBeTypeOf('bigint')
+      expect(response.balance).toBeTypeOf('bigint')
 
       if (USE_MOCK) {
-        expect(response.meta.balance).toBe(1000000n)
+        expect(response.balance).toBe(1000000n)
         expect(response.addresses.length).toBe(3)
       } else {
-        expect(response.meta.balance).toBeGreaterThanOrEqual(0n)
+        expect(response.balance).toBeGreaterThanOrEqual(0n)
         expect(response.addresses.length).toBeGreaterThan(0)
       }
 

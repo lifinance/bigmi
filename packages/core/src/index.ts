@@ -32,6 +32,11 @@ export type {
 } from './actions/getUTXOTransaction.js'
 export { getUTXOTransaction } from './actions/getUTXOTransaction.js'
 export type {
+  GetXPubAddressesParameters,
+  GetXPubAddressesReturnType,
+} from './actions/getXPubAddresses.js'
+export { getXPubAddresses } from './actions/getXPubAddresses.js'
+export type {
   SendUTXOTransactionParameters,
   SendUTXOTransactionReturnType,
 } from './actions/sendUTXOTransaction.js'
@@ -189,6 +194,7 @@ export type {
   RemoveUndefined,
   UnionStrictOmit,
 } from './types/utils.js'
+export type { xPubAccount } from './types/xpub.js'
 export { cancelTransaction } from './utils/cancelTransaction.js'
 export {
   base64ToHex,

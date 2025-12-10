@@ -38,9 +38,7 @@ export const getXPubAddresses: RpcMethodHandler<'getXPubAddresses'> = async (
   const xpubData = response.data[xPubKey]
 
   const result = {
-    meta: {
-      balance: BigInt(xpubData.xpub.balance),
-    },
+    balance: BigInt(xpubData.xpub.balance),
     addresses: Object.entries(xpubData.addresses).map(([address, data]) => ({
       address,
       balance: BigInt(data.balance),
