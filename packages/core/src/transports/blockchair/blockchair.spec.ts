@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBalance } from '../../actions/getBalance.js'
 import { getTransactionFee } from '../../actions/getTransactionFee.js'
 import { getUTXOs } from '../../actions/getUTXOs.js'
+import { getXPubAddresses } from '../../actions/getXPubAddresses.js'
 import { bitcoin } from '../../chains/bitcoin.js'
 import { BaseError } from '../../errors/base.js'
 import { InsufficientUTXOBalanceError } from '../../errors/utxo.js'
@@ -21,11 +22,13 @@ import getTransactionFeeValidResponse from './__mocks__/getTransactionFee/valid.
 import getUTXOsInvalidResponse from './__mocks__/getUTXOs/invalidAddress.json'
 import getUTXOsResponse from './__mocks__/getUTXOs/valid.json'
 import getUTXOsPaginatedResponse from './__mocks__/getUTXOs/validPaginated.json'
+import getXPubAddressesResponse from './__mocks__/getXPubAddresses/valid.json'
 import { blockchair } from './blockchair.js'
 import type {
   BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
   BlockchairResponse,
+  BlockchairXpubResponse,
 } from './blockchair.types.js'
 
 const address = import.meta.env.VITE_TEST_ADDRESS
@@ -279,6 +282,43 @@ describe('Blockchair Transport', () => {
       await expect(
         getTransactionFee(publicClient, { txId: INVALID_TX_ID })
       ).rejects.toThrow()
+    })
+  })
+
+  describe('getXPubAddresses', () => {
+    it('should fetch public addresses correctly', async () => {
+      if (USE_MOCK) {
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+          createMockResponse(
+            getXPubAddressesResponse as BlockchairResponse<BlockchairXpubResponse>
+          )
+        )
+      }
+
+      const response = await getXPubAddresses(publicClient, {
+        xPubKey:
+          'xpub6CcGTthbwnbxsMRuEF3XoYdekGtnGTsbiZ4ZKeqMC1UuqPYqh2xQj9hbEQj8AB9EuGeFHz4o3hWayZm5ahr5fyV2SNfNyA6htsZngM1DFBz',
+      })
+
+      expect(response.balance).toBeTypeOf('bigint')
+
+      if (USE_MOCK) {
+        expect(response.balance).toBe(1000000n)
+        expect(response.addresses.length).toBe(3)
+      } else {
+        expect(response.balance).toBeGreaterThanOrEqual(0n)
+        expect(response.addresses.length).toBeGreaterThan(0)
+      }
+
+      expect(response.addresses).toBeDefined()
+      expect(Array.isArray(response.addresses)).toBe(true)
+
+      expect(response.addresses[0]).toMatchObject({
+        address: expect.any(String),
+        balance: expect.any(BigInt),
+        path: expect.any(String),
+        scriptHex: expect.any(String),
+      })
     })
   })
 })

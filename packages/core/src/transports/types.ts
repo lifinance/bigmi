@@ -1,5 +1,6 @@
 import type { BlockStats, BlockStatsKeys } from '../types/blockStats.js'
 import type { UTXO, UTXOTransaction } from '../types/transaction.js'
+import type { xPubAccount } from '../types/xpub.js'
 import type { HttpRpcClient } from './getHttpRpcClient.js'
 
 export const UTXOAPISchemaMethods: UTXOMethod[] = [
@@ -7,6 +8,7 @@ export const UTXOAPISchemaMethods: UTXOMethod[] = [
   'getTransactions',
   'getUTXOs',
   'getTransactionFee',
+  'getXPubAddresses',
 ]
 
 export type UTXOAPISchema = [
@@ -44,6 +46,13 @@ export type UTXOAPISchema = [
       minValue?: number
     }
     ReturnType: Array<UTXO>
+  },
+  {
+    Method: 'getXPubAddresses'
+    Parameters: {
+      xPubKey: string
+    }
+    ReturnType: xPubAccount
   },
 ]
 
