@@ -1,2 +1,2 @@
 export const name = '@bigmi/core'
-export const version = '0.6.4-alpha.0'
+export const version = '0.6.4'

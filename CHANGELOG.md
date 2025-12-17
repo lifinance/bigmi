@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.6.4](https://github.com/lifinance/bigmi/compare/v0.6.3...v0.6.4) (2025-12-17)
+
+
+### Features
+
+* add getXPubAddresses action ([#41](https://github.com/lifinance/bigmi/issues/41)) ([2aa3216](https://github.com/lifinance/bigmi/commit/2aa321602e83fc5642d7b86c8d114a0e0d38c13b))
+
 ### [0.6.3](https://github.com/lifinance/bigmi/compare/v0.6.2...v0.6.3) (2025-11-26)
 
 ### [0.6.2](https://github.com/lifinance/bigmi/compare/v0.6.1...v0.6.2) (2025-11-13)
