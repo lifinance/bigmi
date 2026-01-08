@@ -19,11 +19,7 @@ export const getXPubAddresses: RpcMethodHandler<'getXPubAddresses'> = async (
     fetchOptions: { method: 'GET' },
   })) as unknown as BlockchairResponse<BlockchairXpubResponse>
 
-  if (
-    response.data[xPubKey] === undefined ||
-    response.context.error ||
-    response.context?.code !== 200
-  ) {
+  if (response.context.error || response.context?.code !== 200) {
     return {
       error: {
         code:
@@ -31,6 +27,15 @@ export const getXPubAddresses: RpcMethodHandler<'getXPubAddresses'> = async (
             ? RpcErrorCode.ACCESS_DENIED
             : RpcErrorCode.MISC_ERROR,
         message: response.context?.error,
+      },
+    }
+  }
+
+  if (response.data[xPubKey] === undefined) {
+    return {
+      result: {
+        balance: 0n,
+        addresses: [],
       },
     }
   }
