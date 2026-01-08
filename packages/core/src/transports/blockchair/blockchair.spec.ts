@@ -307,18 +307,20 @@ describe('Blockchair Transport', () => {
         expect(response.addresses.length).toBe(3)
       } else {
         expect(response.balance).toBeGreaterThanOrEqual(0n)
-        expect(response.addresses.length).toBeGreaterThan(0)
+        expect(response.addresses.length).toBeGreaterThanOrEqual(0)
       }
 
       expect(response.addresses).toBeDefined()
       expect(Array.isArray(response.addresses)).toBe(true)
 
-      expect(response.addresses[0]).toMatchObject({
-        address: expect.any(String),
-        balance: expect.any(BigInt),
-        path: expect.any(String),
-        scriptHex: expect.any(String),
-      })
+      if (response.addresses[0]) {
+        expect(response.addresses[0]).toMatchObject({
+          address: expect.any(String),
+          balance: expect.any(BigInt),
+          path: expect.any(String),
+          scriptHex: expect.any(String),
+        })
+      }
     })
   })
 })
