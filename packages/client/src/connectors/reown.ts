@@ -7,6 +7,7 @@ import {
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
   UserRejectedRequestError,
+  withTimeout,
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
@@ -186,35 +187,32 @@ export function reown(parameters: ReownConnectorParameters) {
         throw new ProviderNotFoundError()
       }
 
-      // Try to get account info from connector's getAccountAddresses
-      try {
-        const accounts = await provider.connector.getAccountAddresses()
-        const paymentAccount = accounts.find((acc) => acc.purpose === 'payment')
-
-        if (paymentAccount) {
-          const { type, purpose } = getAddressInfo(paymentAccount.address)
-          const account: Account = {
-            address: paymentAccount.address,
-            addressType: type,
-            publicKey: paymentAccount.publicKey ?? '',
-            purpose,
-          }
-          return [account]
-        }
-      } catch {
-        // getAccountAddresses not supported, fall back to address parameter
+      const createAccount = (addr: string, publicKey = ''): Account => {
+        const { type, purpose } = getAddressInfo(addr)
+        return { address: addr, addressType: type, publicKey, purpose }
       }
 
-      // Fall back to provided address
-      if (provider.address) {
-        const { type, purpose } = getAddressInfo(provider.address)
-        const account: Account = {
-          address: provider.address,
-          addressType: type,
-          publicKey: '',
-          purpose,
+      try {
+        const accounts = await withTimeout(
+          () => provider.connector.getAccountAddresses(),
+          { timeout: 1000 }
+        )
+        const paymentAccount = accounts.find((acc) => acc.purpose === 'payment')
+        if (paymentAccount) {
+          return [
+            createAccount(
+              paymentAccount.address,
+              paymentAccount.publicKey ?? ''
+            ),
+          ]
         }
-        return [account]
+      } catch {
+        // getAccountAddresses not supported or timed out
+      }
+
+      // fallback to provided address if available
+      if (provider.address) {
+        return [createAccount(provider.address)]
       }
 
       throw new ProviderNotFoundError()
