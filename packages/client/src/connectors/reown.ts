@@ -84,15 +84,6 @@ export function reown(parameters: ReownConnectorParameters) {
   const name = walletInfo?.name || 'Reown Bitcoin Wallet'
   const imageUrl = walletInfo?.icon
 
-  // Create internal provider that wraps the BitcoinConnector
-  const internalProvider: InternalReownProvider = {
-    id,
-    name,
-    imageUrl,
-    connector,
-    address,
-  }
-
   return createConnector<
     UTXOWalletProvider | undefined,
     ReownConnectorProperties
@@ -105,6 +96,14 @@ export function reown(parameters: ReownConnectorParameters) {
       //
     },
     async getInternalProvider() {
+      // Create internal provider that wraps the BitcoinConnector
+      const internalProvider: InternalReownProvider = {
+        id,
+        name,
+        imageUrl,
+        connector,
+        address,
+      }
       return internalProvider
     },
     async getProvider() {
@@ -133,7 +132,6 @@ export function reown(parameters: ReownConnectorParameters) {
               }))
           )
 
-          // Convert hex PSBT to base64 for Reown connector
           const psbtBase64 = hexToBase64(psbt)
 
           const result = await this.connector.signPSBT({
@@ -142,7 +140,6 @@ export function reown(parameters: ReownConnectorParameters) {
             broadcast: false,
           })
 
-          // Convert base64 result back to hex
           const signedPsbtHex = base64ToHex(result.psbt)
           return signedPsbtHex
         }
