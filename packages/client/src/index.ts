@@ -56,6 +56,8 @@ export type {
 } from './connectors/phantom.js'
 export { phantom } from './connectors/phantom.js'
 export type { UTXOConnectorParameters } from './connectors/types.js'
+export type { UnhostedBitcoinEvents } from './connectors/unhosted.js'
+export { unhosted } from './connectors/unhosted.js'
 export type {
   UnisatBitcoinEventMap,
   UnisatBitcoinEvents,
