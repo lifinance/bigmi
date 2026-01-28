@@ -21,6 +21,7 @@ coverage/
 *.tmp
 
 npm-debug.log*
+lerna-debug.log*
 
 .next
 .cache
