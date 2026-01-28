@@ -1,7 +1,9 @@
 import type { Account, SignPsbtParameters } from '@bigmi/core'
 import {
+  BaseError,
   base64ToHex,
   ChainId,
+  getAddressInfo,
   hexToBase64,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
@@ -24,7 +26,7 @@ export type UnhostedBitcoinNetwork =
 export type UnhostedBitcoinEvents = {
   on(
     event: 'bitcoin:accountsChanged',
-    listener: (accounts: string[]) => void
+    listener: (accounts: WalletAccount[]) => void
   ): void
   on(
     event: 'bitcoin:networkChanged',
@@ -33,7 +35,7 @@ export type UnhostedBitcoinEvents = {
   on(event: 'bitcoin:disconnect', listener: () => void): void
   off?(
     event: 'bitcoin:accountsChanged',
-    listener: (accounts: string[]) => void
+    listener: (accounts: WalletAccount[]) => void
   ): void
   off?(
     event: 'bitcoin:networkChanged',
@@ -47,14 +49,13 @@ type UnhostedConnectorProperties = {
   getInternalProvider(): Promise<UnhostedBitcoinProvider>
 } & UTXOWalletProvider
 
-interface WalletAddress {
+interface WalletAccount {
   address: string
-  publicKey?: string
-  purpose?: string
+  publicKey: string
 }
 
 interface Network {
-  name: 'Mainnet' | 'Testnet'
+  name: UnhostedBitcoinNetwork
 }
 
 interface SignPsbtParams {
@@ -72,9 +73,9 @@ type Response<T> = Promise<{
 }>
 
 type UnhostedBitcoinProvider = UnhostedBitcoinEvents & {
-  wallet_connect(): Promise<{ addresses: WalletAddress[] }>
+  wallet_connect(): Promise<{ addresses: WalletAccount[] }>
   wallet_getNetwork(): Response<{ bitcoin: Network }>
-  getAccounts(): Response<WalletAddress[]>
+  getAccounts(): Response<WalletAccount[]>
   signPsbt(
     psbtBase64: string,
     params?: SignPsbtParams
@@ -159,17 +160,35 @@ export function unhosted(parameters: UTXOConnectorParameters = {}) {
 
       switch (method) {
         case 'signPsbt': {
-          const { psbt, ...options } = params as SignPsbtParameters
+          const { psbt, inputsToSign, finalize } = params as SignPsbtParameters
           const psbtBase64 = hexToBase64(psbt)
 
-          const { result } = await provider.signPsbt(psbtBase64, {
-            broadcast: options.finalize,
-          })
-
-          if (result.psbt) {
-            return base64ToHex(result.psbt)
+          const signInputs: Record<string, number[]> = {}
+          for (const input of inputsToSign) {
+            signInputs[input.address] = input.signingIndexes
           }
-          throw new UserRejectedRequestError('Failed to sign PSBT')
+
+          try {
+            const { result } = await provider.signPsbt(psbtBase64, {
+              signInputs,
+              broadcast: finalize,
+            })
+            if (!result.psbt) {
+              throw new BaseError('Failed to sign PSBT')
+            }
+            return base64ToHex(result.psbt)
+          } catch (err_) {
+            const err = err_ as { code?: number; message?: string }
+            if (err?.code === 4001) {
+              throw new UserRejectedRequestError('User failed to sign')
+            }
+            if (err_ instanceof BaseError) {
+              throw err_
+            }
+            throw new BaseError(err?.message || 'Unknown error', {
+              cause: err_ as Error,
+            })
+          }
         }
         default:
           throw new MethodNotSupportedRpcError(method)
@@ -257,7 +276,15 @@ export function unhosted(parameters: UTXOConnectorParameters = {}) {
         return []
       }
 
-      return result as Account[]
+      return result.map((wallet) => {
+        const { type, purpose } = getAddressInfo(wallet.address)
+        return {
+          address: wallet.address,
+          addressType: type,
+          publicKey: wallet.publicKey,
+          purpose,
+        }
+      })
     },
     async getChainId() {
       const provider = await this.getInternalProvider()
@@ -267,9 +294,14 @@ export function unhosted(parameters: UTXOConnectorParameters = {}) {
 
       const { result } = await provider.wallet_getNetwork()
 
-      // Map network type to chain ID
       const bitcoinName = result.bitcoin.name
-      return UnhostedBitcoinChainIdMap[bitcoinName]
+      const chainId = UnhostedBitcoinChainIdMap[bitcoinName]
+
+      if (chainId === undefined) {
+        throw new BaseError(`Unsupported network: ${bitcoinName}`)
+      }
+
+      return chainId
     },
     async isAuthorized() {
       try {
@@ -282,20 +314,20 @@ export function unhosted(parameters: UTXOConnectorParameters = {}) {
         return false
       }
     },
-    async onAccountsChanged(accounts) {
+    async onAccountsChanged(accounts: WalletAccount[]) {
       if (accounts.length === 0) {
         this.onDisconnect()
       } else {
-        const accounts = await this.getAccounts()
+        const newAccounts = await this.getAccounts()
         config.emitter.emit('change', {
-          accounts,
+          accounts: newAccounts,
         })
       }
     },
-    onChainChanged(chainId) {
+    onChainChanged(chainId: ChainId) {
       config.emitter.emit('change', { chainId })
     },
-    async onDisconnect(_error) {
+    async onDisconnect(_error?: Error) {
       config.emitter.emit('disconnect')
     },
   }))
