@@ -55,6 +55,11 @@ export type {
   PhantomBitcoinEvents,
 } from './connectors/phantom.js'
 export { phantom } from './connectors/phantom.js'
+export type {
+  ReownConnectorParameters,
+  ReownWalletInfo,
+} from './connectors/reown.js'
+export { reown } from './connectors/reown.js'
 export type { UTXOConnectorParameters } from './connectors/types.js'
 export type {
   UnisatBitcoinEventMap,
