@@ -55,6 +55,11 @@ export type {
   PhantomBitcoinEvents,
 } from './connectors/phantom.js'
 export { phantom } from './connectors/phantom.js'
+export type {
+  ReownConnectorParameters,
+  ReownWalletInfo,
+} from './connectors/reown.js'
+export { reown } from './connectors/reown.js'
 export type { UTXOConnectorParameters } from './connectors/types.js'
 export type { UnhostedBitcoinEvents } from './connectors/unhosted.js'
 export { unhosted } from './connectors/unhosted.js'
