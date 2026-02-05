@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/react",
-  "version": "0.6.6-alpha.2",
+  "version": "0.7.0",
   "description": "React primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -46,10 +46,10 @@
     "@bigmi/core": "workspace:^"
   },
   "devDependencies": {
-    "cpy-cli": "^6.0.0",
+    "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {

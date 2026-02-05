@@ -1,6 +1,6 @@
 {
   "name": "@bigmi/client",
-  "version": "0.6.6-alpha.2",
+  "version": "0.7.0",
   "description": "Reactive primitives for Bitcoin apps.",
   "type": "module",
   "main": "./src/index.ts",
@@ -43,11 +43,11 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:^",
-    "eventemitter3": "^5.0.1",
-    "zustand": "^5.0.9"
+    "eventemitter3": "^5.0.4",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "cpy-cli": "^6.0.0",
+    "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
     "typescript": "^5.9.3"
   },

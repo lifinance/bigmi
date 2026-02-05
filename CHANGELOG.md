@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.7.0](https://github.com/lifinance/bigmi/compare/v0.6.5...v0.7.0) (2026-02-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** add unhosted wallet support (#46)
+
+### Features
+
+* add reown support ([#44](https://github.com/lifinance/bigmi/issues/44)) ([657cae6](https://github.com/lifinance/bigmi/commit/657cae6615965ec5be6b1c079abc10c34cdc572d))
+* **client:** add unhosted wallet support ([#46](https://github.com/lifinance/bigmi/issues/46)) ([b3537b7](https://github.com/lifinance/bigmi/commit/b3537b77cc8a6322868330f5c6528834d86a5d99))
+
 ### [0.6.5](https://github.com/lifinance/bigmi/compare/v0.6.4...v0.6.5) (2026-01-08)
 
 

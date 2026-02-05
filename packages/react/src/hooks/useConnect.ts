@@ -78,7 +78,7 @@ export function useConnect<
         }
       }
     )
-  }, [config, result.reset])
+  }, [config])
 
   type Return = UseConnectReturnType<config, context>
   return {

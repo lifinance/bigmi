@@ -34,7 +34,6 @@ export function createConfig<
   parameters: CreateConfigParameters<chains, transports, connectorFns>
 ): Config<chains, transports, connectorFns> {
   const {
-    // biome-ignore lint/correctness/noUnusedVariables: used implicitly
     multiInjectedProviderDiscovery = true,
     storage = createStorage({
       key: 'bigmi',
