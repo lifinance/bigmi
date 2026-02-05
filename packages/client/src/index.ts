@@ -61,6 +61,8 @@ export type {
 } from './connectors/reown.js'
 export { reown } from './connectors/reown.js'
 export type { UTXOConnectorParameters } from './connectors/types.js'
+export type { UnhostedBitcoinEvents } from './connectors/unhosted.js'
+export { unhosted } from './connectors/unhosted.js'
 export type {
   UnisatBitcoinEventMap,
   UnisatBitcoinEvents,
