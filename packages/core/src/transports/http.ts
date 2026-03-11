@@ -12,6 +12,7 @@ import type {
   TransportConfig,
 } from '../types/transport.js'
 import { createBatchScheduler } from '../utils/createBatchScheduler.js'
+import { idCache } from '../utils/idCache.js'
 import {
   getHttpRpcClient,
   type HttpRpcClientOptions,
@@ -125,7 +126,12 @@ export function http<
         methods,
         name,
         async request({ method, params }) {
-          const body = { method, params }
+          const body = {
+            jsonrpc: '2.0' as const,
+            id: idCache.take(),
+            method,
+            params,
+          }
 
           const { schedule } = createBatchScheduler({
             id: url_,
