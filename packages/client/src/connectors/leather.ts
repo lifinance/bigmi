@@ -167,7 +167,9 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
       const accounts = await provider.request('getAddresses')
 
       if (!accounts.result) {
-        throw new UserRejectedRequestError(accounts.error?.message!)
+        throw new UserRejectedRequestError(
+          accounts.error?.message ?? 'Unknown error'
+        )
       }
 
       if (shimDisconnect) {

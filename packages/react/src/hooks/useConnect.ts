@@ -63,7 +63,7 @@ export function useConnect<
   const config = useConfig(parameters)
 
   const mutationOptions = connectMutationOptions(config)
-  const { mutate, mutateAsync, ...result } = useMutation({
+  const { mutate, mutateAsync, reset, ...result } = useMutation({
     ...mutation,
     ...mutationOptions,
   })
@@ -74,11 +74,11 @@ export function useConnect<
       ({ status }) => status,
       (status, previousStatus) => {
         if (previousStatus === 'connected' && status === 'disconnected') {
-          result.reset()
+          reset()
         }
       }
     )
-  }, [config])
+  }, [config, reset])
 
   type Return = UseConnectReturnType<config, context>
   return {

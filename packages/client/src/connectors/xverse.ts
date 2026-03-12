@@ -261,7 +261,9 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
       const network = await provider.request('wallet_getNetwork')
 
       if (!network.result) {
-        throw new UserRejectedRequestError(network.error?.message!)
+        throw new UserRejectedRequestError(
+          network.error?.message ?? 'Unknown error'
+        )
       }
 
       return XverseBitcoinChainIdMap[network.result.bitcoin.name]
