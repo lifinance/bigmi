@@ -1,6 +1,7 @@
 import { HttpRequestError, TimeoutError } from '../errors/request.js'
 import type { RpcResponse } from '../types/rpc.js'
 import type { MaybePromise } from '../types/utils.js'
+import { idCache } from '../utils/idCache.js'
 import { stringify } from '../utils/stringify.js'
 import { withTimeout } from '../utils/withTimeout.js'
 
@@ -78,9 +79,22 @@ export function getHttpRpcClient(
       try {
         const response = await withTimeout(
           async ({ signal }) => {
+            const preparedBody = body
+              ? Array.isArray(body)
+                ? body.map((b) => ({
+                    jsonrpc: '2.0' as const,
+                    id: b.id ?? idCache.take(),
+                    ...b,
+                  }))
+                : {
+                    jsonrpc: '2.0' as const,
+                    id: body.id ?? idCache.take(),
+                    ...body,
+                  }
+              : undefined
             const init: RequestInit = {
               ...fetchOptions,
-              body: body ? stringify(body) : undefined,
+              body: preparedBody ? stringify(preparedBody) : undefined,
               headers: {
                 ...(method !== 'GET'
                   ? { 'Content-Type': 'application/json' }

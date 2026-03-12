@@ -1,6 +1,7 @@
 import { RpcRequestError } from '../errors/request.js'
 import { UrlRequiredError } from '../errors/transport.js'
 import { createTransport } from '../factories/createTransport.js'
+import { idCache } from '../utils/idCache.js'
 import { getHttpRpcClient } from './getHttpRpcClient.js'
 import { getRpcProviderMethods } from './getRpcProviderMethods.js'
 import type { HttpTransport, HttpTransportConfig } from './http.js'
@@ -53,7 +54,12 @@ export function utxo(
         name,
         methods,
         async request({ method, params }) {
-          const body = { method, params }
+          const body = {
+            jsonrpc: '2.0' as const,
+            id: idCache.take(),
+            method,
+            params,
+          }
           const methodHandler = rpcMethods?.[method as UTXOMethod]
           const { error, result } = await (methodHandler?.(
             client,
