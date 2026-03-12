@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.1](https://github.com/lifinance/bigmi/compare/v0.7.0...v0.7.1) (2026-03-12)
+
+
+### Bug Fixes
+
+* **core:** add missing jsonrpc and id fields to RPC request body ([#48](https://github.com/lifinance/bigmi/issues/48)) ([9896c7c](https://github.com/lifinance/bigmi/commit/9896c7c6f1498f54c29ae78be8a74008bad3a98a))
+
 ## [0.7.0](https://github.com/lifinance/bigmi/compare/v0.6.5...v0.7.0) (2026-02-05)
 
 
