@@ -1,4 +1,4 @@
-import type { HttpTransportConfig } from '../http.js'
+import type { HttpTransport, HttpTransportConfig } from '../http.js'
 import type { UTXOMethod } from '../types.js'
 import { utxo } from '../utxo.js'
 import { blockchairMethods } from './methods.js'
@@ -8,7 +8,7 @@ type BlockchairConfig = {
   apiKey?: string
 } & HttpTransportConfig
 
-export const blockchair = (config?: BlockchairConfig) =>
+export const blockchair = (config?: BlockchairConfig): HttpTransport =>
   utxo(config?.baseUrl || 'https://api.blockchair.com', {
     name: 'Blockchair API',
     key: 'blockchair',

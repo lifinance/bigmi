@@ -246,7 +246,7 @@ export function fallback<const transports extends readonly Transport[]>(
   }) as FallbackTransport<transports>
 }
 
-export function shouldThrow(error: Error) {
+export function shouldThrow(error: Error): boolean {
   if (error instanceof InsufficientUTXOBalanceError) {
     return true
   }
@@ -283,7 +283,7 @@ export function rankTransports({
   timeout?: RankOptions['timeout'] | undefined
   transports: readonly Transport[]
   weights?: RankOptions['weights'] | undefined
-}) {
+}): void {
   const { stability: stabilityWeight = 0.7, latency: latencyWeight = 0.3 } =
     weights
 

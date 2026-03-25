@@ -11,6 +11,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { debounce } from '../utils/debounce.js'
 import type {
   ProviderRequestParams,
@@ -85,8 +86,12 @@ type UnhostedBitcoinProvider = UnhostedBitcoinEvents & {
   isUnhosted?: boolean
 }
 
-unhosted.type = 'UTXO' as const
-export function unhosted(parameters: UTXOConnectorParameters = {}) {
+export function unhosted(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  UnhostedConnectorProperties
+> {
   const UnhostedBitcoinChainIdMap: Record<UnhostedBitcoinNetwork, ChainId> = {
     Mainnet: ChainId.BITCOIN_MAINNET,
     Testnet: ChainId.BITCOIN_TESTNET,
@@ -331,3 +336,7 @@ export function unhosted(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace unhosted {
+  export var type: 'UTXO'
+}
+unhosted.type = 'UTXO' as const

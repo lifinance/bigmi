@@ -9,6 +9,7 @@ import {
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 
 import type {
   ProviderRequestParams,
@@ -60,8 +61,9 @@ type OKXBitcoinProvider = {
   ): Promise<string>
 } & OKXBitcoinEvents
 
-okx.type = 'UTXO' as const
-export function okx(parameters: UTXOConnectorParameters = {}) {
+export function okx(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<UTXOWalletProvider | undefined, OKXConnectorProperties> {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   return createConnector<
@@ -239,3 +241,7 @@ export function okx(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace okx {
+  export var type: 'UTXO'
+}
+okx.type = 'UTXO' as const

@@ -7,6 +7,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 
 import type {
   ProviderRequestParams,
@@ -54,8 +55,12 @@ type LeatherBitcoinProvider = {
   request(method: 'getAddresses'): Promise<GetAccountsResponse>
 } & LeatherBitcoinEvents
 
-leather.type = 'UTXO' as const
-export function leather(parameters: UTXOConnectorParameters = {}) {
+export function leather(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  LeatherConnectorProperties
+> {
   const { chainId, shimDisconnect = true } = parameters
   return createConnector<
     UTXOWalletProvider | undefined,
@@ -245,3 +250,7 @@ export function leather(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace leather {
+  export var type: 'UTXO'
+}
+leather.type = 'UTXO' as const

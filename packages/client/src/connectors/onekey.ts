@@ -10,6 +10,7 @@ import {
 } from '@bigmi/core'
 import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
@@ -61,8 +62,12 @@ type OneKeyBitcoinProvider = {
   switchNetwork(network: OneKeyBitcoinNetwork): Promise<OneKeyBitcoinNetwork>
 } & OneKeyBitcoinEvents
 
-onekey.type = 'UTXO' as const
-export function onekey(parameters: UTXOConnectorParameters = {}) {
+export function onekey(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  OneKeyConnectorProperties
+> {
   const {
     forward: OneKeyBitcoinNetworkChainIdMap,
     reverse: ChainIdToOneKeyMap,
@@ -261,3 +266,7 @@ export function onekey(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace onekey {
+  export var type: 'UTXO'
+}
+onekey.type = 'UTXO' as const

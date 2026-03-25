@@ -100,7 +100,7 @@ export function serialize(
   replacer?: StandardReplacer | null | undefined,
   indent?: number | null | undefined,
   circularReplacer?: CircularReplacer | null | undefined
-) {
+): string {
   return JSON.stringify(
     value,
     createReplacer((key, value_) => {

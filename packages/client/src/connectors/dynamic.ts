@@ -15,6 +15,7 @@ import {
   ProviderNotFoundError,
 } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -89,9 +90,12 @@ type DynamicConnectorParameters = {
   wallet: DynamicBitcoinWallet
 } & UTXOConnectorParameters
 
-dynamic.type = 'UTXO' as const
-
-export function dynamic(parameters: DynamicConnectorParameters) {
+export function dynamic(
+  parameters: DynamicConnectorParameters
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  DynamicConnectorProperties
+> {
   const { chainId, shimDisconnect = true, wallet } = parameters
   let accountChanged: ((accounts: string[]) => void) | undefined
   return createConnector<
@@ -249,3 +253,7 @@ export function dynamic(parameters: DynamicConnectorParameters) {
     },
   }))
 }
+export declare namespace dynamic {
+  export var type: 'UTXO'
+}
+dynamic.type = 'UTXO' as const

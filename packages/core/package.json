@@ -7,16 +7,11 @@
   "types": "./src/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "watch": "tsc -w -p ./tsconfig.json",
-    "build": "pnpm clean && pnpm build:version && pnpm build:esm && pnpm build:cjs && pnpm build:types && pnpm build:clean",
-    "build:cjs": "tsc --project ./tsconfig.json --module commonjs --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
-    "build:esm": "tsc --project ./tsconfig.json --module es2015 --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-    "build:types": "tsc --project ./tsconfig.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
+    "watch": "tsdown --watch",
+    "build": "rm -rf dist && node ../../scripts/version.js && node ../../scripts/build.js && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json && printf '{\"type\":\"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
     "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../*.md' .",
     "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
-    "build:clean": "rm -rf tsconfig.tsbuildinfo ./dist/tsconfig.tsbuildinfo",
-    "build:version": "node ../../scripts/version.js",
-    "clean": "pnpm build:clean && rm -rf dist",
+    "clean": "rm -rf dist",
     "check:types": "tsc --noEmit",
     "check:circular-deps": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx')",
     "check:circular-deps-graph": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx') --image graph.svg",
@@ -49,14 +44,14 @@
     "bitcoinjs-lib": "^7.0.1",
     "bs58": "^6.0.0",
     "eventemitter3": "^5.0.4",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.1",
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.1"
   },
   "peerDependencies": {
     "bs58": "^6.0.0"

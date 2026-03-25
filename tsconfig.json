@@ -8,6 +8,7 @@
     "composite": true,
     "esModuleInterop": false,
     "forceConsistentCasingInFileNames": true,
+    "isolatedDeclarations": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
@@ -23,5 +24,11 @@
     { "path": "./packages/core" },
     { "path": "./packages/client" }
   ],
-  "exclude": ["**/.*/", "**/build", "**/dist", "node_modules"]
+  "exclude": [
+    "**/.*/",
+    "**/build",
+    "**/dist",
+    "**/tsdown.config.ts",
+    "node_modules"
+  ]
 }

@@ -10,6 +10,6 @@ export function createConnector<
     properties,
     storageItem
   > = CreateConnectorFn<provider, properties, storageItem>,
->(createConnectorFn: createConnectorFn) {
+>(createConnectorFn: createConnectorFn): createConnectorFn {
   return createConnectorFn
 }

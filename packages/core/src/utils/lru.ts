@@ -11,7 +11,7 @@ export class LruMap<value = unknown> extends Map<string, value> {
     this.maxSize = size
   }
 
-  override get(key: string) {
+  override get(key: string): value | undefined {
     const value = super.get(key)
 
     if (super.has(key) && value !== undefined) {
@@ -22,7 +22,7 @@ export class LruMap<value = unknown> extends Map<string, value> {
     return value
   }
 
-  override set(key: string, value: value) {
+  override set(key: string, value: value): this {
     super.set(key, value)
     if (this.maxSize && this.size > this.maxSize) {
       const firstKey = this.keys().next().value

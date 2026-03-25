@@ -1,7 +1,8 @@
+import type { Chain } from '../types/chain.js'
 import { ChainId } from '../types/chain.js'
 import { defineChain } from './defineChain.js'
 
-export const bitcoinSignet = /*#__PURE__*/ defineChain({
+export const bitcoinSignet: Chain = /*#__PURE__*/ defineChain({
   id: ChainId.BITCOIN_SIGNET,
   name: 'Bitcoin Signet',
   nativeCurrency: { name: 'Bitcoin', symbol: 'BTC', decimals: 8 },

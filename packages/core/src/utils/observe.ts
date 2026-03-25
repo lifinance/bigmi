@@ -4,12 +4,10 @@ type Callback = ((...args: any[]) => any) | undefined
 type Callbacks = Record<string, Callback>
 
 /** @internal */
-export const listenersCache = /*#__PURE__*/ new Map<
-  string,
-  { id: number; fns: Callbacks }[]
->()
+export const listenersCache: Map<string, { id: number; fns: Callbacks }[]> =
+  /*#__PURE__*/ new Map()
 /** @internal */
-export const cleanupCache = /*#__PURE__*/ new Map<string, () => void>()
+export const cleanupCache: Map<string, () => void> = /*#__PURE__*/ new Map()
 
 type EmitFunction<callbacks extends Callbacks> = (
   emit: callbacks
@@ -26,7 +24,7 @@ export function observe<callbacks extends Callbacks>(
   observerId: string,
   callbacks: callbacks,
   fn: EmitFunction<callbacks>
-) {
+): () => void {
   const callbackId = ++callbackCount
 
   const getListeners = () => listenersCache.get(observerId) || []

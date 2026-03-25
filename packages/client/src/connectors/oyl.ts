@@ -9,6 +9,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -47,8 +48,9 @@ type OylBitcoinProvider = {
   }>
 }
 
-oyl.type = 'UTXO' as const
-export function oyl(parameters: UTXOConnectorParameters = {}) {
+export function oyl(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<UTXOWalletProvider | undefined, OylConnectorProperties> {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Account[]) => void) | undefined
 
@@ -197,3 +199,7 @@ export function oyl(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace oyl {
+  export var type: 'UTXO'
+}
+oyl.type = 'UTXO' as const

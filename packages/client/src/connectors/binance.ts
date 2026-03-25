@@ -10,6 +10,7 @@ import {
 } from '@bigmi/core'
 import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
@@ -61,8 +62,12 @@ type BinanceBitcoinProvider = {
   ): Promise<string>
 } & BinanceBitcoinEvents
 
-binance.type = 'UTXO' as const
-export function binance(parameters: UTXOConnectorParameters = {}) {
+export function binance(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  BinanceConnectorProperties
+> {
   const {
     forward: BinanceBitcoinNetworkChainIdMap,
     reverse: ReverseChainIdMap,
@@ -269,3 +274,7 @@ export function binance(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace binance {
+  export var type: 'UTXO'
+}
+binance.type = 'UTXO' as const

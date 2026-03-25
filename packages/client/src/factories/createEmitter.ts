@@ -13,7 +13,7 @@ export type EventData<
 }
 
 export class Emitter<eventMap extends EventMap> {
-  _emitter = new EventEmitter()
+  _emitter: EventEmitter = new EventEmitter()
 
   constructor(public uid: string) {}
 
@@ -24,7 +24,7 @@ export class Emitter<eventMap extends EventMap> {
         ? [{ uid: string }]
         : [data: eventMap[key] & { uid: string }]
     >
-  ) {
+  ): void {
     this._emitter.on(eventName, fn as EventFn)
   }
 
@@ -35,7 +35,7 @@ export class Emitter<eventMap extends EventMap> {
         ? [{ uid: string }]
         : [data: eventMap[key] & { uid: string }]
     >
-  ) {
+  ): void {
     this._emitter.once(eventName, fn as EventFn)
   }
 
@@ -46,23 +46,25 @@ export class Emitter<eventMap extends EventMap> {
         ? [{ uid: string }]
         : [data: eventMap[key] & { uid: string }]
     >
-  ) {
+  ): void {
     this._emitter.off(eventName, fn as EventFn)
   }
 
   emit<key extends EventKey<eventMap>>(
     eventName: key,
     ...params: eventMap[key] extends [never] ? [] : [data: eventMap[key]]
-  ) {
+  ): void {
     const data = params[0]
     this._emitter.emit(eventName, { uid: this.uid, ...data })
   }
 
-  listenerCount<key extends EventKey<eventMap>>(eventName: key) {
+  listenerCount<key extends EventKey<eventMap>>(eventName: key): number {
     return this._emitter.listenerCount(eventName)
   }
 }
 
-export function createEmitter<eventMap extends EventMap>(uid: string) {
+export function createEmitter<eventMap extends EventMap>(
+  uid: string
+): Emitter<eventMap> {
   return new Emitter<eventMap>(uid)
 }

@@ -17,7 +17,10 @@ type HydrateParameters = {
   reconnectOnMount?: boolean | undefined
 }
 
-export function hydrate(config: Config, parameters: HydrateParameters) {
+export function hydrate(
+  config: Config,
+  parameters: HydrateParameters
+): { onMount(): Promise<void> } {
   const { initialState, reconnectOnMount } = parameters
 
   if (initialState && !config._internal.store.persist.hasHydrated()) {
@@ -32,7 +35,7 @@ export function hydrate(config: Config, parameters: HydrateParameters) {
   }
 
   return {
-    async onMount() {
+    async onMount(): Promise<void> {
       if (config._internal.ssr) {
         await config._internal.store.persist.rehydrate()
       }

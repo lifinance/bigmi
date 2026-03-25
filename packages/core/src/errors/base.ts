@@ -8,7 +8,7 @@ let errorConfig: ErrorConfig = {
   version: `bigmi@${version}`,
 }
 
-export function setErrorConfig(config: ErrorConfig) {
+export function setErrorConfig(config: ErrorConfig): void {
   errorConfig = config
 }
 
@@ -29,7 +29,7 @@ export class BaseError extends Error {
   shortMessage: string
   version: string
 
-  override name = 'BaseError'
+  override name: string = 'BaseError'
 
   constructor(shortMessage: string, args: BaseErrorParameters = {}) {
     const details = (() => {

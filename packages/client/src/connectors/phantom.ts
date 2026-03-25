@@ -7,6 +7,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -49,8 +50,12 @@ type PhantomBitcoinProvider = {
   ): Promise<Uint8Array>
 } & PhantomBitcoinEvents
 
-phantom.type = 'UTXO' as const
-export function phantom(parameters: UTXOConnectorParameters = {}) {
+export function phantom(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  PhantomConnectorProperties
+> {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Account[]) => void) | undefined
   return createConnector<
@@ -203,3 +208,7 @@ export function phantom(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace phantom {
+  export var type: 'UTXO'
+}
+phantom.type = 'UTXO' as const

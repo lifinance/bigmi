@@ -9,9 +9,18 @@ import {
 import type { Config } from '../factories/createConfig.js'
 import type { Connector, CreateConnectorFn } from '../types/connector.js'
 
-export function connectMutationOptions<config extends Config>(config: config) {
+export function connectMutationOptions<config extends Config>(
+  config: config
+): {
+  readonly mutationFn: (
+    variables: ConnectVariables<config, Connector | CreateConnectorFn>
+  ) => Promise<ConnectData<config>>
+  readonly mutationKey: readonly ['connect']
+} {
   return {
-    mutationFn(variables) {
+    mutationFn(
+      variables: ConnectVariables<config, Connector | CreateConnectorFn>
+    ): Promise<ConnectData<config>> {
       return connect(config, variables)
     },
     mutationKey: ['connect'],

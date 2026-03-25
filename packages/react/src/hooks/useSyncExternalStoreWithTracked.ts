@@ -13,7 +13,7 @@ export function useSyncExternalStoreWithTracked<
   getSnapshot: () => Snapshot,
   getServerSnapshot: (() => Snapshot) | undefined = getSnapshot,
   isEqual: (a: Selection, b: Selection) => boolean = deepEqual
-) {
+): Selection {
   const trackedKeys = useRef<Set<string>>(new Set())
   const previousResult = useRef<Selection | undefined>(undefined)
   const snapshotCache = useRef(getSnapshot())
