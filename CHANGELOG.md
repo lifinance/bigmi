@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/lifinance/bigmi/compare/v0.7.1...v0.8.0) (2026-03-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* migrate build pipeline from tsc to tsdown (#51)
+
+### Bug Fixes
+
+* **react:** resolve useSyncExternalStore SSR infinite loop in useAccount and useConnectors ([#50](https://github.com/lifinance/bigmi/issues/50)) ([691b26c](https://github.com/lifinance/bigmi/commit/691b26c45c1de91ae3a1aaac93b675b40c1d8e5f))
+
+
+* migrate build pipeline from tsc to tsdown ([#51](https://github.com/lifinance/bigmi/issues/51)) ([0c4defb](https://github.com/lifinance/bigmi/commit/0c4defb4d4611fe09fddf01fed1a312de0344c1e))
+
 ### [0.7.1](https://github.com/lifinance/bigmi/compare/v0.7.0...v0.7.1) (2026-03-12)
 
 
