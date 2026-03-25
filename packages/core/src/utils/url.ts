@@ -1,7 +1,7 @@
 export const urlWithParams = (
   url: string,
   params: Record<string, string | number | undefined>
-) => {
+): string => {
   const _url = new URL(url)
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) {

@@ -10,4 +10,5 @@ function createIdStore() {
   }
 }
 
-export const idCache = createIdStore()
+export const idCache: { current: number; take(): number; reset(): void } =
+  createIdStore()

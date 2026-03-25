@@ -12,7 +12,11 @@ interface InputData {
   witnessScript?: Uint8Array
 }
 
-export function modifyFee(psbt: Psbt, newFee: bigint, accountAddress: string) {
+export function modifyFee(
+  psbt: Psbt,
+  newFee: bigint,
+  accountAddress: string
+): Psbt {
   const newPsbt = new Psbt()
   const inputs = psbt.data.inputs
   const outputs = psbt.txOutputs

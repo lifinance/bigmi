@@ -11,6 +11,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import type {
   ProviderRequestParams,
   UTXOConnectorParameters,
@@ -68,9 +69,9 @@ export type ReownConnectorParameters = {
   walletInfo?: ReownWalletInfo
 } & UTXOConnectorParameters
 
-reown.type = 'UTXO' as const
-
-export function reown(parameters: ReownConnectorParameters) {
+export function reown(
+  parameters: ReownConnectorParameters
+): CreateConnectorFn<UTXOWalletProvider | undefined, ReownConnectorProperties> {
   const {
     chainId,
     shimDisconnect = true,
@@ -257,3 +258,7 @@ export function reown(parameters: ReownConnectorParameters) {
     },
   }))
 }
+export declare namespace reown {
+  export var type: 'UTXO'
+}
+reown.type = 'UTXO' as const

@@ -10,6 +10,7 @@ import {
 } from '@bigmi/core'
 import { ChainNotSupportedError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
 import type {
   ProviderRequestParams,
@@ -75,8 +76,12 @@ type UnisatBitcoinProvider = {
   switchChain(chain: UnisatBitcoinChainEnum): Promise<UnisatBitcoinChain>
 } & UnisatBitcoinEvents
 
-unisat.type = 'UTXO' as const
-export function unisat(parameters: UTXOConnectorParameters = {}) {
+export function unisat(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  UnisatConnectorProperties
+> {
   const UnisatBitcoinNetworkChainIdMap: Record<UnisatBitcoinNetwork, ChainId> =
     {
       livenet: ChainId.BITCOIN_MAINNET,
@@ -291,3 +296,7 @@ export function unisat(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace unisat {
+  export var type: 'UTXO'
+}
+unisat.type = 'UTXO' as const

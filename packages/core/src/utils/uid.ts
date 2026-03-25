@@ -2,7 +2,7 @@ const size = 256
 let index = size
 let buffer: string
 
-export function uid(length = 11) {
+export function uid(length = 11): string {
   if (!buffer || index + length > size * 2) {
     buffer = ''
     index = 0

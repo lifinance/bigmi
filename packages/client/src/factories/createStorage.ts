@@ -62,13 +62,13 @@ export function createStorage<
   }
 }
 
-export const noopStorage = {
+export const noopStorage: BaseStorage = {
   getItem: () => null,
   setItem: () => {},
   removeItem: () => {},
-} satisfies BaseStorage
+}
 
-export function getDefaultStorage() {
+export function getDefaultStorage(): BaseStorage {
   const storage = (() => {
     if (typeof window !== 'undefined' && window.localStorage) {
       return window.localStorage

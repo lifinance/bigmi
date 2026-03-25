@@ -30,7 +30,7 @@ export function withRetry<data>(
     retryCount = 2,
     shouldRetry = () => true,
   }: WithRetryParameters = {}
-) {
+): Promise<data> {
   return new Promise<data>((resolve, reject) => {
     const attemptRetry = async ({ count = 0 } = {}) => {
       const retry = async ({ error }: { error: Error }) => {

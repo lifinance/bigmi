@@ -15,6 +15,7 @@ import {
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import type { UTXOConnectorParameters, UTXOWalletProvider } from './types.js'
 
 interface GetAccountsRequest {
@@ -85,8 +86,9 @@ type CtrlBitcoinProvider = {
   }): Promise<CtrlResponse<CtrlAccount[]>>
 } & CtrlBitcoinEvents
 
-ctrl.type = 'UTXO' as const
-export function ctrl(parameters: UTXOConnectorParameters = {}) {
+export function ctrl(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<UTXOWalletProvider | undefined, CtrlConnectorProperties> {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Address[]) => void) | undefined
   return createConnector<
@@ -250,3 +252,7 @@ export function ctrl(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace ctrl {
+  export var type: 'UTXO'
+}
+ctrl.type = 'UTXO' as const

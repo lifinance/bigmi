@@ -15,7 +15,7 @@ type PollOptions<T> = {
 export function poll<T>(
   fn: ({ unpoll }: { unpoll: () => void }) => Promise<T | undefined>,
   { emitOnBegin, initialWaitTime, interval }: PollOptions<T>
-) {
+): () => void {
   let active = true
 
   const unwatch = () => {

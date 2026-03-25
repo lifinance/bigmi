@@ -8,6 +8,7 @@ import {
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { debounce } from '../utils/debounce.js'
 import type {
   ProviderRequestParams,
@@ -98,8 +99,12 @@ type ChainChangeHandler =
     })
   | undefined
 
-xverse.type = 'UTXO' as const
-export function xverse(parameters: UTXOConnectorParameters = {}) {
+export function xverse(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  XverseConnectorProperties
+> {
   const XverseBitcoinChainIdMap: Record<XverseBitcoinNetwork, ChainId> = {
     Mainnet: ChainId.BITCOIN_MAINNET,
     Testnet: ChainId.BITCOIN_TESTNET,
@@ -294,3 +299,7 @@ export function xverse(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace xverse {
+  export var type: 'UTXO'
+}
+xverse.type = 'UTXO' as const

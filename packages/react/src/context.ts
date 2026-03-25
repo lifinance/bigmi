@@ -1,12 +1,17 @@
 'use client'
 import type { State } from '@bigmi/client'
-import { createContext, createElement, type PropsWithChildren } from 'react'
+import {
+  type Context,
+  createContext,
+  createElement,
+  type PropsWithChildren,
+  type ReactElement,
+} from 'react'
 import { Hydrate } from './hydrate.js'
 import type { ResolvedRegister } from './types.js'
 
-export const BigmiContext = createContext<
-  ResolvedRegister['config'] | undefined
->(undefined)
+export const BigmiContext: Context<ResolvedRegister['config'] | undefined> =
+  createContext<ResolvedRegister['config'] | undefined>(undefined)
 
 export type BigmiProviderProps = {
   config: ResolvedRegister['config']
@@ -16,7 +21,7 @@ export type BigmiProviderProps = {
 
 export function BigmiProvider(
   parameters: PropsWithChildren<BigmiProviderProps>
-) {
+): ReactElement {
   const { children, config } = parameters
 
   const props = { value: config }

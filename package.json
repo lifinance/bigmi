@@ -1,5 +1,5 @@
 {
-  "version": "0.7.1",
+  "version": "0.8.0-beta.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -43,19 +43,20 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.6",
-    "@commitlint/cli": "^20.4.4",
-    "@commitlint/config-conventional": "^20.4.4",
-    "@types/node": "^25.4.0",
+    "@biomejs/biome": "^2.4.8",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "cpy-cli": "^7.0.0",
     "fs-extra": "^11.3.4",
     "husky": "^9.1.7",
-    "knip": "^5.86.0",
-    "lerna": "9.0.6",
+    "knip": "^6.0.5",
+    "lerna": "9.0.7",
     "standard-version": "^9.5.0",
+    "tsdown": "^0.21.5",
     "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
 }

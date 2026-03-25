@@ -10,6 +10,7 @@ import {
 } from '@bigmi/core'
 import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
+import type { CreateConnectorFn } from '../types/connector.js'
 import { createUnsecuredToken } from '../utils/createUnsecuredToken.js'
 import type {
   ProviderRequestParams,
@@ -46,8 +47,12 @@ type MagicEdenBitcoinProvider = {
   }>
 } & MagicEdenBitcoinEvents
 
-magicEden.type = 'UTXO' as const
-export function magicEden(parameters: UTXOConnectorParameters = {}) {
+export function magicEden(
+  parameters: UTXOConnectorParameters = {}
+): CreateConnectorFn<
+  UTXOWalletProvider | undefined,
+  MagicEdenConnectorProperties
+> {
   const { chainId, shimDisconnect = true } = parameters
   let accountsChanged: ((accounts: Account[]) => void) | undefined
 
@@ -207,6 +212,10 @@ export function magicEden(parameters: UTXOConnectorParameters = {}) {
     },
   }))
 }
+export declare namespace magicEden {
+  export var type: 'UTXO'
+}
+magicEden.type = 'UTXO' as const
 
 function encodeParams(params: any) {
   const token = createUnsecuredToken(params)
