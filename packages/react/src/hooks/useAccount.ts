@@ -17,6 +17,19 @@ export type UseAccountParameters<config extends Config = Config> =
 export type UseAccountReturnType<config extends Config = Config> =
   GetAccountReturnType<config>
 
+const DISCONNECTED_ACCOUNT: GetAccountReturnType = {
+  account: undefined,
+  accounts: undefined,
+  chain: undefined,
+  chainId: undefined,
+  connector: undefined,
+  isConnected: false,
+  isConnecting: false,
+  isDisconnected: true,
+  isReconnecting: false,
+  status: 'disconnected',
+}
+
 export function useAccount<C extends Config = ResolvedRegister['config']>(
   parameters: UseAccountParameters<C> = {}
 ): UseAccountReturnType<C> {
@@ -24,6 +37,7 @@ export function useAccount<C extends Config = ResolvedRegister['config']>(
 
   return useSyncExternalStoreWithTracked(
     (onChange) => watchAccount(config, { onChange }),
-    () => getAccount(config)
+    () => getAccount(config),
+    () => DISCONNECTED_ACCOUNT as UseAccountReturnType<C>
   )
 }

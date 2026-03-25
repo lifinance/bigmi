@@ -1,4 +1,5 @@
 import type { Account, Chain, ChainId } from '@bigmi/core'
+import { deepEqual } from '@bigmi/core'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector } from '../types/connector.js'
 
@@ -56,6 +57,8 @@ export type GetAccountReturnType<
       status: 'disconnected'
     }
 
+let previousAccount: GetAccountReturnType | undefined
+
 export function getAccount<C extends Config>(
   config: C
 ): GetAccountReturnType<C> {
@@ -68,9 +71,10 @@ export function getAccount<C extends Config>(
   ) as GetAccountReturnType<C>['chain']
   const status = config.state.status
 
+  let result: GetAccountReturnType<C>
   switch (status) {
     case 'connected':
-      return {
+      result = {
         account: account!,
         accounts: accounts!,
         chain,
@@ -82,8 +86,9 @@ export function getAccount<C extends Config>(
         isReconnecting: false,
         status,
       }
+      break
     case 'reconnecting':
-      return {
+      result = {
         account: account,
         accounts: accounts,
         chain,
@@ -95,8 +100,9 @@ export function getAccount<C extends Config>(
         isReconnecting: true,
         status,
       }
+      break
     case 'connecting':
-      return {
+      result = {
         account: account,
         accounts: accounts,
         chain,
@@ -108,8 +114,9 @@ export function getAccount<C extends Config>(
         isReconnecting: false,
         status,
       }
+      break
     case 'disconnected':
-      return {
+      result = {
         account: undefined,
         accounts: undefined,
         chain: undefined,
@@ -121,5 +128,12 @@ export function getAccount<C extends Config>(
         isReconnecting: false,
         status,
       }
+      break
   }
+
+  if (previousAccount && deepEqual(previousAccount, result)) {
+    return previousAccount as GetAccountReturnType<C>
+  }
+  previousAccount = result
+  return result
 }
