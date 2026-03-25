@@ -16,6 +16,8 @@ export type UseConnectorsParameters<config extends Config = Config> =
 export type UseConnectorsReturnType<config extends Config = Config> =
   GetConnectorsReturnType<config>
 
+const EMPTY_CONNECTORS: readonly [] = []
+
 export function useConnectors<
   config extends Config = ResolvedRegister['config'],
 >(
@@ -26,6 +28,6 @@ export function useConnectors<
   return useSyncExternalStore(
     (onChange) => watchConnectors(config, { onChange }),
     () => getConnectors(config),
-    () => getConnectors(config)
+    () => EMPTY_CONNECTORS as UseConnectorsReturnType<config>
   )
 }
