@@ -43,20 +43,20 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
+    "@biomejs/biome": "^2.4.12",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "cpy-cli": "^7.0.0",
     "fs-extra": "^11.3.4",
     "husky": "^9.1.7",
-    "knip": "^6.3.1",
+    "knip": "^6.4.1",
     "lerna": "9.0.7",
     "standard-version": "^9.5.0",
-    "tsdown": "^0.21.7",
-    "typescript": "^5.9.3"
+    "tsdown": "^0.21.8",
+    "typescript": "^6.0.2"
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
 }
