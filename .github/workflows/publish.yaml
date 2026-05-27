@@ -93,7 +93,6 @@ jobs:
     timeout-minutes: 15
     outputs:
       publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
-      reactVersion: ${{ steps.parse.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -110,18 +109,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - name: Resolve @bigmi/react version
-        id: parse
-        if: steps.changesets.outputs.published == 'true'
-        env:
-          PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
-        run: |
-          VERSION=$(echo "$PUBLISHED" | jq -r '.[]|select(.name=="@bigmi/react")|.version')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Resolved @bigmi/react version=$VERSION"
-
-  linear:
-    name: Linear Sync
+  # Resolve the published @bigmi/react version + channel from publishedPackages
+  # (NOT from a git tag) so the reusable Linear workflow receives concrete inputs.
+  linear-meta:
+    name: Linear Meta (Bigmi)
     needs: release
     # Anchor: only sync when @bigmi/react was actually published this cycle.
     # @bigmi/react sits at the top of the dependency graph, so it bumps on nearly
@@ -131,10 +122,39 @@ jobs:
     if: contains(needs.release.outputs.publishedPackages, '"@bigmi/react"')
     permissions:
       contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.meta.outputs.full }}
+      version: ${{ steps.meta.outputs.version }}
+      channel: ${{ steps.meta.outputs.channel }}
+    steps:
+      - name: Derive version and channel from publishedPackages
+        id: meta
+        env:
+          PUBLISHED: ${{ needs.release.outputs.publishedPackages }}
+        run: |
+          FULL=$(echo "$PUBLISHED" | jq -r '.[] | select(.name=="@bigmi/react") | .version')
+          VERSION="${FULL%%-*}"
+          case "$FULL" in
+            *-alpha.*) CHANNEL=alpha ;;
+            *-beta.*)  CHANNEL=beta ;;
+            *)         CHANNEL=stable ;;
+          esac
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "Resolved @bigmi/react $FULL -> version=$VERSION channel=$CHANNEL"
+
+  linear:
+    name: Linear Sync (Bigmi)
+    needs: linear-meta
+    permissions:
+      contents: read
     uses: ./.github/workflows/linear-release.yaml
     with:
       release_name: Bigmi
-      version: ${{ needs.release.outputs.reactVersion }}
-      channel: stable
+      version: ${{ needs.linear-meta.outputs.version }}
+      channel: ${{ needs.linear-meta.outputs.channel }}
+      release_tag: '@bigmi/react@${{ needs.linear-meta.outputs.full }}'
     secrets:
       access_key: ${{ secrets.LINEAR_RELEASE_ACCESS_KEY }}

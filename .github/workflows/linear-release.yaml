@@ -1,24 +1,29 @@
 name: 'Release · Linear Sync'
 
-# Reusable: syncs a published release into the Linear "Bigmi" pipeline.
-# Called by publish.yaml after `changeset publish` succeeds; not triggered on
-# its own. Unlike a tag-driven flow, the caller resolves the version and channel
-# (Changesets has no git tag at this point) and passes them in explicitly.
+# Reusable: syncs a published release into a Linear release pipeline.
+# Called by publish.yaml once per anchor package after `changeset publish`
+# succeeds; not triggered on its own.
+#
+# Version + channel are DERIVED by the caller from the changesets
+# publishedPackages output (NOT from a git tag) and passed in here.
 on:
   workflow_call:
     inputs:
       release_name:
-        description: 'Linear release name / project (e.g. "Bigmi")'
+        description: 'Linear release name prefix (e.g. "Widget" or "Checkout")'
         required: true
         type: string
       version:
-        description: 'Released version, e.g. 0.8.1 (no leading v, no prerelease suffix)'
+        description: 'Released semver, prerelease stripped (e.g. 4.0.0)'
         required: true
         type: string
       channel:
-        description: 'Release channel: stable | alpha | beta'
-        required: false
-        default: stable
+        description: 'Release channel: alpha | beta | stable'
+        required: true
+        type: string
+      release_tag:
+        description: 'Full per-package GitHub release tag (e.g. @lifi/widget@4.0.0-beta.21)'
+        required: true
         type: string
     secrets:
       access_key:
@@ -35,13 +40,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          fetch-tags: true
           persist-credentials: false
 
-      # Attach merged issues to the X.Y.Z release and record a link back to the
-      # GitHub Releases page. NOTE: in the Changesets model `createGithubReleases`
-      # tags per-package releases as `@bigmi/react@X.Y.Z` (no `vX.Y.Z` tag), so we
-      # link the generic /releases listing rather than a specific tag URL that
-      # would 404.
+      # Attach merged issues to the X.Y.Z release and record a link.
       - name: Sync issues to release
         uses: linear/linear-release-action@ad7da502eec3a93dd17e2e249e6c1cd84e3ee588 # v0
         with:
@@ -50,11 +52,9 @@ jobs:
           release_version: ${{ inputs.version }}
           name: ${{ inputs.release_name }} ${{ inputs.version }}
           links: |
-            ${{ github.server_url }}/${{ github.repository }}/releases
+            ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.release_tag }}
 
-      # Prerelease: advance the stage only (release stays open -> tickets stay
-      # "Ready for Release"). Not used today (bigmi has no pre-mode) but kept for
-      # parity and future `pre enter` alpha/beta cycles.
+      # Prerelease: advance the stage only (release stays open -> tickets stay "Ready for Release").
       - name: Advance stage (alpha/beta)
         if: inputs.channel != 'stable'
         uses: linear/linear-release-action@ad7da502eec3a93dd17e2e249e6c1cd84e3ee588 # v0
@@ -64,8 +64,7 @@ jobs:
           release_version: ${{ inputs.version }}
           stage: ${{ inputs.channel == 'alpha' && 'Alpha' || 'Beta' }}
 
-      # Stable: complete the release -> fires the "On release completion -> Done"
-      # automation. This is the live path for bigmi (latest = stable).
+      # Stable: complete the release -> fires the "On release completion -> Done" automation.
       - name: Complete release (stable)
         if: inputs.channel == 'stable'
         uses: linear/linear-release-action@ad7da502eec3a93dd17e2e249e6c1cd84e3ee588 # v0

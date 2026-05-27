@@ -12,7 +12,7 @@ importers:
         specifier: ^2.4.12
         version: 2.4.12
       '@changesets/cli':
-        specifier: ^2.31.0
+        specifier: ^2.29.7
         version: 2.31.0(@types/node@25.6.0)
       '@commitlint/cli':
         specifier: ^20.5.0
