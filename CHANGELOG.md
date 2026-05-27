@@ -1,6 +1,14 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+> **Archived (pre-cutover).** This root changelog is frozen at `0.8.0`. As of the
+> Changesets migration, release notes are tracked per package in
+> `packages/*/CHANGELOG.md` and generated from changeset entries. Entries below
+> were produced by `standard-version` prior to the cutover and are preserved for
+> historical reference only.
+
+All notable changes to this project, up to `0.8.0`, were documented in this file
+using [standard-version](https://github.com/conventional-changelog/standard-version)
+commit guidelines.
 
 ## [0.8.0](https://github.com/lifinance/bigmi/compare/v0.7.1...v0.8.0) (2026-03-25)
 
