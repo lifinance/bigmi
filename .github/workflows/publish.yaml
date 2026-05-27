@@ -1,44 +1,140 @@
 name: Release & Publish
 
+# Changesets-driven release pipeline.
+#
+# On push to `main`:
+#   1. `verify`     — lint / types / circular-deps / knip / build / test.
+#   2. `changesets` — if changeset files are present, opens/updates the
+#                     "chore: version packages" PR. When that PR is merged the
+#                     changesets are consumed, so the next run has none.
+#   3. `release`    — runs only when there are NO pending changesets (i.e. the
+#                     version PR was just merged) and publishes to npm via
+#                     `changeset publish`, creating GitHub Releases.
+#   4. `linear`     — syncs the published release into the Linear "Bigmi"
+#                     pipeline, gated on @bigmi/react actually being published.
+#
+# npm auth uses OIDC trusted publishing (no NPM token) — the trusted publisher
+# on npmjs.com is bound to this repo + this workflow filename. KEEP this file
+# named `publish.yaml` (binding established in PR #52); renaming breaks publish.
+
 on:
   push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-  workflow_dispatch:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  release:
-    permissions:
-      contents: write
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          generate_release_notes: true
-          name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-
-  publish:
-    permissions:
-      contents: write
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install dependencies
         uses: ./.github/actions/pnpm-install
+      - name: Check code
+        run: pnpm check
+      - name: Check types
+        run: pnpm check:types
+      - name: Check circular deps
+        run: pnpm check:circular-deps
+      - name: Check unused deps/files
+        run: pnpm knip:check
       - name: Build
         run: pnpm build
-      - name: Publish to npm
-        run: |
-          pnpm release:publish${{ contains(github.ref_name, 'alpha') && ':alpha' || contains(github.ref_name, 'beta') && ':beta' || '' }}
+      - name: Test
+        run: pnpm test
+
+  changesets:
+    name: Version
+    needs: verify
+    # prevents this job from running on forks
+    if: github.repository == 'lifinance/bigmi'
+    permissions:
+      contents: write # to create the version PR
+      pull-requests: write # to create the version PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # full history so Changesets can generate changelogs with correct commits
+          fetch-depth: 0
+      - name: Install dependencies
+        uses: ./.github/actions/pnpm-install
+      - name: Create version PR
+        id: changesets
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        with:
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+          version: pnpm changeset:version
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Publish
+    needs: changesets
+    # Only publish once the version PR is merged (no pending changesets remain).
+    if: needs.changesets.outputs.hasChangesets == 'false'
+    permissions:
+      contents: write # to create GitHub Releases (changesets/action)
+      id-token: write # OIDC token for npm trusted publishing + provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+      reactVersion: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        uses: ./.github/actions/pnpm-install
+      - name: Publish to npm
+        id: changesets
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        with:
+          publish: pnpm changeset:publish
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+      - name: Resolve @bigmi/react version
+        id: parse
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          VERSION=$(echo "$PUBLISHED" | jq -r '.[]|select(.name=="@bigmi/react")|.version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved @bigmi/react version=$VERSION"
+
+  linear:
+    name: Linear Sync
+    needs: release
+    # Anchor: only sync when @bigmi/react was actually published this cycle.
+    # @bigmi/react sits at the top of the dependency graph, so it bumps on nearly
+    # every release and is the package consumers install — maximum coverage.
+    # Cycles that publish only @bigmi/core and/or @bigmi/client (no react bump)
+    # are intentionally skipped; reconcile those manually if ever needed.
+    if: contains(needs.release.outputs.publishedPackages, '"@bigmi/react"')
+    permissions:
+      contents: read
+    uses: ./.github/workflows/linear-release.yaml
+    with:
+      release_name: Bigmi
+      version: ${{ needs.release.outputs.reactVersion }}
+      channel: stable
+    secrets:
+      access_key: ${{ secrets.LINEAR_RELEASE_ACCESS_KEY }}
