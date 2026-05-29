@@ -216,6 +216,7 @@ jobs:
 
       # Snapshot-publish to the `canary` dist-tag + comment the install command.
       # Composite (not reusable workflow) so OIDC stays bound to publish.yaml.
-      # bigmi is on a stable line (no pre mode), so pre_mode defaults to false.
+      # The action auto-detects pre mode from .changeset/pre.json (bigmi has none
+      # — stable line — so it snapshots directly).
       - name: Publish canary
         uses: ./.github/actions/canary-publish
