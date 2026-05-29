@@ -46,7 +46,7 @@ Uses **tsdown** (powered by Rolldown/OXC) for all packages. Each package has a `
 
 Releases use **[Changesets](https://github.com/changesets/changesets)** (independent versioning). Lerna and standard-version have been removed.
 
-**Per-PR rule: every PR with a publishable change MUST include a changeset.** Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. CI (`changeset-check.yaml`) fails any PR that touches publishable source without one. Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
+**Per-PR rule: every PR with a publishable change MUST include a changeset.** Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. `changeset-bot` comments a reminder on any PR that touches publishable source without one (a nudge, not a hard block — the maintainer-reviewed Version PR is the real gate). Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
 
 **Flow (all automated on push to `main` via `publish.yaml`):**
 1. PRs land with changeset files.
