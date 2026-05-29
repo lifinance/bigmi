@@ -32,9 +32,10 @@ fails the PR. Your job here is to write a correct changeset for the work in prog
    Read `references/bump-rules.md` for this repo's **publishable** vs **private/ignored**
    package list and the dependency graph. Only publishable packages need a changeset.
 
-3. **Decide the bump per package.** `feat:` → **minor**, `fix:` → **patch**, a breaking
-   change → **major**. See `references/bump-rules.md` for the nuances (and why you should
-   *not* list cascade-only dependents).
+3. **Decide the bump per package.** On this `0.x` line: `fix:`/`feat:` → **patch**, a
+   breaking change → **minor** (a stable `1.0.0` is a separate, deliberate cut). See
+   `references/bump-rules.md` for the full rationale (and why you should *not* list
+   cascade-only dependents).
 
 4. **Write the file.** Create `.changeset/<short-kebab-name>.md` in the exact frontmatter
    format from `references/format.md`. The summary becomes the changelog line, so write it
