@@ -39,8 +39,8 @@
     "hooks"
   ],
   "dependencies": {
-    "@bigmi/client": "workspace:^",
-    "@bigmi/core": "workspace:^"
+    "@bigmi/client": "workspace:*",
+    "@bigmi/core": "workspace:*"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",
