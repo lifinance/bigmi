@@ -63,7 +63,7 @@ Releases use **[Changesets](https://github.com/changesets/changesets)** (indepen
 
 **Versioning / channels:** latest is stable (`0.8.0` → `0.8.x`/`0.9.0` published to the `latest` dist-tag). There is **no pre-mode** (`.changeset/pre.json` does not exist). For alpha/beta, enter pre-mode explicitly with `pnpm changeset pre enter alpha` (or `beta`), version/publish, then `pnpm changeset pre exit`.
 
-**npm auth:** OIDC trusted publishing (no `NPM_TOKEN`); the trusted publisher on npmjs.com is bound to this repo **and** the `publish.yaml` filename (PR #52). Do not rename `publish.yaml`. `.npmrc` sets `provenance=true`.
+**npm auth:** OIDC trusted publishing (no `NPM_TOKEN`); the trusted publisher on npmjs.com is bound to this repo **and** the `publish.yaml` filename (PR #52). Do not rename `publish.yaml`. Provenance is enabled via `NPM_CONFIG_PROVENANCE: true` in `publish.yaml` and the `preview-publish` action (works under pnpm 11; the repo has no `.npmrc` — pnpm settings live in `pnpm-workspace.yaml`).
 
 **Linear anchor:** the release is synced when `@bigmi/react` is among the published packages — it sits atop the dependency graph (publishes nearly every cycle) and is what consumers install, giving maximum coverage. A cycle that publishes only `@bigmi/core`/`@bigmi/client` without a react bump is **skipped**; reconcile that release in Linear manually if it ever happens.
 
