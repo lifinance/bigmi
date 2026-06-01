@@ -50,7 +50,7 @@ Releases use **[Changesets](https://github.com/changesets/changesets)** (indepen
 
 **Flow (all automated on push to `main` via `publish.yaml`):**
 1. PRs land with changeset files.
-2. Changesets opens/updates a **"chore: version packages"** PR that consumes the changesets, bumps versions, refreshes internal `workspace:^` ranges, and writes per-package `CHANGELOG.md`.
+2. Changesets opens/updates a **"chore: version packages"** PR that consumes the changesets, bumps versions, refreshes internal `workspace:*` pins, and writes per-package `CHANGELOG.md`.
 3. Merging that PR triggers `release`, which runs `pnpm changeset:publish` and creates GitHub Releases.
 4. On a successful publish that includes `@bigmi/react`, the **Linear "Bigmi"** pipeline is synced (issues attached + release completed).
 

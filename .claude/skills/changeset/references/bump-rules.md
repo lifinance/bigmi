@@ -28,8 +28,9 @@ There are no private/ignored workspace packages (`.changeset/config.json` `ignor
   ↑ @bigmi/react    (depends on client AND core)
 ```
 
-Internal deps use `workspace:^`. With `updateInternalDependencies: patch`, bumping a
-package **re-releases its dependents automatically**. So:
+Internal deps use `workspace:*` (exact pins), so bumping a package **re-releases its
+dependents automatically** — any new version leaves the exact pin, forcing Changesets to
+re-version every dependent. So:
 
 - Changed `@bigmi/core` only → declare a changeset for **just** `@bigmi/core`; `client` and
   `react` bump on their own.
