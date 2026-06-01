@@ -1,21 +1,9 @@
 name: Release & Publish
 
-# Changesets-driven release pipeline.
+# Changesets-driven release pipeline: push to main → version PR → publish → Linear sync.
 #
-# On push to `main`:
-#   1. `verify`     — lint / types / circular-deps / knip / build / test.
-#   2. `changesets` — if changeset files are present, opens/updates the
-#                     "chore: version packages" PR. When that PR is merged the
-#                     changesets are consumed, so the next run has none.
-#   3. `release`    — runs only when there are NO pending changesets (i.e. the
-#                     version PR was just merged) and publishes to npm via
-#                     `changeset publish`, creating GitHub Releases.
-#   4. `linear`     — syncs the published release into the Linear "Bigmi"
-#                     pipeline, gated on @bigmi/react actually being published.
-#
-# npm auth uses OIDC trusted publishing (no NPM token) — the trusted publisher
-# on npmjs.com is bound to this repo + this workflow filename. KEEP this file
-# named `publish.yaml` (binding established in PR #52); renaming breaks publish.
+# npm auth = OIDC trusted publishing (no token), bound to this repo + workflow filename
+# (PR #52). KEEP this file named `publish.yaml` — renaming breaks publishing.
 
 on:
   push:
@@ -34,8 +22,7 @@ permissions: {} # each job declares only the permissions it needs
 jobs:
   verify:
     name: Verify
-    # The main-release chain runs on push only — never on the pull_request
-    # (labeled) event that drives preview releases.
+    # Main release chain runs on push only, not the preview label event.
     if: github.event_name != 'pull_request'
     permissions:
       contents: read
@@ -121,12 +108,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-  # Sync the published release into the Linear "Bigmi" pipeline. Anchor:
-  # @bigmi/react — it sits atop the dependency graph, bumps on nearly every
-  # release, and is what consumers install (maximum coverage). Cycles that publish
-  # only @bigmi/core and/or @bigmi/client (no react bump) are intentionally
-  # skipped; reconcile those manually if ever needed. linear-release.yaml derives
-  # the version + channel from publishedPackages internally.
+  # Linear "Bigmi" sync, anchored on @bigmi/react (top of the graph, what consumers
+  # install). core/client-only cycles (no react bump) are skipped — reconcile manually.
   linear:
     name: Linear Sync (Bigmi)
     needs: release
@@ -141,17 +124,9 @@ jobs:
     secrets:
       access_key: ${{ secrets.LINEAR_RELEASE_ACCESS_KEY }}
 
-  # ---------------------------------------------------------------------------
-  # Preview release (opt-in, per PR).
-  #
-  # Add the `release-preview` label to a PR to publish a throwaway
-  # 0.0.0-preview-<sha> build to the npm `preview` dist-tag for testing.
-  # One-shot: the label is removed after a publish; re-add to cut another.
-  #
-  # Trust boundary (no in-workflow role check): applying a label requires Triage+,
-  # and the same-repo guard means the code was pushed with Write access — so
-  # forks/externals can't trigger it. The job is isolated (no deploy/Linear
-  # secrets), and 0.0.0-preview can never become `latest`/`beta`.
+  # Preview release (opt-in): the `release-preview` label publishes a throwaway
+  # 0.0.0-preview-<sha> to the `preview` dist-tag. Gated by same-repo + Triage+-to-label
+  # (forks can't trigger); secret-isolated; 0.0.0-preview can't become latest/beta.
   # NEVER convert this to pull_request_target.
   preview:
     name: Preview release (PR)
@@ -177,9 +152,6 @@ jobs:
         with:
           cache: 'false' # privileged job — don't restore a potentially poisoned cache
 
-      # Snapshot-publish to the `preview` dist-tag + comment the install command.
-      # Composite (not reusable workflow) so OIDC stays bound to publish.yaml.
-      # The action auto-detects pre mode from .changeset/pre.json (bigmi has none
-      # — stable line — so it snapshots directly).
+      # Composite (not a reusable workflow) so npm OIDC stays bound to publish.yaml.
       - name: Publish preview
         uses: ./.github/actions/preview-publish
