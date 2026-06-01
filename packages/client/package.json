@@ -41,12 +41,12 @@
   "dependencies": {
     "@bigmi/core": "workspace:^",
     "eventemitter3": "^5.0.4",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "@tanstack/query-core": ">=5.68.0"

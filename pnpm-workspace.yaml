@@ -1,2 +1,6 @@
 packages:
   - 'packages/*'
+
+linkWorkspacePackages: deep
+strictPeerDependencies: false
+enablePrePostScripts: true

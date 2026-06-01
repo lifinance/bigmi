@@ -44,14 +44,14 @@
     "bitcoinjs-lib": "^7.0.1",
     "bs58": "^6.0.0",
     "eventemitter3": "^5.0.4",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/coverage-v8": "^4.1.7",
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.4"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
   },
   "peerDependencies": {
     "bs58": "^6.0.0"
