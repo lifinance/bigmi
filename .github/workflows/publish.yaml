@@ -48,14 +48,14 @@ jobs:
         uses: ./.github/actions/pnpm-install
       - name: Check code
         run: pnpm check
-      - name: Check types
-        run: pnpm check:types
       - name: Check circular deps
         run: pnpm check:circular-deps
       - name: Check unused deps/files
         run: pnpm knip:check
       - name: Build
         run: pnpm build
+      - name: Check types
+        run: pnpm check:types
       - name: Test
         run: pnpm test
 
