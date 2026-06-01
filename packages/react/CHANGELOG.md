@@ -1,10 +1,11 @@
-# Changelog
+# @bigmi/react
 
-> **Archived (pre-cutover).** This root changelog is frozen at `0.8.0`. As of the
-> Changesets migration, release notes are tracked per package in
-> `packages/*/CHANGELOG.md` and generated from changeset entries. Entries below
-> were produced by `standard-version` prior to the cutover and are preserved for
-> historical reference only.
+> **Pre-Changesets history (aggregated, repo-wide).** The entries below are
+> inherited verbatim from the repository root `CHANGELOG.md`, which aggregated
+> releases across all packages of this monorepo before the Changesets cutover.
+> Many entries reference packages other than `@bigmi/react`; per-package release
+> notes (attributed by Changesets) appear above this section as future releases
+> ship.
 
 All notable changes to this project, up to `0.8.0`, were documented in this file
 using [standard-version](https://github.com/conventional-changelog/standard-version)

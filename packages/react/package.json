@@ -9,8 +9,8 @@
   "scripts": {
     "watch": "tsdown --watch",
     "build": "rm -rf dist && node ../../scripts/version.js && node ../../scripts/build.js && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json && printf '{\"type\":\"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-    "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../*.md' .",
-    "build:postrelease": "node ../../scripts/postrelease.js && rm -rf *.md",
+    "build:prerelease": "node ../../scripts/prerelease.js && cpy '../../README.md' '../../LICENSE.md' .",
+    "build:postrelease": "node ../../scripts/postrelease.js && rm -f README.md LICENSE.md",
     "clean": "rm -rf dist",
     "check:types": "tsc --noEmit",
     "check:circular-deps": "madge --circular $(find ./src -name '*.ts' -o -name '*.tsx')",
@@ -56,6 +56,7 @@
   },
   "files": [
     "dist/**",
+    "CHANGELOG.md",
     "!dist/**/*.tsbuildinfo",
     "src/**/*.ts",
     "!src/**/*.spec.ts",
