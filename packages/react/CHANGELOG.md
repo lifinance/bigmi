@@ -1,5 +1,13 @@
 # @bigmi/react
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`767fb0c`](https://github.com/lifinance/bigmi/commit/767fb0cba233decea140daf1b562c104f027a261)]:
+  - @bigmi/core@0.8.1
+  - @bigmi/client@0.8.1
+
 > **Pre-Changesets history (aggregated, repo-wide).** The entries below are
 > inherited verbatim from the repository root `CHANGELOG.md`, which aggregated
 > releases across all packages of this monorepo before the Changesets cutover.
@@ -13,102 +21,90 @@ commit guidelines.
 
 ## [0.8.0](https://github.com/lifinance/bigmi/compare/v0.7.1...v0.8.0) (2026-03-25)
 
-
 ### ⚠ BREAKING CHANGES
 
-* migrate build pipeline from tsc to tsdown (#51)
+- migrate build pipeline from tsc to tsdown (#51)
 
 ### Bug Fixes
 
-* **react:** resolve useSyncExternalStore SSR infinite loop in useAccount and useConnectors ([#50](https://github.com/lifinance/bigmi/issues/50)) ([691b26c](https://github.com/lifinance/bigmi/commit/691b26c45c1de91ae3a1aaac93b675b40c1d8e5f))
+- **react:** resolve useSyncExternalStore SSR infinite loop in useAccount and useConnectors ([#50](https://github.com/lifinance/bigmi/issues/50)) ([691b26c](https://github.com/lifinance/bigmi/commit/691b26c45c1de91ae3a1aaac93b675b40c1d8e5f))
 
-
-* migrate build pipeline from tsc to tsdown ([#51](https://github.com/lifinance/bigmi/issues/51)) ([0c4defb](https://github.com/lifinance/bigmi/commit/0c4defb4d4611fe09fddf01fed1a312de0344c1e))
+- migrate build pipeline from tsc to tsdown ([#51](https://github.com/lifinance/bigmi/issues/51)) ([0c4defb](https://github.com/lifinance/bigmi/commit/0c4defb4d4611fe09fddf01fed1a312de0344c1e))
 
 ### [0.7.1](https://github.com/lifinance/bigmi/compare/v0.7.0...v0.7.1) (2026-03-12)
 
-
 ### Bug Fixes
 
-* **core:** add missing jsonrpc and id fields to RPC request body ([#48](https://github.com/lifinance/bigmi/issues/48)) ([9896c7c](https://github.com/lifinance/bigmi/commit/9896c7c6f1498f54c29ae78be8a74008bad3a98a))
+- **core:** add missing jsonrpc and id fields to RPC request body ([#48](https://github.com/lifinance/bigmi/issues/48)) ([9896c7c](https://github.com/lifinance/bigmi/commit/9896c7c6f1498f54c29ae78be8a74008bad3a98a))
 
 ## [0.7.0](https://github.com/lifinance/bigmi/compare/v0.6.5...v0.7.0) (2026-02-05)
 
-
 ### ⚠ BREAKING CHANGES
 
-* **client:** add unhosted wallet support (#46)
+- **client:** add unhosted wallet support (#46)
 
 ### Features
 
-* add reown support ([#44](https://github.com/lifinance/bigmi/issues/44)) ([657cae6](https://github.com/lifinance/bigmi/commit/657cae6615965ec5be6b1c079abc10c34cdc572d))
-* **client:** add unhosted wallet support ([#46](https://github.com/lifinance/bigmi/issues/46)) ([b3537b7](https://github.com/lifinance/bigmi/commit/b3537b77cc8a6322868330f5c6528834d86a5d99))
+- add reown support ([#44](https://github.com/lifinance/bigmi/issues/44)) ([657cae6](https://github.com/lifinance/bigmi/commit/657cae6615965ec5be6b1c079abc10c34cdc572d))
+- **client:** add unhosted wallet support ([#46](https://github.com/lifinance/bigmi/issues/46)) ([b3537b7](https://github.com/lifinance/bigmi/commit/b3537b77cc8a6322868330f5c6528834d86a5d99))
 
 ### [0.6.5](https://github.com/lifinance/bigmi/compare/v0.6.4...v0.6.5) (2026-01-08)
 
-
 ### Bug Fixes
 
-* **blockchair-getXpubAddresses:** return empty data when api returns empty data with 200 ([#43](https://github.com/lifinance/bigmi/issues/43)) ([d2e9b5b](https://github.com/lifinance/bigmi/commit/d2e9b5ba85eff202bfdafa5b6bf9041589e994c8))
+- **blockchair-getXpubAddresses:** return empty data when api returns empty data with 200 ([#43](https://github.com/lifinance/bigmi/issues/43)) ([d2e9b5b](https://github.com/lifinance/bigmi/commit/d2e9b5ba85eff202bfdafa5b6bf9041589e994c8))
 
 ### [0.6.4](https://github.com/lifinance/bigmi/compare/v0.6.3...v0.6.4) (2025-12-17)
 
-
 ### Features
 
-* add getXPubAddresses action ([#41](https://github.com/lifinance/bigmi/issues/41)) ([2aa3216](https://github.com/lifinance/bigmi/commit/2aa321602e83fc5642d7b86c8d114a0e0d38c13b))
+- add getXPubAddresses action ([#41](https://github.com/lifinance/bigmi/issues/41)) ([2aa3216](https://github.com/lifinance/bigmi/commit/2aa321602e83fc5642d7b86c8d114a0e0d38c13b))
 
 ### [0.6.3](https://github.com/lifinance/bigmi/compare/v0.6.2...v0.6.3) (2025-11-26)
 
 ### [0.6.2](https://github.com/lifinance/bigmi/compare/v0.6.1...v0.6.2) (2025-11-13)
 
-
 ### Bug Fixes
 
-* **leather-wallet:** cache wallet connection with daily expiry and improve wallet reconnection reliability ([#36](https://github.com/lifinance/bigmi/issues/36)) ([fcff06e](https://github.com/lifinance/bigmi/commit/fcff06e19426154750b775f7a1b83f5c6db038dd))
+- **leather-wallet:** cache wallet connection with daily expiry and improve wallet reconnection reliability ([#36](https://github.com/lifinance/bigmi/issues/36)) ([fcff06e](https://github.com/lifinance/bigmi/commit/fcff06e19426154750b775f7a1b83f5c6db038dd))
 
 ### [0.6.1](https://github.com/lifinance/bigmi/compare/v0.6.0...v0.6.1) (2025-10-29)
 
 ## [0.6.0](https://github.com/lifinance/bigmi/compare/v0.5.4...v0.6.0) (2025-10-06)
 
-
 ### ⚠ BREAKING CHANGES
 
-* bump packages
+- bump packages
 
-* bump packages ([3576fa5](https://github.com/lifinance/bigmi/commit/3576fa55cd7ed3492f29f96a8cff6274313477ff))
+- bump packages ([3576fa5](https://github.com/lifinance/bigmi/commit/3576fa55cd7ed3492f29f96a8cff6274313477ff))
 
 ### [0.5.4](https://github.com/lifinance/bigmi/compare/v0.5.3...v0.5.4) (2025-09-29)
 
-
 ### Bug Fixes
 
-* **blockchair:** handle zero balance addresses edge case ([#35](https://github.com/lifinance/bigmi/issues/35)) ([a57c5fd](https://github.com/lifinance/bigmi/commit/a57c5fd49ec22df2dd6165725ce2750d81f3267e))
+- **blockchair:** handle zero balance addresses edge case ([#35](https://github.com/lifinance/bigmi/issues/35)) ([a57c5fd](https://github.com/lifinance/bigmi/commit/a57c5fd49ec22df2dd6165725ce2750d81f3267e))
 
 ### [0.5.3](https://github.com/lifinance/bigmi/compare/v0.5.2...v0.5.3) (2025-09-22)
 
 ### [0.5.2](https://github.com/lifinance/bigmi/compare/v0.5.1...v0.5.2) (2025-08-28)
 
-
 ### Bug Fixes
 
-* imports ([6b26572](https://github.com/lifinance/bigmi/commit/6b265727d74bd84d326543a61ab52d4fb0c58ae0))
+- imports ([6b26572](https://github.com/lifinance/bigmi/commit/6b265727d74bd84d326543a61ab52d4fb0c58ae0))
 
 ### [0.5.1](https://github.com/lifinance/bigmi/compare/v0.5.0...v0.5.1) (2025-08-28)
 
-
 ### Bug Fixes
 
-* update connectors to determine chain id based on address ([#33](https://github.com/lifinance/bigmi/issues/33)) ([ae969c9](https://github.com/lifinance/bigmi/commit/ae969c909f6ca4376e4e2468152309251a983910))
+- update connectors to determine chain id based on address ([#33](https://github.com/lifinance/bigmi/issues/33)) ([ae969c9](https://github.com/lifinance/bigmi/commit/ae969c909f6ca4376e4e2468152309251a983910))
 
 ## [0.5.0](https://github.com/lifinance/bigmi/compare/v0.4.5...v0.5.0) (2025-08-28)
 
-
 ### ⚠ BREAKING CHANGES
 
-* change chainId to enum (#31)
+- change chainId to enum (#31)
 
-* change chainId to enum ([#31](https://github.com/lifinance/bigmi/issues/31)) ([4e93517](https://github.com/lifinance/bigmi/commit/4e93517e50353ffe949c7fd7cebd3313a9d2d69e))
+- change chainId to enum ([#31](https://github.com/lifinance/bigmi/issues/31)) ([4e93517](https://github.com/lifinance/bigmi/commit/4e93517e50353ffe949c7fd7cebd3313a9d2d69e))
 
 ### [0.4.5](https://github.com/lifinance/bigmi/compare/v0.4.4...v0.4.5) (2025-08-27)
 
@@ -116,76 +112,67 @@ commit guidelines.
 
 ### [0.4.3](https://github.com/lifinance/bigmi/compare/v0.4.2...v0.4.3) (2025-07-31)
 
-
 ### Bug Fixes
 
-* **connectors:** remove retry logic when checking if app isAuthorized ([#30](https://github.com/lifinance/bigmi/issues/30)) ([7709d68](https://github.com/lifinance/bigmi/commit/7709d68f67b19880940d68e288ac061ec4f074f8))
+- **connectors:** remove retry logic when checking if app isAuthorized ([#30](https://github.com/lifinance/bigmi/issues/30)) ([7709d68](https://github.com/lifinance/bigmi/commit/7709d68f67b19880940d68e288ac061ec4f074f8))
 
 ### [0.4.2](https://github.com/lifinance/bigmi/compare/v0.4.1...v0.4.2) (2025-07-17)
 
 ### [0.4.1](https://github.com/lifinance/bigmi/compare/v0.4.0...v0.4.1) (2025-07-02)
 
-
 ### Bug Fixes
 
-* unisat wallet connector ([#24](https://github.com/lifinance/bigmi/issues/24)) ([6466bc5](https://github.com/lifinance/bigmi/commit/6466bc543719b1b26b1cdf990f2dc667659042a4))
+- unisat wallet connector ([#24](https://github.com/lifinance/bigmi/issues/24)) ([6466bc5](https://github.com/lifinance/bigmi/commit/6466bc543719b1b26b1cdf990f2dc667659042a4))
 
 ## [0.4.0](https://github.com/lifinance/bigmi/compare/v0.4.0-beta.2...v0.4.0) (2025-07-01)
 
-
 ### Bug Fixes
 
-* **client:** update ctrl wallet signPSBT() signature ([#23](https://github.com/lifinance/bigmi/issues/23)) ([f502b92](https://github.com/lifinance/bigmi/commit/f502b924cdc4412f551c39333ae6bab800904975))
+- **client:** update ctrl wallet signPSBT() signature ([#23](https://github.com/lifinance/bigmi/issues/23)) ([f502b92](https://github.com/lifinance/bigmi/commit/f502b924cdc4412f551c39333ae6bab800904975))
 
 ### [0.3.1](https://github.com/lifinance/bigmi/compare/v0.3.0...v0.3.1) (2025-05-30)
 
-
 ### Features
 
-* add more connectors (oyl, binance, magicEden & bitget) ([#17](https://github.com/lifinance/bigmi/issues/17)) ([18ad09a](https://github.com/lifinance/bigmi/commit/18ad09acd07726d25bd6422b0ecedd37745be335))
+- add more connectors (oyl, binance, magicEden & bitget) ([#17](https://github.com/lifinance/bigmi/issues/17)) ([18ad09a](https://github.com/lifinance/bigmi/commit/18ad09acd07726d25bd6422b0ecedd37745be335))
 
 ## [0.3.0](https://github.com/lifinance/bigmi/compare/v0.2.1...v0.3.0) (2025-05-28)
 
-
 ### ⚠ BREAKING CHANGES
 
-* add getUTXOs action (#16)
+- add getUTXOs action (#16)
 
 ### Features
 
-* add getUTXOs action ([#16](https://github.com/lifinance/bigmi/issues/16)) ([e884c02](https://github.com/lifinance/bigmi/commit/e884c02ad902123a9daf2edaeea2ab777c315925))
+- add getUTXOs action ([#16](https://github.com/lifinance/bigmi/issues/16)) ([e884c02](https://github.com/lifinance/bigmi/commit/e884c02ad902123a9daf2edaeea2ab777c315925))
 
 ### [0.2.1](https://github.com/lifinance/bigmi/compare/v0.2.0...v0.2.1) (2025-05-14)
 
-
 ### Bug Fixes
 
-* optimize usage of supported methods by RPC and API transports ([#15](https://github.com/lifinance/bigmi/issues/15)) ([ff20e08](https://github.com/lifinance/bigmi/commit/ff20e089286bdc5f6f9d12ed2362f95d3c276fd9))
+- optimize usage of supported methods by RPC and API transports ([#15](https://github.com/lifinance/bigmi/issues/15)) ([ff20e08](https://github.com/lifinance/bigmi/commit/ff20e089286bdc5f6f9d12ed2362f95d3c276fd9))
 
 ## [0.2.0](https://github.com/lifinance/bigmi/compare/v0.1.1...v0.2.0) (2025-05-14)
 
-
 ### ⚠ BREAKING CHANGES
 
-* remove viem dependencies (#14)
+- remove viem dependencies (#14)
 
-* remove viem dependencies ([#14](https://github.com/lifinance/bigmi/issues/14)) ([3c3461f](https://github.com/lifinance/bigmi/commit/3c3461f8b646253df0c1614706f4dd5027d53930))
+- remove viem dependencies ([#14](https://github.com/lifinance/bigmi/issues/14)) ([3c3461f](https://github.com/lifinance/bigmi/commit/3c3461f8b646253df0c1614706f4dd5027d53930))
 
 ### [0.1.1](https://github.com/lifinance/bigmi/compare/v0.0.8...v0.1.1) (2025-02-04)
 
 ### [0.0.8](https://github.com/lifinance/bigmi/compare/v0.0.7...v0.0.8) (2024-12-30)
 
-
 ### Features
 
-* add Leather and OneKey wallets ([#7](https://github.com/lifinance/bigmi/issues/7)) ([ac93f66](https://github.com/lifinance/bigmi/commit/ac93f665c8baa24752fd0ad4e2c513b72587060f))
+- add Leather and OneKey wallets ([#7](https://github.com/lifinance/bigmi/issues/7)) ([ac93f66](https://github.com/lifinance/bigmi/commit/ac93f665c8baa24752fd0ad4e2c513b72587060f))
 
 ### [0.0.7](https://github.com/lifinance/bigmi/compare/v0.0.6...v0.0.7) (2024-12-20)
 
-
 ### Features
 
-* improve peer dependencies ([#6](https://github.com/lifinance/bigmi/issues/6)) ([a9359d1](https://github.com/lifinance/bigmi/commit/a9359d1f72d5089652bad9311d8cd0ee67c909d4))
+- improve peer dependencies ([#6](https://github.com/lifinance/bigmi/issues/6)) ([a9359d1](https://github.com/lifinance/bigmi/commit/a9359d1f72d5089652bad9311d8cd0ee67c909d4))
 
 ### [0.0.6](https://github.com/lifinance/bigmi/compare/v0.0.5...v0.0.6) (2024-12-13)
 
@@ -193,24 +180,21 @@ commit guidelines.
 
 ### [0.0.4](https://github.com/lifinance/bigmi/compare/v0.0.3...v0.0.4) (2024-10-28)
 
-
 ### Features
 
-* add okx wallet ([58b93b5](https://github.com/lifinance/bigmi/commit/58b93b5f8839bbbb0340ff7ac77f03617325c506))
+- add okx wallet ([58b93b5](https://github.com/lifinance/bigmi/commit/58b93b5f8839bbbb0340ff7ac77f03617325c506))
 
 ### [0.0.3](https://github.com/lifinance/bigmi/compare/v0.0.2...v0.0.3) (2024-10-23)
 
 ### 0.0.2 (2024-10-17)
 
-
 ### Bug Fixes
 
-* add createConfig export ([dec450a](https://github.com/lifinance/bigmi/commit/dec450a7e5a071e67e259be78c0b9a8b616c7183))
+- add createConfig export ([dec450a](https://github.com/lifinance/bigmi/commit/dec450a7e5a071e67e259be78c0b9a8b616c7183))
 
 ### 0.0.1 (2024-10-15)
 
-
 ### Bug Fixes
 
-* biome checks ([bc348fa](https://github.com/lifinance/bigmi/commit/bc348faad5cec9ddada1a0c82f4d34e68b85c1c4))
-* tsconfig ([bf6ccea](https://github.com/lifinance/bigmi/commit/bf6cceae3a1602b99b4825ee3695b367d5935226))
+- biome checks ([bc348fa](https://github.com/lifinance/bigmi/commit/bc348faad5cec9ddada1a0c82f4d34e68b85c1c4))
+- tsconfig ([bf6ccea](https://github.com/lifinance/bigmi/commit/bf6cceae3a1602b99b4825ee3695b367d5935226))
