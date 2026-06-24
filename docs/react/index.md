@@ -10,12 +10,12 @@ The main provider component that enables Bigmi functionality in your React appli
 
 ```typescript
 import { BigmiProvider } from '@bigmi/react'
-import { createConfig, phantom, xverse, binance } from '@bigmi/client'
+import { createConfig, xverse, binance } from '@bigmi/client'
 import { bitcoin } from '@bigmi/core'
 
 const config = createConfig({
   chains: [bitcoin],
-  connectors: [phantom(), binance(), okx()]
+  connectors: [xverse(), binance()]
 })
 
 function App() {

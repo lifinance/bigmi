@@ -6,7 +6,6 @@ The client package provides a set of pre-built connectors for popular Bitcoin wa
 
 - Binance Wallet
 - Xverse
-- Phantom
 - Bitget
 - ctrl
 - Leather

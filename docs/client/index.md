@@ -6,13 +6,12 @@ The `@bigmi/client` package provides wallet connectors and tools to integrate Bi
 
 ```typescript
 import { bitcoin, http, createClient } from '@bigmi/core'
-import { binance, xverse, phantom, createConfig } from '@bigmi/client'
+import { binance, xverse, createConfig } from '@bigmi/client'
 
 // Create wallet connectors
 const connectors = [
   binance(),
-  xverse(),
-  phantom()
+  xverse()
 ]
 
 // Create configuration
