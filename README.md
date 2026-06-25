@@ -110,12 +110,12 @@ Simple bigmi setup with a react app:
 
 import { bitcoin, http, createClient } from '@bigmi/core'
 import { BigmiProvider, createConfig } from '@bigmi/react'
-import { binance, xverse, phantom } from '@bigmi/client'
+import { binance, xverse } from '@bigmi/client'
 
 // Create bigmi config object
 const config = createConfig({
     chains: [bitcoin],
-    connectors: [binance(), xverse(), phantom()],
+    connectors: [binance(), xverse()],
     client: ({ chain }) => createClient({ chain, transport: http() }),
     ssr: true // If using Next.js or SSR
 })

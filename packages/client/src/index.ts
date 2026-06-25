@@ -51,11 +51,6 @@ export { onekey } from './connectors/onekey.js'
 export type { OylConnectorProperties } from './connectors/oyl.js'
 export { oyl } from './connectors/oyl.js'
 export type {
-  PhantomBitcoinEventMap,
-  PhantomBitcoinEvents,
-} from './connectors/phantom.js'
-export { phantom } from './connectors/phantom.js'
-export type {
   ReownConnectorParameters,
   ReownWalletInfo,
 } from './connectors/reown.js'
