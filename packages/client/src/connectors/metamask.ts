@@ -18,10 +18,9 @@ import type {
   UTXOWalletProvider,
 } from './types.js'
 
-/** Address purposes MetaMask exposes through the Bitcoin Wallet Standard. */
 type BitcoinAddressPurpose = 'ordinals' | 'payment'
 
-/** SIGHASH flags MetaMask accepts (string union, not the numeric flag). */
+/** MetaMask's string SIGHASH flags (Bigmi uses numeric). */
 type BitcoinSigHashFlag =
   | 'ALL'
   | 'NONE'
@@ -30,23 +29,7 @@ type BitcoinSigHashFlag =
   | 'NONE|ANYONECANPAY'
   | 'SINGLE|ANYONECANPAY'
 
-/**
- * The subset of MetaMask's Bitcoin Wallet Standard features that we rely on.
- *
- * Unlike Phantom (whose extension auto-registers a Wallet Standard wallet),
- * MetaMask is surfaced by registering the `@metamask/bitcoin-wallet-standard`
- * adapter from the consuming app, e.g.:
- *
- * ```ts
- * import { getMultichainClient, getDefaultTransport } from '@metamask/multichain-api-client'
- * import { registerBitcoinWalletStandard } from '@metamask/bitcoin-wallet-standard'
- * registerBitcoinWalletStandard({ client: getMultichainClient({ transport: getDefaultTransport() }) })
- * ```
- *
- * After registration the wallet appears in `getWallets()` exposing the
- * `bitcoin:connect` / `bitcoin:signTransaction` / `bitcoin:events` features.
- * See https://github.com/MetaMask/bitcoin-wallet-standard.
- */
+/** MetaMask Bitcoin Wallet Standard features, registered by the app via `@metamask/bitcoin-wallet-standard`. */
 type MetaMaskBitcoinFeatures = {
   'bitcoin:connect': {
     connect(input: {
@@ -92,10 +75,7 @@ type MetaMaskConnectorProperties = {
 
 const METAMASK_WALLET_NAME = 'MetaMask'
 
-/**
- * Map Bigmi's numeric SIGHASH flag to MetaMask's string flag. Returns
- * `undefined` for unknown values so MetaMask falls back to its default.
- */
+/** Bigmi numeric SIGHASH → MetaMask string flag (undefined = wallet default). */
 function toSigHashFlag(sigHash?: number): BitcoinSigHashFlag | undefined {
   switch (sigHash) {
     case 0x01:
@@ -151,9 +131,7 @@ export function metamask(
       if (typeof window === 'undefined') {
         return
       }
-      // MetaMask is surfaced through the Wallet Standard by the
-      // `@metamask/bitcoin-wallet-standard` adapter (registered by the app).
-      // We match on the name and the presence of the `bitcoin:connect` feature.
+      // Match the app-registered MetaMask wallet by name + `bitcoin:connect`.
       const { get } = getWallets()
       const wallet = get().find(
         (wallet) =>
@@ -260,8 +238,7 @@ export function metamask(
       if (!wallet) {
         throw new ProviderNotFoundError()
       }
-      // MetaMask currently exposes SegWit (payment) addresses only; Taproot
-      // (ordinals) is planned. Request payment and keep payment accounts.
+      // MetaMask exposes SegWit (payment) addresses only; Taproot/ordinals planned.
       const { accounts } = await wallet.features['bitcoin:connect'].connect({
         purposes: ['payment'],
       })
