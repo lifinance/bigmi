@@ -46,6 +46,11 @@ export type {
   MagicEdenBitcoinEvents,
 } from './connectors/magicEden.js'
 export { magicEden } from './connectors/magicEden.js'
+export type {
+  MetaMaskBitcoinEventMap,
+  MetaMaskBitcoinEvents,
+} from './connectors/metamask.js'
+export { metamask } from './connectors/metamask.js'
 export { okx } from './connectors/okx.js'
 export { onekey } from './connectors/onekey.js'
 export type { OylConnectorProperties } from './connectors/oyl.js'
