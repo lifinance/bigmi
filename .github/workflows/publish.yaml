@@ -9,9 +9,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch: # manual re-trigger if a Version-PR merge push needs re-running
-  # Preview releases are opt-in via the `release-preview` PR label.
+  # Runs the Verify job as a pre-merge gate; `labeled` also drives opt-in previews.
   pull_request:
-    types: [labeled]
+    types: [opened, synchronize, reopened, labeled]
 
 concurrency:
   group: release-${{ github.ref }}
@@ -22,15 +22,15 @@ permissions: {} # each job declares only the permissions it needs
 jobs:
   verify:
     name: Verify
-    # Main release chain runs on push only, not the preview label event.
-    if: github.event_name != 'pull_request'
+    # Runs on push (release chain) and on PRs (pre-merge gate so toolchain/CI
+    # changes are validated before they reach main).
     permissions:
       contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install dependencies
         uses: ./.github/actions/pnpm-install
       - name: Check code
@@ -49,8 +49,9 @@ jobs:
   changesets:
     name: Version
     needs: verify
-    # prevents this job from running on forks
-    if: github.repository == 'lifinance/bigmi'
+    # push/dispatch only — never on PRs (a passing PR Verify must not trigger
+    # a version bump) — and not on forks.
+    if: github.event_name != 'pull_request' && github.repository == 'lifinance/bigmi'
     permissions:
       contents: write # to create the version PR
       pull-requests: write # to create the version PR
@@ -60,7 +61,7 @@ jobs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # full history so Changesets can generate changelogs with correct commits
           fetch-depth: 0
@@ -70,7 +71,7 @@ jobs:
           cache: 'false' # privileged job — don't restore a potentially poisoned cache
       - name: Create version PR
         id: changesets
-        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           title: 'chore: version packages'
           commit: 'chore: version packages'
@@ -92,7 +93,7 @@ jobs:
       publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Install dependencies
@@ -101,7 +102,7 @@ jobs:
           cache: 'false' # privileged job — don't restore a potentially poisoned cache
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
         with:
           publish: pnpm changeset:publish
           createGithubReleases: true
@@ -142,7 +143,7 @@ jobs:
       pull-requests: write # post the install comment + remove the label
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
