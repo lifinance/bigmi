@@ -164,14 +164,23 @@ export function unisat(
           throw new MethodNotSupportedRpcError()
       }
     },
-    async connect() {
+    async connect({ isReconnecting = false } = {}) {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
       try {
-        await provider.requestAccounts()
+        // requestAccounts opens the UniSat extension. Reconnect runs on app
+        // mount, so it must only inspect accounts that are already authorized.
+        if (!isReconnecting) {
+          await provider.requestAccounts()
+        }
+
         const accounts = await this.getAccounts()
+        if (accounts.length === 0) {
+          throw new Error('No authorized UniSat accounts found.')
+        }
+
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -225,6 +234,10 @@ export function unisat(
       }
       const accounts = await provider.getAccounts()
       const address = accounts[0]
+      if (!address) {
+        return []
+      }
+
       const publicKey = await provider.getPublicKey()
       const { type, purpose } = getAddressInfo(address)
 
@@ -250,7 +263,17 @@ export function unisat(
           shimDisconnect &&
           // check storage to see if a connection exists already
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
-        return isConnected
+        if (!isConnected) {
+          return false
+        }
+
+        const provider = await this.getInternalProvider()
+        if (!provider) {
+          return false
+        }
+
+        const accounts = await provider.getAccounts()
+        return accounts.length > 0
       } catch {
         return false
       }
