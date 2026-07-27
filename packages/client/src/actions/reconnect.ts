@@ -75,6 +75,9 @@ export async function reconnect(
   // Add this before the connectionPromises mapping
   const processedProviders = new Set()
 
+  // Connectors run in parallel, so keep this check-and-set synchronous
+  let connected = false
+
   // Try to connect to each connector in parallel
   const connectionPromises = sorted.map(async (connector) => {
     try {
@@ -116,9 +119,16 @@ export async function reconnect(
       connector.emitter.on('change', config._internal.events.change)
       connector.emitter.on('disconnect', config._internal.events.disconnect)
 
-      // Update config state immediately when this connector succeeds
+      // Update config state immediately when this connector succeeds.
+      // The first success replaces the map rehydrated from storage, since those
+      // entries are keyed by the previous session's uids.
+      const isFirst = !connected
+      connected = true
+
       config.setState((x) => {
-        const connections = new Map(x.connections)
+        const connections: Map<string, Connection> = isFirst
+          ? new Map()
+          : new Map(x.connections)
         connections.set(connector.uid, {
           accounts: data.accounts as readonly [Account, ...Account[]],
           chainId: data.chainId,
@@ -128,7 +138,7 @@ export async function reconnect(
         return {
           ...x,
           connections,
-          current: x.current || connector.uid, // Set as current if none exists
+          current: isFirst ? connector.uid : x.current,
           status: 'connected',
         }
       })
@@ -154,9 +164,11 @@ export async function reconnect(
     }
   }
 
-  if (connections.length === 0) {
+  if (!connected) {
     config.setState((x) => ({
       ...x,
+      connections: new Map(),
+      current: null,
       status: 'disconnected',
     }))
   }
