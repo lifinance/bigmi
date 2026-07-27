@@ -164,7 +164,15 @@ export async function reconnect(
     }
   }
 
-  if (!connected) {
+  // Only reset if the store is still in the state reconnect put it in. A
+  // `connect()` call can land while reconnect is in flight — reconnect runs on
+  // mount and polls for a provider for up to 5s — and its connection must not
+  // be wiped here.
+  const isStillReconnecting =
+    config.state.status === 'reconnecting' ||
+    config.state.status === 'connecting'
+
+  if (!connected && isStillReconnecting) {
     config.setState((x) => ({
       ...x,
       connections: new Map(),
