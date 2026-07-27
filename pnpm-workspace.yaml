@@ -4,33 +4,41 @@ packages:
 linkWorkspacePackages: deep
 strictPeerDependencies: false
 enablePrePostScripts: true
+
+# Transitive advisories that the direct dependents have not picked up yet.
+# `postcss` is pinned by vite (dev only); `valibot` by bitcoinjs-lib. Drop each
+# entry once its parent ships a release that resolves past the patched version.
+overrides:
+  postcss@<8.5.18: '>=8.5.18'
+  valibot@<1.4.2: '>=1.4.2'
+
 # Allow these freshly-published tsdown/rolldown transitive deps past the
 # minimumReleaseAge supply-chain gate (they're <24h old but vetted). Mirrors
 # lifinance/sdk; pnpm auto-generates this block when installing fresh deps.
 minimumReleaseAgeExclude:
-  - '@yuku-codegen/binding-darwin-arm64@0.6.1'
-  - '@yuku-codegen/binding-darwin-x64@0.6.1'
-  - '@yuku-codegen/binding-freebsd-x64@0.6.1'
-  - '@yuku-codegen/binding-linux-arm-gnu@0.6.1'
-  - '@yuku-codegen/binding-linux-arm-musl@0.6.1'
-  - '@yuku-codegen/binding-linux-arm64-gnu@0.6.1'
-  - '@yuku-codegen/binding-linux-arm64-musl@0.6.1'
-  - '@yuku-codegen/binding-linux-x64-gnu@0.6.1'
-  - '@yuku-codegen/binding-linux-x64-musl@0.6.1'
-  - '@yuku-codegen/binding-win32-arm64@0.6.1'
-  - '@yuku-codegen/binding-win32-x64@0.6.1'
-  - '@yuku-parser/binding-darwin-arm64@0.6.1'
-  - '@yuku-parser/binding-darwin-x64@0.6.1'
-  - '@yuku-parser/binding-freebsd-x64@0.6.1'
-  - '@yuku-parser/binding-linux-arm-gnu@0.6.1'
-  - '@yuku-parser/binding-linux-arm-musl@0.6.1'
-  - '@yuku-parser/binding-linux-arm64-gnu@0.6.1'
-  - '@yuku-parser/binding-linux-arm64-musl@0.6.1'
-  - '@yuku-parser/binding-linux-x64-gnu@0.6.1'
-  - '@yuku-parser/binding-linux-x64-musl@0.6.1'
-  - '@yuku-parser/binding-win32-arm64@0.6.1'
-  - '@yuku-parser/binding-win32-x64@0.6.1'
-  - rolldown-plugin-dts@0.27.8
-  - tsdown@0.22.7
-  - yuku-codegen@0.6.1
-  - yuku-parser@0.6.1
+  - '@yuku-codegen/binding-darwin-arm64@0.8.0'
+  - '@yuku-codegen/binding-darwin-x64@0.8.0'
+  - '@yuku-codegen/binding-freebsd-x64@0.8.0'
+  - '@yuku-codegen/binding-linux-arm-gnu@0.8.0'
+  - '@yuku-codegen/binding-linux-arm-musl@0.8.0'
+  - '@yuku-codegen/binding-linux-arm64-gnu@0.8.0'
+  - '@yuku-codegen/binding-linux-arm64-musl@0.8.0'
+  - '@yuku-codegen/binding-linux-x64-gnu@0.8.0'
+  - '@yuku-codegen/binding-linux-x64-musl@0.8.0'
+  - '@yuku-codegen/binding-win32-arm64@0.8.0'
+  - '@yuku-codegen/binding-win32-x64@0.8.0'
+  - '@yuku-parser/binding-darwin-arm64@0.8.0'
+  - '@yuku-parser/binding-darwin-x64@0.8.0'
+  - '@yuku-parser/binding-freebsd-x64@0.8.0'
+  - '@yuku-parser/binding-linux-arm-gnu@0.8.0'
+  - '@yuku-parser/binding-linux-arm-musl@0.8.0'
+  - '@yuku-parser/binding-linux-arm64-gnu@0.8.0'
+  - '@yuku-parser/binding-linux-arm64-musl@0.8.0'
+  - '@yuku-parser/binding-linux-x64-gnu@0.8.0'
+  - '@yuku-parser/binding-linux-x64-musl@0.8.0'
+  - '@yuku-parser/binding-win32-arm64@0.8.0'
+  - '@yuku-parser/binding-win32-x64@0.8.0'
+  - rolldown-plugin-dts@0.27.14
+  - tsdown@0.22.14
+  - yuku-codegen@0.8.0
+  - yuku-parser@0.8.0
