@@ -8,7 +8,10 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { ChainNotSupportedError } from '../errors/connectors.js'
+import {
+  ChainNotSupportedError,
+  ConnectorNotConnectedError,
+} from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 import type { CreateConnectorFn } from '../types/connector.js'
 import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
@@ -133,38 +136,48 @@ export function onekey(
           throw new MethodNotSupportedRpcError()
       }
     },
-    async connect() {
+    async connect({ isReconnecting } = {}) {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      try {
-        await provider.requestAccounts()
-        const accounts = await this.getAccounts()
-        const chainId = await this.getChainId()
-
-        if (!accountsChanged) {
-          accountsChanged = this.onAccountsChanged.bind(this)
-          provider.addListener('accountsChanged', accountsChanged)
+      // requestAccounts opens the extension. Reconnect runs on app mount, so
+      // it must only inspect accounts that are already authorized. It is also
+      // the only step here a user can reject.
+      if (!isReconnecting) {
+        try {
+          await provider.requestAccounts()
+        } catch (error: any) {
+          throw new UserRejectedRequestError(error.message)
         }
-
-        if (!chainChanged) {
-          chainChanged = (network: OneKeyBitcoinNetwork) =>
-            this.onChainChanged(OneKeyBitcoinNetworkChainIdMap[network])
-          provider.addListener('networkChanged', chainChanged)
-        }
-
-        // Remove disconnected shim if it exists
-        if (shimDisconnect) {
-          await Promise.all([
-            config.storage?.setItem(`${this.id}.connected`, true),
-            config.storage?.removeItem(`${this.id}.disconnected`),
-          ])
-        }
-        return { accounts, chainId }
-      } catch (error: any) {
-        throw new UserRejectedRequestError(error.message)
       }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorNotConnectedError()
+      }
+
+      const chainId = await this.getChainId()
+
+      if (!accountsChanged) {
+        accountsChanged = this.onAccountsChanged.bind(this)
+        provider.addListener('accountsChanged', accountsChanged)
+      }
+
+      if (!chainChanged) {
+        chainChanged = (network: OneKeyBitcoinNetwork) =>
+          this.onChainChanged(OneKeyBitcoinNetworkChainIdMap[network])
+        provider.addListener('networkChanged', chainChanged)
+      }
+
+      // Remove disconnected shim if it exists
+      if (shimDisconnect) {
+        await Promise.all([
+          config.storage?.setItem(`${this.id}.connected`, true),
+          config.storage?.removeItem(`${this.id}.disconnected`),
+        ])
+      }
+      return { accounts, chainId }
     },
     async disconnect() {
       const provider = await this.getInternalProvider()
@@ -194,6 +207,10 @@ export function onekey(
       }
       const accounts = await provider.getAccounts()
       const address = accounts[0]
+      if (!address) {
+        return []
+      }
+
       const publicKey = await provider.getPublicKey()
       const { type, purpose } = getAddressInfo(address)
 
