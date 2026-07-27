@@ -1,5 +1,17 @@
 # @bigmi/client
 
+## 0.10.1
+
+### Patch Changes
+
+- [#67](https://github.com/lifinance/bigmi/pull/67) [`3532b51`](https://github.com/lifinance/bigmi/commit/3532b51ae6844bc71bebb0699432c34272505535) Thanks [@arentant](https://github.com/arentant)! - Prevent UniSat reconnect from opening the extension popup on page load.
+
+- [#70](https://github.com/lifinance/bigmi/pull/70) [`f427391`](https://github.com/lifinance/bigmi/commit/f4273913c922b3324da8c1910cb5fd4bd08439bc) Thanks [@chybisov](https://github.com/chybisov)! - Stop the Binance, Bitget, OKX and OneKey connectors from opening their wallet extension on page load. `connect()` now honours `isReconnecting` and verifies authorization through passive `getAccounts()` access, matching the UniSat, Xverse and Unhosted connectors. Bitget and OKX additionally confirm the extension still exposes an account instead of trusting the `connected` storage shim alone, and `getAccounts()` returns an empty list rather than throwing when no account is exposed. All five connectors now report an account-less extension as `ConnectorNotConnectedError` instead of mislabelling it a user rejection: the `try` wraps only `requestAccounts()`, the one step a user can actually reject. This also fixes OKX persisting a `disconnected` shim — and so silently disabling its own auto-reconnect for good — when a reconnect found no accounts.
+
+- [#66](https://github.com/lifinance/bigmi/pull/66) [`8da5d88`](https://github.com/lifinance/bigmi/commit/8da5d88115f4fdeebeb3444da88c81f10511f301) Thanks [@yasha-meursault](https://github.com/yasha-meursault)! - Fix `reconnect` leaving a stale connection stub after reload. On the first successful reconnection the connections map is now rebuilt from scratch instead of copying the map rehydrated from storage under the previous session's connector uid, and `current` points at the freshly reconnected connector. When no connector reconnects, `connections` and `current` are reset alongside `status: 'disconnected'`. Matches wagmi's behavior.
+
+- [#69](https://github.com/lifinance/bigmi/pull/69) [`7ff01b5`](https://github.com/lifinance/bigmi/commit/7ff01b51849df1bcb8c8017109de5db72524a235) Thanks [@chybisov](https://github.com/chybisov)! - Stop `reconnect` from clearing a connection established by a concurrent `connect()` call. Reconnect runs on mount and polls for a wallet provider for up to 5s, so a user can connect manually while it is still in flight; the no-connector-reconnected reset now only applies when the store is still in the `reconnecting`/`connecting` state reconnect put it in. Matches wagmi's behavior.
+
 ## 0.10.0
 
 ### Minor Changes
