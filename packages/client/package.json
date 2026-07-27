@@ -41,8 +41,8 @@
   ],
   "dependencies": {
     "@bigmi/core": "workspace:*",
-    "@wallet-standard/app": "^1.1.0",
-    "@wallet-standard/base": "^1.1.0",
+    "@wallet-standard/app": "^1.1.1",
+    "@wallet-standard/base": "^1.1.1",
     "eventemitter3": "^5.0.4",
     "zustand": "^5.0.14"
   },

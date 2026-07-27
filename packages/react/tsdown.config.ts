@@ -14,7 +14,7 @@ const shared = {
   target: 'es2022' as const,
   logLevel: 'warn' as const,
   deps: {
-    skipNodeModulesBundle: true,
+    neverBundle: true,
   },
 }
 
