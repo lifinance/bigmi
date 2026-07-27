@@ -9,7 +9,10 @@ import {
   type SignPsbtParameters,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { ChainNotSupportedError } from '../errors/connectors.js'
+import {
+  ChainNotSupportedError,
+  ConnectorNotConnectedError,
+} from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 import type { CreateConnectorFn } from '../types/connector.js'
 import { createBidirectionalMap } from '../utils/createBidirectionalMap.js'
@@ -139,42 +142,49 @@ export function bitget(
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      try {
-        // requestAccounts opens the extension. Reconnect runs on app mount, so
-        // it must only inspect accounts that are already authorized.
-        if (!isReconnecting) {
+      // requestAccounts opens the extension. Reconnect runs on app mount, so
+      // it must only inspect accounts that are already authorized. It is also
+      // the only step here a user can reject, so it is the only one whose
+      // failure tears down the shims.
+      if (!isReconnecting) {
+        try {
           const address = await provider.requestAccounts()
           if (!address) {
             throw new BaseError('error connecting to your wallet')
           }
+        } catch (error: any) {
+          // remove outdated shims and clean up events
+          await this.disconnect()
+          throw new UserRejectedRequestError(error.message)
         }
-        const accounts = await this.getAccounts()
-        const chainId = await this.getChainId()
-
-        if (!accountsChanged) {
-          accountsChanged = this.onAccountsChanged.bind(this)
-          provider.addListener('accountsChanged', accountsChanged)
-        }
-
-        if (!chainChanged) {
-          chainChanged = (network: BitgetBitcoinNetworks) =>
-            this.onChainChanged(BitgetBitcoinNetworkChainIdMap[network])
-          provider.addListener('networkChanged', chainChanged)
-        }
-
-        // Remove disconnected shim if it exists
-        if (shimDisconnect) {
-          await Promise.all([
-            config.storage?.setItem(`${this.id}.connected`, true),
-            config.storage?.removeItem(`${this.id}.disconnected`),
-          ])
-        }
-        return { accounts, chainId }
-      } catch (error: any) {
-        // remove outdated shims and clean up events
-        await this.disconnect()
-        throw new UserRejectedRequestError(error.message)
       }
+
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorNotConnectedError()
+      }
+
+      const chainId = await this.getChainId()
+
+      if (!accountsChanged) {
+        accountsChanged = this.onAccountsChanged.bind(this)
+        provider.addListener('accountsChanged', accountsChanged)
+      }
+
+      if (!chainChanged) {
+        chainChanged = (network: BitgetBitcoinNetworks) =>
+          this.onChainChanged(BitgetBitcoinNetworkChainIdMap[network])
+        provider.addListener('networkChanged', chainChanged)
+      }
+
+      // Remove disconnected shim if it exists
+      if (shimDisconnect) {
+        await Promise.all([
+          config.storage?.setItem(`${this.id}.connected`, true),
+          config.storage?.removeItem(`${this.id}.disconnected`),
+        ])
+      }
+      return { accounts, chainId }
     },
     async disconnect() {
       const provider = await this.getInternalProvider()

@@ -6,7 +6,10 @@ import {
   ProviderNotFoundError,
   UserRejectedRequestError,
 } from '@bigmi/core'
-import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
+import {
+  ConnectorChainIdDetectionError,
+  ConnectorNotConnectedError,
+} from '../errors/connectors.js'
 
 import { createConnector } from '../factories/createConnector.js'
 import type { CreateConnectorFn } from '../types/connector.js'
@@ -130,36 +133,46 @@ export function okx(
       if (!provider) {
         throw new ProviderNotFoundError()
       }
-      try {
-        // requestAccounts opens the extension. Reconnect runs on app mount, so
-        // it must only inspect accounts that are already authorized.
-        if (!isReconnecting) {
+      // requestAccounts opens the extension. Reconnect runs on app mount, so
+      // it must only inspect accounts that are already authorized. It is also
+      // the only step here a user can reject, so it is the only one whose
+      // failure tears down the shims.
+      if (!isReconnecting) {
+        try {
           await provider.requestAccounts()
+        } catch (error: any) {
+          // remove outdated shims and clean up events
+          await this.disconnect()
+          throw new UserRejectedRequestError(error.message)
         }
-        const chainId = await this.getChainId()
+      }
 
-        if (!accountsChanged) {
-          accountsChanged = this.onAccountsChanged.bind(this)
-          provider.addListener('accountsChanged', accountsChanged)
-        }
+      // Read accounts before the chain id: `getChainId` derives the network
+      // from the first account, so an account-less wallet would otherwise
+      // throw a chain-detection error and tear down the shims below.
+      const accounts = await this.getAccounts()
+      if (accounts.length === 0) {
+        throw new ConnectorNotConnectedError()
+      }
 
-        // Remove disconnected shim if it exists
-        if (shimDisconnect) {
-          await Promise.all([
-            config.storage?.setItem(`${this.id}.connected`, true),
-            config.storage?.removeItem(`${this.id}.disconnected`),
-          ])
-        }
-        const accounts = await this.getAccounts()
+      const chainId = await this.getChainId()
 
-        return {
-          accounts,
-          chainId,
-        }
-      } catch (error: any) {
-        // remove outdated shims and clean up events
-        await this.disconnect()
-        throw new UserRejectedRequestError(error.message)
+      if (!accountsChanged) {
+        accountsChanged = this.onAccountsChanged.bind(this)
+        provider.addListener('accountsChanged', accountsChanged)
+      }
+
+      // Remove disconnected shim if it exists
+      if (shimDisconnect) {
+        await Promise.all([
+          config.storage?.setItem(`${this.id}.connected`, true),
+          config.storage?.removeItem(`${this.id}.disconnected`),
+        ])
+      }
+
+      return {
+        accounts,
+        chainId,
       }
     },
     async disconnect() {

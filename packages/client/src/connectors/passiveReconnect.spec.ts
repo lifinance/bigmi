@@ -1,5 +1,6 @@
 import { type Address, bitcoin, ChainId } from '@bigmi/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ConnectorNotConnectedError } from '../errors/connectors.js'
 import { createEmitter } from '../factories/createEmitter.js'
 import { createStorage } from '../factories/createStorage.js'
 import type {
@@ -89,11 +90,14 @@ async function createTestConnector(
   // Mimics a wallet that was connected in a previous session.
   await storage.setItem(`${id}.connected`, true)
 
-  return connector()({
-    chains: [bitcoin],
-    emitter: createEmitter<ConnectorEventMap>('test'),
+  return {
+    connector: connector()({
+      chains: [bitcoin],
+      emitter: createEmitter<ConnectorEventMap>('test'),
+      storage,
+    }),
     storage,
-  })
+  }
 }
 
 afterEach(() => {
@@ -103,7 +107,7 @@ afterEach(() => {
 describe.each(connectors)('$name connector', (testCase) => {
   it('reconnects through passive account access', async () => {
     const provider = createProvider([address])
-    const connector = await createTestConnector(testCase, provider)
+    const { connector } = await createTestConnector(testCase, provider)
 
     expect(await connector.isAuthorized()).toBe(true)
     const result = await connector.connect({ isReconnecting: true })
@@ -116,7 +120,7 @@ describe.each(connectors)('$name connector', (testCase) => {
 
   it('requests account access for an explicit connection', async () => {
     const provider = createProvider([address])
-    const connector = await createTestConnector(testCase, provider)
+    const { connector } = await createTestConnector(testCase, provider)
 
     await connector.connect()
 
@@ -125,7 +129,7 @@ describe.each(connectors)('$name connector', (testCase) => {
 
   it('is not authorized when the extension exposes no accounts', async () => {
     const provider = createProvider([])
-    const connector = await createTestConnector(testCase, provider)
+    const { connector } = await createTestConnector(testCase, provider)
 
     expect(await connector.isAuthorized()).toBe(false)
     expect(provider.requestAccounts).not.toHaveBeenCalled()
@@ -133,9 +137,25 @@ describe.each(connectors)('$name connector', (testCase) => {
 
   it('returns no accounts when the extension exposes none', async () => {
     const provider = createProvider([])
-    const connector = await createTestConnector(testCase, provider)
+    const { connector } = await createTestConnector(testCase, provider)
 
     await expect(connector.getAccounts()).resolves.toEqual([])
     expect(provider.requestAccounts).not.toHaveBeenCalled()
+  })
+
+  it('fails a reconnect against an account-less extension without clearing the shims', async () => {
+    const provider = createProvider([])
+    const { connector, storage } = await createTestConnector(testCase, provider)
+
+    // Not a user rejection — nothing was ever shown to the user.
+    await expect(connector.connect({ isReconnecting: true })).rejects.toThrow(
+      ConnectorNotConnectedError
+    )
+    expect(provider.requestAccounts).not.toHaveBeenCalled()
+
+    // A transient empty read must not persist a "disconnected" decision, or
+    // the connector would stop auto-reconnecting for good.
+    expect(await storage.getItem(`${testCase.id}.disconnected`)).toBeFalsy()
+    expect(await storage.getItem(`${testCase.id}.connected`)).toBe(true)
   })
 })
