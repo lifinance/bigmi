@@ -1,5 +1,11 @@
-import { type Address, bitcoin, ChainId } from '@bigmi/core'
+import {
+  type Address,
+  bitcoin,
+  ChainId,
+  UserRejectedRequestError,
+} from '@bigmi/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ConnectorNotConnectedError } from '../errors/connectors.js'
 import { createEmitter } from '../factories/createEmitter.js'
 import { createStorage } from '../factories/createStorage.js'
 import type { ConnectorEventMap } from '../types/connector.js'
@@ -86,5 +92,24 @@ describe('unisat connector', () => {
 
     expect(await connector.isAuthorized()).toBe(false)
     expect(provider.requestAccounts).not.toHaveBeenCalled()
+  })
+
+  it('reports an account-less extension as not connected, not as a rejection', async () => {
+    const provider = createProvider([])
+    const connector = await createTestConnector(provider)
+
+    // Only `requestAccounts` can be user-rejected; an extension that is
+    // unlocked but exposes nothing is a different failure.
+    await expect(connector.connect()).rejects.toThrow(
+      ConnectorNotConnectedError
+    )
+  })
+
+  it('surfaces a rejected account request as UserRejectedRequestError', async () => {
+    const provider = createProvider()
+    provider.requestAccounts.mockRejectedValueOnce(new Error('User rejected'))
+    const connector = await createTestConnector(provider)
+
+    await expect(connector.connect()).rejects.toThrow(UserRejectedRequestError)
   })
 })

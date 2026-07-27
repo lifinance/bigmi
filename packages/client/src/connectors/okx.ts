@@ -125,13 +125,17 @@ export function okx(
           throw new MethodNotSupportedRpcError(method)
       }
     },
-    async connect() {
+    async connect({ isReconnecting } = {}) {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
       try {
-        await provider.requestAccounts()
+        // requestAccounts opens the extension. Reconnect runs on app mount, so
+        // it must only inspect accounts that are already authorized.
+        if (!isReconnecting) {
+          await provider.requestAccounts()
+        }
         const chainId = await this.getChainId()
 
         if (!accountsChanged) {
@@ -180,9 +184,13 @@ export function okx(
         throw new ProviderNotFoundError()
       }
 
-      const publicKey = await provider.getPublicKey()
       const accounts = await provider.getAccounts()
       const address = accounts[0]
+      if (!address) {
+        return []
+      }
+
+      const publicKey = await provider.getPublicKey()
       const { type, purpose } = getAddressInfo(address)
 
       const account: Account = {
@@ -207,9 +215,14 @@ export function okx(
     },
     async isAuthorized() {
       try {
-        if (shimDisconnect) {
-          return Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        if (
+          shimDisconnect &&
+          !(await config.storage?.getItem(`${this.id}.connected`))
+        ) {
+          return false
         }
+        // The storage shim only records intent. Confirm the extension still
+        // exposes an account, without prompting.
         const accounts = await this.getAccounts()
         return !!accounts.length
       } catch {

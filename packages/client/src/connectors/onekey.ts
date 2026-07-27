@@ -133,13 +133,17 @@ export function onekey(
           throw new MethodNotSupportedRpcError()
       }
     },
-    async connect() {
+    async connect({ isReconnecting } = {}) {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
       try {
-        await provider.requestAccounts()
+        // requestAccounts opens the extension. Reconnect runs on app mount, so
+        // it must only inspect accounts that are already authorized.
+        if (!isReconnecting) {
+          await provider.requestAccounts()
+        }
         const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
 
@@ -194,6 +198,10 @@ export function onekey(
       }
       const accounts = await provider.getAccounts()
       const address = accounts[0]
+      if (!address) {
+        return []
+      }
+
       const publicKey = await provider.getPublicKey()
       const { type, purpose } = getAddressInfo(address)
 

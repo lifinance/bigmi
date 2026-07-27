@@ -134,15 +134,19 @@ export function bitget(
           throw new MethodNotSupportedRpcError()
       }
     },
-    async connect() {
+    async connect({ isReconnecting } = {}) {
       const provider = await this.getInternalProvider()
       if (!provider) {
         throw new ProviderNotFoundError()
       }
       try {
-        const address = await provider.requestAccounts()
-        if (!address) {
-          throw new BaseError('error connecting to your wallet')
+        // requestAccounts opens the extension. Reconnect runs on app mount, so
+        // it must only inspect accounts that are already authorized.
+        if (!isReconnecting) {
+          const address = await provider.requestAccounts()
+          if (!address) {
+            throw new BaseError('error connecting to your wallet')
+          }
         }
         const accounts = await this.getAccounts()
         const chainId = await this.getChainId()
@@ -200,6 +204,10 @@ export function bitget(
       }
       const accounts = await provider.getAccounts()
       const address = accounts[0]
+      if (!address) {
+        return []
+      }
+
       const publicKey = await provider.getPublicKey()
 
       if (!publicKey.length) {
@@ -225,9 +233,14 @@ export function bitget(
     },
     async isAuthorized() {
       try {
-        if (shimDisconnect) {
-          return Boolean(await config.storage?.getItem(`${this.id}.connected`))
+        if (
+          shimDisconnect &&
+          !(await config.storage?.getItem(`${this.id}.connected`))
+        ) {
+          return false
         }
+        // The storage shim only records intent. Confirm the extension still
+        // exposes an account, without prompting.
         const accounts = await this.getAccounts()
         return !!accounts.length
       } catch {
