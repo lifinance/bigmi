@@ -46,6 +46,14 @@ Uses **tsdown** (powered by Rolldown/OXC) for all packages. Each package has a `
 
 Releases use **[Changesets](https://github.com/changesets/changesets)** (independent versioning). Lerna and standard-version have been removed.
 
+The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/action@v2`**. Notes that bite when editing `publish.yaml`:
+- Action inputs/outputs are kebab-case: `pr-title`, `commit-message`, `version-script`, `publish-script`, `create-github-releases`; outputs `has-changesets` / `published-packages`. A stale camelCase reference fails **silently** (the `release` job just never runs).
+- v2 ignores the `GITHUB_TOKEN` env var — `github-token` defaults to `${{ github.token }}`, so no env is set. Release commits/tags are pushed via the GitHub API (set `push-with-git-cli: true` to go back to the Git CLI).
+- Published packages come from the `CHANGESETS_OUTPUT` file, not stdout. Custom publish scripts must let that env var reach the `changeset publish` call (plain `pnpm run` chains do).
+- `changeset version` **exits 1 when there are no changesets**. `preview-publish` checks for `.changeset/*.md` before versioning, so a PR without a changeset reports a warning instead of failing.
+- `changeset tag` is now `changeset git-tag`; `--sinceMaster` is now `--since <branch>`.
+- `format: "auto"` (the v4 config default) auto-detects `biome.json`, so Changesets formats changelogs with Biome itself.
+
 **Per-PR rule: every PR with a publishable change MUST include a changeset.** Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. `changeset-bot` comments a reminder on any PR that touches publishable source without one (a nudge, not a hard block — the maintainer-reviewed Version PR is the real gate). Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
 
 **Flow (all automated on push to `main` via `publish.yaml`):**

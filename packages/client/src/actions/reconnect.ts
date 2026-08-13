@@ -110,7 +110,7 @@ export async function reconnect(
         () => connector.connect({ isReconnecting: true }),
         { timeout: 5000 }
       )
-      if (!data || !data.accounts || data.accounts.length === 0) {
+      if (!data?.accounts || data.accounts.length === 0) {
         return null
       }
 

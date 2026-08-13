@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install dependencies
         uses: ./.github/actions/pnpm-install
       - name: Check code
@@ -58,10 +58,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+      has-changesets: ${{ steps.changesets.outputs.has-changesets }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # full history so Changesets can generate changelogs with correct commits
           fetch-depth: 0
@@ -69,59 +69,63 @@ jobs:
         uses: ./.github/actions/pnpm-install
         with:
           cache: 'false' # privileged job — don't restore a potentially poisoned cache
+      # v2 pushes the release commit via the GitHub API (signed with GitHub's GPG
+      # key, attributed to the token owner) — `contents: write` above covers it.
+      # `github-token` defaults to `${{ github.token }}`; v2 ignores the old
+      # GITHUB_TOKEN env var, so it is deliberately not set here.
       - name: Create version PR
         id: changesets
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
         with:
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
-          version: pnpm changeset:version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
+          version-script: pnpm changeset:version
 
   release:
     name: Publish
     needs: changesets
     # Only publish once the version PR is merged (no pending changesets remain).
-    if: needs.changesets.outputs.hasChangesets == 'false'
+    if: needs.changesets.outputs.has-changesets == 'false'
     permissions:
       contents: write # to create GitHub Releases (changesets/action)
       id-token: write # OIDC token for npm trusted publishing + provenance
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+      published-packages: ${{ steps.changesets.outputs.published-packages }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Install dependencies
         uses: ./.github/actions/pnpm-install
         with:
           cache: 'false' # privileged job — don't restore a potentially poisoned cache
+      # v2 reads published packages from the CHANGESETS_OUTPUT file (no more stdout
+      # parsing), so that env var must reach the `changeset publish` call inside
+      # `changeset:publish` — it does, via plain `pnpm run` env inheritance.
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
         with:
-          publish: pnpm changeset:publish
-          createGithubReleases: true
+          publish-script: pnpm changeset:publish
+          create-github-releases: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
   # Linear "Bigmi" sync, anchored on @bigmi/react (top of the graph, what consumers
   # install). core/client-only cycles (no react bump) are skipped — reconcile manually.
   linear:
     name: Linear Sync (Bigmi)
     needs: release
-    if: contains(needs.release.outputs.publishedPackages, '"@bigmi/react"')
+    if: contains(needs.release.outputs.published-packages, '"@bigmi/react"')
     permissions:
       contents: read
     uses: ./.github/workflows/linear-release.yaml
     with:
       release_name: Bigmi
       package_name: '@bigmi/react'
-      published_packages: ${{ needs.release.outputs.publishedPackages }}
+      published_packages: ${{ needs.release.outputs.published-packages }}
     secrets:
       access_key: ${{ secrets.LINEAR_RELEASE_ACCESS_KEY }}
 
@@ -143,7 +147,7 @@ jobs:
       pull-requests: write # post the install comment + remove the label
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
