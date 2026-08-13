@@ -21,6 +21,13 @@ runs:
       env:
         GITHUB_TOKEN: ${{ github.token }} # changeset version hits the GitHub API (changelog-github)
       run: |
+        # Changesets v3 exits 1 when there are no changesets, so check first rather
+        # than swallowing the failure — a real `version` error must still fail the job.
+        # Pre-mode changesets live in .changeset/pre/, hence -maxdepth 1.
+        if ! find .changeset -maxdepth 1 -name '*.md' ! -name 'README.md' | grep -q .; then
+          echo "No changesets found — skipping the snapshot version."
+          exit 0
+        fi
         # snapshot tag = short SHA → version 0.0.0-preview-<sha> (prereleaseTemplate "{tag}")
         SHA=$(git rev-parse --short HEAD)
         pnpm changeset version --snapshot "preview-$SHA"
