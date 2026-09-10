@@ -44,13 +44,13 @@
     "@wallet-standard/app": "^1.1.1",
     "@wallet-standard/base": "^1.1.1",
     "eventemitter3": "^5.0.4",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "@tanstack/query-core": ">=5.68.0"
