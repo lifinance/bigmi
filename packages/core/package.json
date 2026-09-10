@@ -41,17 +41,17 @@
   "dependencies": {
     "@noble/hashes": "^1.8.0",
     "bech32": "^2.0.0",
-    "bitcoinjs-lib": "^7.0.1",
+    "bitcoinjs-lib": "^7.0.2",
     "bs58": "^6.0.0",
     "eventemitter3": "^5.0.4",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.0",
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.0"
   },
   "peerDependencies": {
     "bs58": "^6.0.0"
