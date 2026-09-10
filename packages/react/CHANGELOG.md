@@ -1,5 +1,13 @@
 # @bigmi/react
 
+## 0.9.2
+
+### Patch Changes
+
+- Updated dependencies [[`c9f3cd2`](https://github.com/lifinance/bigmi/commit/c9f3cd28fb5010277744c09857a4f4e1eaac6551)]:
+  - @bigmi/core@0.9.1
+  - @bigmi/client@0.10.2
+
 ## 0.9.1
 
 ### Patch Changes
