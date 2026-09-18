@@ -111,7 +111,8 @@ type Extended = Prettify<
   // disallow redefining base properties
   { [_ in keyof Client_Base]?: undefined } & {
     [key: string]: unknown
-  }>
+  }
+>
 
 export type MulticallBatchOptions = {
   /** The maximum size (in bytes) for each calldata chunk. @default 1_024 */
