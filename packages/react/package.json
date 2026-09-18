@@ -45,8 +45,8 @@
   "devDependencies": {
     "cpy-cli": "^7.0.0",
     "madge": "^8.0.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {

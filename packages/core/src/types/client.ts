@@ -102,6 +102,7 @@ type Extended = Prettify<
   // disallow redefining base properties
   { [_ in keyof Client_Base]?: undefined } & {
     [key: string]: unknown
-  }>
+  }
+>
 
 export type CreateClientErrorType = ErrorType

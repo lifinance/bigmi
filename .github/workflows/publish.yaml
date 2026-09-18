@@ -75,7 +75,7 @@ jobs:
       # GITHUB_TOKEN env var, so it is deliberately not set here.
       - name: Create version PR
         id: changesets
-        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           pr-title: 'chore: version packages'
           commit-message: 'chore: version packages'
@@ -107,7 +107,7 @@ jobs:
       # `changeset:publish` — it does, via plain `pnpm run` env inheritance.
       - name: Publish to npm
         id: changesets
-        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
+        uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           publish-script: pnpm changeset:publish
           create-github-releases: true
