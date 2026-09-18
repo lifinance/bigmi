@@ -206,6 +206,7 @@ export {
 export { deepEqual } from './utils/deepEqual.js'
 export { getAddressChainId, getAddressInfo } from './utils/getAddressInfo.js'
 export { isAddress as isUTXOAddress } from './utils/isAddress.js'
+export { isUserRejection } from './utils/isUserRejection.js'
 export { modifyFee } from './utils/modifyFee.js'
 export { cleanupCache, listenersCache, observe } from './utils/observe.js'
 export { parseAccount } from './utils/parseAccount.js'
