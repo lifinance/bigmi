@@ -12,6 +12,7 @@ import type {
   RpcSchema,
 } from '../types/request.js'
 import { stringToHex } from './converter.js'
+import { isUserRejection } from './isUserRejection.js'
 import { stringify } from './stringify.js'
 import { withDedupe } from './withDedupe.js'
 import { withRetry } from './withRetry.js'
@@ -60,6 +61,11 @@ export function buildRequest<request extends BtcRpcRequestFn<RpcSchema>>(
                 case RpcErrorCode.USER_REJECTION:
                   throw new UserRejectedRequestError(err.message)
 
+                // EIP-1193: userRejectedRequest
+                // https://eips.ethereum.org/EIPS/eip-1193#provider-errors
+                case 4001:
+                  throw new UserRejectedRequestError(err.message)
+
                 // CAIP-25: User Rejected Error
                 // https://docs.walletconnect.com/2.0/specs/clients/sign/error-codes#rejected-caip-25
                 case 5000:
@@ -68,6 +74,9 @@ export function buildRequest<request extends BtcRpcRequestFn<RpcSchema>>(
                 default:
                   if (err_ instanceof BaseError) {
                     throw err_
+                  }
+                  if (isUserRejection(err_)) {
+                    throw new UserRejectedRequestError(err.message)
                   }
                   throw new BaseError('Unknown Error', { cause: err_ as Error })
               }

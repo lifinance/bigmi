@@ -97,9 +97,13 @@ export function bitget(
       if (typeof window === 'undefined') {
         return
       }
-      if ('bitkeep' in window) {
-        const anyWindow: any = window
-        return anyWindow.bitkeep?.unisat
+      const anyWindow: any = window
+      if ('bitkeep' in window && anyWindow.bitkeep?.unisat) {
+        return anyWindow.bitkeep.unisat
+      }
+      // BitKeep also ships as the sole `window.unisat` injection on some builds.
+      if ('unisat' in window && anyWindow.unisat?.isBitKeep) {
+        return anyWindow.unisat
       }
     },
     async getProvider() {
