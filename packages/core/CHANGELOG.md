@@ -1,5 +1,11 @@
 # @bigmi/core
 
+## 0.9.2
+
+### Patch Changes
+
+- [#77](https://github.com/lifinance/bigmi/pull/77) [`381ec46`](https://github.com/lifinance/bigmi/commit/381ec46972111fa5614fff24127b34cce730dc0b) Thanks [@chybisov](https://github.com/chybisov)! - Report a declined confirmation as `UserRejectedRequestError` even when the wallet sends no rejection code. MetaMask's Bitcoin confirmation throws with no `code` at all and a generic `-32603` underneath, so it previously surfaced as `Unknown Error` and consumers could not tell a cancellation from a failure. Also recognise EIP-1193 `4001`, which the switch did not cover.
+
 ## 0.9.1
 
 ### Patch Changes
