@@ -1,5 +1,13 @@
 # @bigmi/client
 
+## 0.10.3
+
+### Patch Changes
+
+- [#77](https://github.com/lifinance/bigmi/pull/77) [`381ec46`](https://github.com/lifinance/bigmi/commit/381ec46972111fa5614fff24127b34cce730dc0b) Thanks [@chybisov](https://github.com/chybisov)! - Detect BitKeep when it injects only as `window.unisat` with `isBitKeep`, not just as `window.bitkeep`.
+- Updated dependencies [[`381ec46`](https://github.com/lifinance/bigmi/commit/381ec46972111fa5614fff24127b34cce730dc0b)]:
+  - @bigmi/core@0.9.2
+
 ## 0.10.2
 
 ### Patch Changes
