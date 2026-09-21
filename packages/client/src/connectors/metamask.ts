@@ -200,9 +200,16 @@ export function metamask(
       const restored = isReconnecting
         ? ((await retryUntil(
             async () => {
-              const payment = wallet.accounts
-                .map((account) => toAccount(account as WalletAccount))
-                .filter((account) => account.purpose === 'payment')
+              // A half-initialized account can fail to parse. Skip it rather
+              // than ending the poll this exists to survive.
+              const payment = wallet.accounts.flatMap((account) => {
+                try {
+                  const parsed = toAccount(account as WalletAccount)
+                  return parsed.purpose === 'payment' ? [parsed] : []
+                } catch {
+                  return []
+                }
+              })
               return payment.length > 0 ? payment : undefined
             },
             // One extension round trip; `reconnect` already spends up to 5s
@@ -244,6 +251,11 @@ export function metamask(
         }
         return { accounts, chainId }
       } catch (error: any) {
+        // Nothing is shown to the user while reconnecting, so a failure there
+        // is not a rejection.
+        if (isReconnecting) {
+          throw error
+        }
         throw new UserRejectedRequestError(error.message)
       }
     },
@@ -291,7 +303,19 @@ export function metamask(
           shimDisconnect &&
           // If shim exists in storage, connector is disconnected
           Boolean(await config.storage?.getItem(`${this.id}.connected`))
-        return isConnected
+        if (!isConnected) {
+          return false
+        }
+
+        const wallet = await this.getInternalProvider()
+        if (!wallet) {
+          return false
+        }
+
+        // Reading the restored session here, rather than calling getAccounts,
+        // keeps this passive: a user who revoked the site or locked the wallet
+        // must not be reconnected, and must not pay for the poll in connect.
+        return wallet.accounts.length > 0
       } catch {
         return false
       }

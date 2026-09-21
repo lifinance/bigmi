@@ -98,4 +98,32 @@ describe('metamask connector reconnect', () => {
     await connector.connect()
     expect(connectSpy).toHaveBeenCalledOnce()
   })
+
+  it('skips an account it cannot parse instead of giving up', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
+    ;(globalThis as any).window = {}
+    const connector = createConnector({
+      name: 'MetaMask',
+      // A half-initialized entry alongside a usable one.
+      accounts: [{ address: 'not-an-address' }, account],
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': { on: vi.fn(() => () => {}) },
+      },
+    })
+
+    const result = await connector.connect({ isReconnecting: true })
+    expect(result.accounts.map((a: any) => a.address)).toEqual([address])
+  })
+
+  it('is not authorized when the session holds no account', async () => {
+    ;(globalThis as any).window = {}
+    const connector = createConnector({
+      name: 'MetaMask',
+      accounts: [],
+      features: { 'bitcoin:events': { on: vi.fn(() => () => {}) } },
+    })
+    connector.config = undefined
+    await expect(connector.isAuthorized()).resolves.toBe(false)
+  })
 })

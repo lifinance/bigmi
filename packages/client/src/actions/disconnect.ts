@@ -24,8 +24,17 @@ export async function disconnect(
 
   const connections = config.state.connections
 
+  let disconnectError: unknown
   if (connector) {
-    await connector.disconnect()
+    // A provider that has gone away cannot be kept connected: leaving its
+    // connection in place promotes it to `current`, so the store still reports
+    // an account that can never sign. Detach it either way, and surface the
+    // failure to the caller once the state is consistent.
+    try {
+      await connector.disconnect()
+    } catch (error) {
+      disconnectError = error
+    }
     connector.emitter.off('change', config._internal.events.change)
     connector.emitter.off('disconnect', config._internal.events.disconnect)
     connector.emitter.on('connect', config._internal.events.connect)
@@ -56,13 +65,15 @@ export async function disconnect(
   // Set recent connector if exists
   {
     const current = config.state.current
-    if (!current) {
-      return
+    const recent = current
+      ? config.state.connections.get(current)?.connector
+      : undefined
+    if (recent) {
+      await config.storage?.setItem('recentConnectorId', recent.id)
     }
-    const connector = config.state.connections.get(current)?.connector
-    if (!connector) {
-      return
-    }
-    await config.storage?.setItem('recentConnectorId', connector.id)
+  }
+
+  if (disconnectError) {
+    throw disconnectError
   }
 }
