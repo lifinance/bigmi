@@ -236,15 +236,21 @@ export function metamask(
             ({ accounts }) => {
               // A throw here escapes into MetaMask's emitter, so bigmi would
               // never learn the account changed. Skip what cannot be parsed.
-              onAccountsChanged(
-                (accounts ?? []).flatMap((account) => {
-                  try {
-                    return [toAccount(account as WalletAccount)]
-                  } catch {
-                    return []
-                  }
-                })
-              )
+              const reported = accounts ?? []
+              const parsed = reported.flatMap((account) => {
+                try {
+                  return [toAccount(account as WalletAccount)]
+                } catch {
+                  return []
+                }
+              })
+              // Nothing parsed out of a non-empty batch is the transient
+              // half-initialized state, not a disconnect. Reporting it as one
+              // would drop the session and the shim with it.
+              if (reported.length > 0 && parsed.length === 0) {
+                return
+              }
+              onAccountsChanged(parsed)
             }
           )
         }
@@ -345,7 +351,11 @@ export function metamask(
       // reporting an authorized connector after the user revoked the site
       // inside MetaMask, and every load would retry a session that is gone.
       if (shimDisconnect) {
-        await config.storage?.removeItem(`${this.id}.connected`)
+        // A blocked localStorage must not stop the disconnect being reported,
+        // or the store stays connected with no usable address.
+        try {
+          await config.storage?.removeItem(`${this.id}.connected`)
+        } catch {}
       }
       config.emitter.emit('disconnect')
     },

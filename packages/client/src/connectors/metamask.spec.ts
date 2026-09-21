@@ -226,4 +226,22 @@ describe('metamask connector reconnect', () => {
     // the site inside MetaMask.
     expect(removeItem).toHaveBeenCalledWith('io.metamask.bitcoin.connected')
   })
+
+  it('still reports the disconnect when storage refuses', async () => {
+    const emit = vi.fn()
+    const connector: any = metamask()({
+      emitter: { emit },
+      storage: {
+        setItem: vi.fn(),
+        // A blocked localStorage throws here.
+        removeItem: vi.fn(async () => {
+          throw new Error('SecurityError')
+        }),
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+
+    await expect(connector.onDisconnect()).resolves.toBeUndefined()
+    expect(emit).toHaveBeenCalledWith('disconnect')
+  })
 })
