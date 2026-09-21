@@ -244,4 +244,76 @@ describe('metamask connector reconnect', () => {
     await expect(connector.onDisconnect()).resolves.toBeUndefined()
     expect(emit).toHaveBeenCalledWith('disconnect')
   })
+
+  it('reports an empty interactive selection as not connected', async () => {
+    // MetaMask resolves with no payment account when the user holds none.
+    // Reading accounts[0] then throws a TypeError that the catch relabels as
+    // a rejection, showing raw JavaScript text for a wallet that rejected
+    // nothing.
+    const connectSpy = vi.fn(async () => ({ accounts: [] }))
+    ;(globalThis as any).window = {}
+    const connector = createConnector({
+      name: 'MetaMask',
+      accounts: [],
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': { on: vi.fn(() => () => {}) },
+      },
+    })
+
+    await expect(connector.connect()).rejects.toThrow(
+      ConnectorNotConnectedError
+    )
+  })
+
+  it('clears the shim when a reconnect finds no session', async () => {
+    const removeItem = vi.fn()
+    ;(globalThis as any).window = {}
+    const connector: any = metamask()({
+      emitter: { emit: vi.fn() },
+      storage: {
+        setItem: vi.fn(),
+        removeItem,
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+    connector.getInternalProvider = async () => ({
+      name: 'MetaMask',
+      accounts: [],
+      features: { 'bitcoin:events': { on: vi.fn(() => () => {}) } },
+    })
+
+    await expect(connector.connect({ isReconnecting: true })).rejects.toThrow(
+      ConnectorNotConnectedError
+    )
+    // Otherwise a user who revoked the site while the tab was closed pays the
+    // poll on every later load, forever.
+    expect(removeItem).toHaveBeenCalledWith('io.metamask.bitcoin.connected')
+  })
+
+  it('survives an accounts getter that throws during the poll', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
+    ;(globalThis as any).window = {}
+    let throwing = true
+    setTimeout(() => {
+      throwing = false
+    }, 100)
+    const connector = createConnector({
+      name: 'MetaMask',
+      get accounts(): any {
+        if (throwing) {
+          throw new TypeError('not ready')
+        }
+        return [account]
+      },
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': { on: vi.fn(() => () => {}) },
+      },
+    })
+
+    // A throw must not end the poll this code exists to provide.
+    const result = await connector.connect({ isReconnecting: true })
+    expect(result.accounts.map((a: any) => a.address)).toEqual([address])
+  })
 })

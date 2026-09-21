@@ -200,17 +200,22 @@ export function metamask(
       const restored = isReconnecting
         ? ((await retryUntil(
             async () => {
-              // A half-initialized account can fail to parse. Skip it rather
-              // than ending the poll this exists to survive.
-              const payment = wallet.accounts.flatMap((account) => {
-                try {
-                  const parsed = toAccount(account as WalletAccount)
-                  return parsed.purpose === 'payment' ? [parsed] : []
-                } catch {
-                  return []
-                }
-              })
-              return payment.length > 0 ? payment : undefined
+              // A half-initialized wallet can throw from the getter itself as
+              // well as from a single account, and either would end the poll
+              // this exists to survive.
+              try {
+                const payment = (wallet.accounts ?? []).flatMap((account) => {
+                  try {
+                    const parsed = toAccount(account as WalletAccount)
+                    return parsed.purpose === 'payment' ? [parsed] : []
+                  } catch {
+                    return []
+                  }
+                })
+                return payment.length > 0 ? payment : undefined
+              } catch {
+                return undefined
+              }
             },
             // `reconnect` allows `connect` 5s, and the provider lookup before
             // it returns as soon as the wallet registers, so this is the only
@@ -222,11 +227,26 @@ export function metamask(
       // Outside the try: nothing was shown to the user, so this must not be
       // reported as a rejection.
       if (restored && restored.length === 0) {
+        // The session is gone — revoked while the tab was closed, say — and
+        // `reconnect` swallows this error, so clear the shim here or every
+        // later load pays the poll again.
+        if (shimDisconnect) {
+          try {
+            await config.storage?.removeItem(`${this.id}.connected`)
+          } catch {}
+        }
+        throw new ConnectorNotConnectedError()
+      }
+
+      const accounts = restored ?? (await this.getAccounts())
+      // [1] The interactive path can also come back empty, when the user holds
+      // no Bitcoin account. Reading accounts[0] would throw a TypeError that
+      // the catch below would relabel as a rejection.
+      if (accounts.length === 0) {
         throw new ConnectorNotConnectedError()
       }
 
       try {
-        const accounts = restored ?? (await this.getAccounts())
         const chainId = getAddressChainId(accounts[0].address)
 
         if (!unsubscribe) {
@@ -347,6 +367,13 @@ export function metamask(
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect(_error) {
+      // Release the subscription, or a later connect sees a truthy
+      // `unsubscribe`, skips reattaching, and stays bound to a wallet object
+      // MetaMask has since replaced.
+      if (unsubscribe) {
+        unsubscribe()
+        unsubscribe = undefined
+      }
       // `isAuthorized` gates on the connected shim, so leaving it would keep
       // reporting an authorized connector after the user revoked the site
       // inside MetaMask, and every load would retry a session that is gone.
