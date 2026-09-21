@@ -5,6 +5,7 @@ import {
   hexToUnit8Array,
   MethodNotSupportedRpcError,
   ProviderNotFoundError,
+  retryUntil,
   UserRejectedRequestError,
 } from '@bigmi/core'
 import { getWallets } from '@wallet-standard/app'
@@ -192,17 +193,32 @@ export function metamask(
       if (!wallet) {
         throw new ProviderNotFoundError()
       }
+      // `bitcoin:connect` opens MetaMask, and reconnect runs on app mount, so
+      // it must only read the session the wallet already restored. The wallet
+      // fills `accounts` from an un-awaited session lookup, so poll rather
+      // than take the first snapshot.
+      const restored = isReconnecting
+        ? ((await retryUntil(
+            async () => {
+              const payment = wallet.accounts
+                .map((account) => toAccount(account as WalletAccount))
+                .filter((account) => account.purpose === 'payment')
+              return payment.length > 0 ? payment : undefined
+            },
+            // One extension round trip; `reconnect` already spends up to 5s
+            // finding the provider, so do not stack another long wait on it.
+            { timeout: 1000, interval: 50 }
+          )) ?? [])
+        : undefined
+
+      // Outside the try: nothing was shown to the user, so this must not be
+      // reported as a rejection.
+      if (restored && restored.length === 0) {
+        throw new ConnectorNotConnectedError()
+      }
+
       try {
-        // `bitcoin:connect` opens MetaMask, and reconnect runs on app mount,
-        // so it must only read the session the wallet already restored.
-        const accounts = isReconnecting
-          ? wallet.accounts
-              .map((account) => toAccount(account as WalletAccount))
-              .filter((account) => account.purpose === 'payment')
-          : await this.getAccounts()
-        if (accounts.length === 0) {
-          throw new ConnectorNotConnectedError()
-        }
+        const accounts = restored ?? (await this.getAccounts())
         const chainId = getAddressChainId(accounts[0].address)
 
         if (!unsubscribe) {
