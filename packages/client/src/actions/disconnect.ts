@@ -34,6 +34,15 @@ export async function disconnect(
       await connector.disconnect()
     } catch (error) {
       disconnectError = error
+      // The connector threw before writing its own shim, so storage would
+      // still say connected while the store says otherwise — and the next
+      // reconnect would silently restore what the user disconnected.
+      try {
+        await Promise.all([
+          config.storage?.setItem(`${connector.id}.disconnected`, true),
+          config.storage?.removeItem(`${connector.id}.connected`),
+        ])
+      } catch {}
     }
     connector.emitter.off('change', config._internal.events.change)
     connector.emitter.off('disconnect', config._internal.events.disconnect)

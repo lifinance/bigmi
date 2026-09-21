@@ -212,9 +212,10 @@ export function metamask(
               })
               return payment.length > 0 ? payment : undefined
             },
-            // One extension round trip; `reconnect` already spends up to 5s
-            // finding the provider, so do not stack another long wait on it.
-            { timeout: 1000, interval: 50 }
+            // `reconnect` allows `connect` 5s, and the provider lookup before
+            // it returns as soon as the wallet registers, so this is the only
+            // meaningful wait. A stale shim pays it once per load.
+            { timeout: 1500, interval: 50 }
           )) ?? [])
         : undefined
 
@@ -307,15 +308,12 @@ export function metamask(
           return false
         }
 
-        const wallet = await this.getInternalProvider()
-        if (!wallet) {
-          return false
-        }
-
-        // Reading the restored session here, rather than calling getAccounts,
-        // keeps this passive: a user who revoked the site or locked the wallet
-        // must not be reconnected, and must not pay for the poll in connect.
-        return wallet.accounts.length > 0
+        // Deliberately the shim alone. The wallet fills `accounts` from a
+        // session lookup it does not await, so reading it here would race the
+        // restore and report false on every reload, skipping reconnect
+        // entirely. `connect({ isReconnecting: true })` waits for the session
+        // and rejects if it never arrives.
+        return Boolean(await this.getInternalProvider())
       } catch {
         return false
       }

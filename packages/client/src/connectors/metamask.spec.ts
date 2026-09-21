@@ -31,10 +31,18 @@ function createWallet(
   }
 }
 
-function createConnector(wallet: unknown) {
+function createConnector(wallet: unknown, { connectedShim = true } = {}) {
   const connector: any = metamask()({
     emitter: { emit: vi.fn() },
-    storage: { setItem: vi.fn(), removeItem: vi.fn(), getItem: vi.fn() },
+    storage: {
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      // `isAuthorized` gates on this before anything else, so a stub that
+      // resolves undefined would skip every branch under test.
+      getItem: vi.fn(async (key: string) =>
+        key.endsWith('.connected') ? connectedShim : undefined
+      ),
+    },
   } as any)
   connector.getInternalProvider = async () => wallet
   return connector
@@ -116,14 +124,29 @@ describe('metamask connector reconnect', () => {
     expect(result.accounts.map((a: any) => a.address)).toEqual([address])
   })
 
-  it('is not authorized when the session holds no account', async () => {
+  it('stays authorized while the session is still restoring', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
     ;(globalThis as any).window = {}
-    const connector = createConnector({
-      name: 'MetaMask',
-      accounts: [],
-      features: { 'bitcoin:events': { on: vi.fn(() => () => {}) } },
+    // `accounts` is empty until the un-awaited restore resolves. Reading it
+    // here would skip reconnect on every reload.
+    const connector = createConnector(
+      createWallet(connectSpy, { restoreAfterMs: 150 })
+    )
+    await expect(connector.isAuthorized()).resolves.toBe(true)
+  })
+
+  it('is not authorized without the connected shim', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
+    ;(globalThis as any).window = {}
+    const connector = createConnector(createWallet(connectSpy), {
+      connectedShim: false,
     })
-    connector.config = undefined
+    await expect(connector.isAuthorized()).resolves.toBe(false)
+  })
+
+  it('is not authorized when the wallet is absent', async () => {
+    ;(globalThis as any).window = {}
+    const connector = createConnector(undefined)
     await expect(connector.isAuthorized()).resolves.toBe(false)
   })
 })
