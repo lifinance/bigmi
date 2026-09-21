@@ -217,80 +217,82 @@ export function metamask(
                 return undefined
               }
             },
-            // `reconnect` allows `connect` 5s, and the provider lookup before
-            // it returns as soon as the wallet registers, so this is the only
-            // meaningful wait. A stale shim pays it once per load.
-            { timeout: 1500, interval: 50 }
+            // `reconnect` allows `connect` 5s and the provider lookup returns
+            // as soon as the wallet registers, so this is the only meaningful
+            // wait. A cold MV3 service worker can take seconds, so spend most
+            // of that budget rather than giving up on a valid session.
+            { timeout: 4000, interval: 50 }
           )) ?? [])
         : undefined
 
       // Outside the try: nothing was shown to the user, so this must not be
       // reported as a rejection.
       if (restored && restored.length === 0) {
-        // The session is gone — revoked while the tab was closed, say — and
-        // `reconnect` swallows this error, so clear the shim here or every
-        // later load pays the poll again.
-        if (shimDisconnect) {
-          try {
-            await config.storage?.removeItem(`${this.id}.connected`)
-          } catch {}
-        }
+        // Deliberately keeps the shim. The poll cannot tell "the wallet says
+        // there is no session" from "the wallet has not answered yet" — a
+        // cold MV3 worker takes seconds — and dropping it would sign out a
+        // user whose session is valid, for good. A genuine revoke arrives
+        // through `onDisconnect`, which does clear it.
         throw new ConnectorNotConnectedError()
       }
 
-      const accounts = restored ?? (await this.getAccounts())
-      // [1] The interactive path can also come back empty, when the user holds
-      // no Bitcoin account. Reading accounts[0] would throw a TypeError that
-      // the catch below would relabel as a rejection.
+      // `bitcoin:connect` opens MetaMask and is the only step here a user can
+      // reject, so it alone maps to a rejection. Wrapping more would report a
+      // blocked storage write as one.
+      const requestAccounts = async (): Promise<readonly Account[]> => {
+        try {
+          return await this.getAccounts()
+        } catch (error: any) {
+          throw new UserRejectedRequestError(error.message)
+        }
+      }
+      const accounts = restored ?? (await requestAccounts())
+
+      // An empty selection — a user holding no Bitcoin account — is not a
+      // rejection either, and reading accounts[0] would throw a TypeError.
       if (accounts.length === 0) {
         throw new ConnectorNotConnectedError()
       }
 
-      try {
-        const chainId = getAddressChainId(accounts[0].address)
+      const chainId = getAddressChainId(accounts[0].address)
 
-        if (!unsubscribe) {
-          const onAccountsChanged = this.onAccountsChanged.bind(this)
-          unsubscribe = wallet.features['bitcoin:events'].on(
-            'change',
-            ({ accounts }) => {
-              // A throw here escapes into MetaMask's emitter, so bigmi would
-              // never learn the account changed. Skip what cannot be parsed.
-              const reported = accounts ?? []
-              const parsed = reported.flatMap((account) => {
-                try {
-                  return [toAccount(account as WalletAccount)]
-                } catch {
-                  return []
-                }
-              })
-              // Nothing parsed out of a non-empty batch is the transient
-              // half-initialized state, not a disconnect. Reporting it as one
-              // would drop the session and the shim with it.
-              if (reported.length > 0 && parsed.length === 0) {
-                return
+      if (!unsubscribe) {
+        const onAccountsChanged = this.onAccountsChanged.bind(this)
+        unsubscribe = wallet.features['bitcoin:events'].on(
+          'change',
+          ({ accounts }) => {
+            // A throw here escapes into MetaMask's emitter, so bigmi would
+            // never learn the account changed. Skip what cannot be parsed.
+            const reported = accounts ?? []
+            const parsed = reported.flatMap((account) => {
+              try {
+                return [toAccount(account as WalletAccount)]
+              } catch {
+                return []
               }
-              onAccountsChanged(parsed)
+            })
+            // Nothing parsed out of a non-empty batch is the transient
+            // half-initialized state, not a disconnect. Reporting it as one
+            // would drop the session and the shim with it.
+            if (reported.length > 0 && parsed.length === 0) {
+              return
             }
-          )
-        }
+            onAccountsChanged(parsed)
+          }
+        )
+      }
 
-        // Remove disconnected shim if it exists
-        if (shimDisconnect) {
+      // Remove disconnected shim if it exists. A blocked storage must not
+      // fail a connection that already succeeded.
+      if (shimDisconnect) {
+        try {
           await Promise.all([
             config.storage?.setItem(`${this.id}.connected`, true),
             config.storage?.removeItem(`${this.id}.disconnected`),
           ])
-        }
-        return { accounts, chainId }
-      } catch (error: any) {
-        // Nothing is shown to the user while reconnecting, so a failure there
-        // is not a rejection.
-        if (isReconnecting) {
-          throw error
-        }
-        throw new UserRejectedRequestError(error.message)
+        } catch {}
       }
+      return { accounts, chainId }
     },
     async disconnect() {
       if (unsubscribe) {

@@ -1,3 +1,4 @@
+import { UserRejectedRequestError } from '@bigmi/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ConnectorNotConnectedError } from '../errors/connectors.js'
 import { metamask } from './metamask.js'
@@ -266,31 +267,6 @@ describe('metamask connector reconnect', () => {
     )
   })
 
-  it('clears the shim when a reconnect finds no session', async () => {
-    const removeItem = vi.fn()
-    ;(globalThis as any).window = {}
-    const connector: any = metamask()({
-      emitter: { emit: vi.fn() },
-      storage: {
-        setItem: vi.fn(),
-        removeItem,
-        getItem: vi.fn(async () => true),
-      },
-    } as any)
-    connector.getInternalProvider = async () => ({
-      name: 'MetaMask',
-      accounts: [],
-      features: { 'bitcoin:events': { on: vi.fn(() => () => {}) } },
-    })
-
-    await expect(connector.connect({ isReconnecting: true })).rejects.toThrow(
-      ConnectorNotConnectedError
-    )
-    // Otherwise a user who revoked the site while the tab was closed pays the
-    // poll on every later load, forever.
-    expect(removeItem).toHaveBeenCalledWith('io.metamask.bitcoin.connected')
-  })
-
   it('survives an accounts getter that throws during the poll', async () => {
     const connectSpy = vi.fn(async () => ({ accounts: [account] }))
     ;(globalThis as any).window = {}
@@ -315,5 +291,81 @@ describe('metamask connector reconnect', () => {
     // A throw must not end the poll this code exists to provide.
     const result = await connector.connect({ isReconnecting: true })
     expect(result.accounts.map((a: any) => a.address)).toEqual([address])
+  })
+
+  it('maps a declined interactive connect to a user rejection', async () => {
+    // `bitcoin:connect` is the only step a user can reject, and consumers
+    // rely on `UserRejectedRequestError` to tell a decline from a failure.
+    const connectSpy = vi.fn(async () => {
+      throw new Error('User rejected the request')
+    })
+    ;(globalThis as any).window = {}
+    const connector = createConnector({
+      name: 'MetaMask',
+      accounts: [],
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': { on: vi.fn(() => () => {}) },
+      },
+    })
+
+    await expect(connector.connect()).rejects.toBeInstanceOf(
+      UserRejectedRequestError
+    )
+  })
+
+  it('does not call a successful connect a rejection when storage fails', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
+    ;(globalThis as any).window = {}
+    const connector: any = metamask()({
+      emitter: { emit: vi.fn() },
+      storage: {
+        // A blocked localStorage in an embedded iframe throws here.
+        setItem: vi.fn(async () => {
+          throw new Error('SecurityError')
+        }),
+        removeItem: vi.fn(async () => {
+          throw new Error('SecurityError')
+        }),
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+    connector.getInternalProvider = async () => ({
+      name: 'MetaMask',
+      accounts: [account],
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': { on: vi.fn(() => () => {}) },
+      },
+    })
+
+    const result = await connector.connect()
+    expect(result.accounts.map((a: any) => a.address)).toEqual([address])
+  })
+
+  it('keeps the shim when a slow wallet has not restored yet', async () => {
+    const removeItem = vi.fn()
+    ;(globalThis as any).window = {}
+    const connector: any = metamask()({
+      emitter: { emit: vi.fn() },
+      storage: {
+        setItem: vi.fn(),
+        removeItem,
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+    // A cold MV3 service worker can take seconds, and the wallet retries the
+    // restore on the next load. Dropping the shim would sign out a user whose
+    // session is still valid, permanently.
+    connector.getInternalProvider = async () => ({
+      name: 'MetaMask',
+      accounts: [],
+      features: { 'bitcoin:events': { on: vi.fn(() => () => {}) } },
+    })
+
+    await expect(connector.connect({ isReconnecting: true })).rejects.toThrow(
+      ConnectorNotConnectedError
+    )
+    expect(removeItem).not.toHaveBeenCalledWith('io.metamask.bitcoin.connected')
   })
 })
