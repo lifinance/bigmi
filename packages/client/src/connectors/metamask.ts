@@ -9,7 +9,10 @@ import {
 } from '@bigmi/core'
 import { getWallets } from '@wallet-standard/app'
 import type { Wallet, WalletAccount } from '@wallet-standard/base'
-import { ConnectorChainIdDetectionError } from '../errors/connectors.js'
+import {
+  ConnectorChainIdDetectionError,
+  ConnectorNotConnectedError,
+} from '../errors/connectors.js'
 import { createConnector } from '../factories/createConnector.js'
 import type { CreateConnectorFn } from '../types/connector.js'
 import type {
@@ -184,13 +187,22 @@ export function metamask(
           throw new MethodNotSupportedRpcError(method)
       }
     },
-    async connect() {
+    async connect({ isReconnecting } = {}) {
       const wallet = await this.getInternalProvider()
       if (!wallet) {
         throw new ProviderNotFoundError()
       }
       try {
-        const accounts = await this.getAccounts()
+        // `bitcoin:connect` opens MetaMask, and reconnect runs on app mount,
+        // so it must only read the session the wallet already restored.
+        const accounts = isReconnecting
+          ? wallet.accounts
+              .map((account) => toAccount(account as WalletAccount))
+              .filter((account) => account.purpose === 'payment')
+          : await this.getAccounts()
+        if (accounts.length === 0) {
+          throw new ConnectorNotConnectedError()
+        }
         const chainId = getAddressChainId(accounts[0].address)
 
         if (!unsubscribe) {
