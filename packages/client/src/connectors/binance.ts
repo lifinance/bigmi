@@ -97,15 +97,14 @@ export function binance(
       if (typeof window === 'undefined') {
         return
       }
-      if ('binancew3w' in window) {
-        const anyWindow: any = window
+      const anyWindow: any = window
+      if ('binancew3w' in window && anyWindow.binancew3w?.bitcoin) {
         return anyWindow.binancew3w.bitcoin
       }
-      if ('unisat' in window) {
-        const anyWindow: any = window
-        if (anyWindow.unisat.isBinance) {
-          return anyWindow.unisat
-        }
+      // Binance also ships as the sole `window.unisat` injection on some builds,
+      // and on others alongside a `binancew3w` that carries no bitcoin provider.
+      if ('unisat' in window && anyWindow.unisat?.isBinance) {
+        return anyWindow.unisat
       }
     },
     async getProvider() {
