@@ -234,10 +234,16 @@ export function metamask(
           unsubscribe = wallet.features['bitcoin:events'].on(
             'change',
             ({ accounts }) => {
+              // A throw here escapes into MetaMask's emitter, so bigmi would
+              // never learn the account changed. Skip what cannot be parsed.
               onAccountsChanged(
-                (accounts ?? []).map((account) =>
-                  toAccount(account as WalletAccount)
-                )
+                (accounts ?? []).flatMap((account) => {
+                  try {
+                    return [toAccount(account as WalletAccount)]
+                  } catch {
+                    return []
+                  }
+                })
               )
             }
           )
@@ -319,21 +325,28 @@ export function metamask(
       }
     },
     async onAccountsChanged(accounts) {
-      if (accounts.length === 0) {
+      // MetaMask exposes payment addresses only. A selection that filters to
+      // nothing — a Taproot-only account, say — would otherwise leave the
+      // store connected with no usable address.
+      const payment = accounts.filter(
+        (account) => account.purpose === 'payment'
+      )
+      if (payment.length === 0) {
         this.onDisconnect()
       } else {
-        config.emitter.emit('change', {
-          accounts: accounts.filter((account) => account.purpose === 'payment'),
-        })
+        config.emitter.emit('change', { accounts: payment })
       }
     },
     onChainChanged(chainId) {
       config.emitter.emit('change', { chainId })
     },
     async onDisconnect(_error) {
-      // No need to remove `${this.id}.disconnected` from storage because `onDisconnect` is typically
-      // only called when the wallet is disconnected through the wallet's interface, meaning the wallet
-      // actually disconnected and we don't need to simulate it.
+      // `isAuthorized` gates on the connected shim, so leaving it would keep
+      // reporting an authorized connector after the user revoked the site
+      // inside MetaMask, and every load would retry a session that is gone.
+      if (shimDisconnect) {
+        await config.storage?.removeItem(`${this.id}.connected`)
+      }
       config.emitter.emit('disconnect')
     },
   }))

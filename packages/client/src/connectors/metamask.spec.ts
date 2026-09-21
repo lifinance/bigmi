@@ -149,4 +149,81 @@ describe('metamask connector reconnect', () => {
     const connector = createConnector(undefined)
     await expect(connector.isAuthorized()).resolves.toBe(false)
   })
+
+  it('ignores an unparseable account in a change event', async () => {
+    const connectSpy = vi.fn(async () => ({ accounts: [account] }))
+    ;(globalThis as any).window = {}
+    let fire: ((e: { accounts: unknown[] }) => void) | undefined
+    const emit = vi.fn()
+    const connector: any = metamask()({
+      emitter: { emit },
+      storage: {
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+    connector.getInternalProvider = async () => ({
+      name: 'MetaMask',
+      accounts: [account],
+      features: {
+        'bitcoin:connect': { connect: connectSpy },
+        'bitcoin:events': {
+          on: vi.fn((_event: string, handler: any) => {
+            fire = handler
+            return () => {}
+          }),
+        },
+      },
+    })
+
+    await connector.connect()
+    emit.mockClear()
+    // A throw here escapes into MetaMask's emitter, so bigmi would never
+    // learn the account changed and would keep signing the old address.
+    expect(() =>
+      fire?.({ accounts: [{ address: 'not-an-address' }, account] })
+    ).not.toThrow()
+  })
+
+  it('disconnects when no payment account is left', async () => {
+    const emit = vi.fn()
+    const connector: any = metamask()({
+      emitter: { emit },
+      storage: {
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+
+    // A Taproot-only selection filters to nothing. Emitting `change` with an
+    // empty list leaves the store connected with no usable address.
+    await connector.onAccountsChanged([
+      {
+        address: 'bc1p',
+        addressType: 'p2tr',
+        publicKey: '00',
+        purpose: 'ordinals',
+      },
+    ])
+    expect(emit).toHaveBeenCalledWith('disconnect')
+  })
+
+  it('clears the connected shim when the wallet disconnects', async () => {
+    const removeItem = vi.fn()
+    const connector: any = metamask()({
+      emitter: { emit: vi.fn() },
+      storage: {
+        setItem: vi.fn(),
+        removeItem,
+        getItem: vi.fn(async () => true),
+      },
+    } as any)
+
+    await connector.onDisconnect()
+    // Otherwise `isAuthorized()` stays true forever after the user revokes
+    // the site inside MetaMask.
+    expect(removeItem).toHaveBeenCalledWith('io.metamask.bitcoin.connected')
+  })
 })
