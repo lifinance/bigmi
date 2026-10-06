@@ -32,14 +32,14 @@ export function withRetry<data>(
   }: WithRetryParameters = {}
 ): Promise<data> {
   return new Promise<data>((resolve, reject) => {
-    const attemptRetry = async ({ count = 0 } = {}) => {
-      const retry = async ({ error }: { error: Error }) => {
+    const attemptRetry = async ({ count = 0 } = {}): Promise<void> => {
+      const retry = async ({ error }: { error: Error }): Promise<void> => {
         const delay =
           typeof delay_ === 'function' ? delay_({ count, error }) : delay_
         if (delay) {
           await wait(delay)
         }
-        attemptRetry({ count: count + 1 })
+        return attemptRetry({ count: count + 1 })
       }
 
       try {
@@ -55,6 +55,8 @@ export function withRetry<data>(
         reject(err)
       }
     }
-    attemptRetry()
+    // A throw from `shouldRetry` or `delay` rejects an attempt; pass it on
+    // instead of leaving the promise pending.
+    attemptRetry().catch(reject)
   })
 }
