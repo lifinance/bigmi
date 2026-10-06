@@ -1,2 +1,2 @@
 export const name = '@bigmi/react'
-export const version = '0.9.4'
+export const version = '0.9.5'
