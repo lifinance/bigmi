@@ -9,7 +9,7 @@ import type { Client } from '../types/client.js'
 import type { UTXOTransaction } from '../types/transaction.js'
 import type { Transport } from '../types/transport.js'
 import { getAction } from '../utils/getAction.js'
-import { listenersCache, observe } from '../utils/observe.js'
+import { observe } from '../utils/observe.js'
 import { stringify } from '../utils/stringify.js'
 import { withRetry } from '../utils/withRetry.js'
 import { getBlock } from './getBlock.js'
@@ -114,29 +114,40 @@ export async function waitForTransaction<chain extends Chain | undefined>(
 
   return new Promise((resolve, reject) => {
     let timer: ReturnType<typeof setTimeout> | undefined
-    // A wait that joined another wait on the same txId removes only itself
-    // when its timeout expires. The wait that drives the observer replaces
-    // this below.
-    let onTimeout = () => {
+    // Every way a wait settles goes through here: it clears its own timer and
+    // removes only its own listener. When the last wait leaves, `observe` runs
+    // the cleanup returned below, which unwatches the shared block watcher.
+    const settle = (fn: () => void) => {
+      clearTimeout(timer)
       _unobserve()
-      reject(new WaitForTransactionReceiptTimeoutError({ hash: txId as never }))
+      fn()
     }
 
     const _unobserve = observe(
       observerId,
       {
         onReplaced,
-        // Every way a wait settles goes through these, so they clear its timer.
-        resolve: (transaction: WaitForTransactionReceiptReturnType) => {
-          clearTimeout(timer)
-          resolve(transaction)
-        },
-        reject: (error: unknown) => {
-          clearTimeout(timer)
-          reject(error)
-        },
+        resolve: (transaction: WaitForTransactionReceiptReturnType) =>
+          settle(() => resolve(transaction)),
+        reject: (error: unknown) => settle(() => reject(error)),
       },
       (emit) => {
+        // Settles the waits at most once. A callback that is still in flight
+        // must not emit a second time.
+        let finished = false
+        const done = (fn: () => void) => {
+          if (finished) {
+            return
+          }
+          finished = true
+          try {
+            fn()
+          } catch (error) {
+            // A throwing `onReplaced` still settles the wait.
+            emit.reject(error)
+          }
+        }
+
         const _unwatch = getAction(
           client,
           watchBlockNumber,
@@ -387,50 +398,26 @@ export async function waitForTransaction<chain extends Chain | undefined>(
           },
         })
 
-        // Settles the wait at most once. A callback that is still in flight
-        // must not unwatch the shared block watcher a second time, and a late
-        // emit must not reach a newer wait on the same txId.
-        //
-        // `onBlockNumber` above uses `done` before this declaration. That is
-        // safe: the watcher calls `onBlockNumber` only after a `getblockcount`
-        // request resolves, never synchronously, and the timer that calls
-        // `onTimeout` is set only after `observe` returns. Both run after
-        // `done` is initialized.
-        let finished = false
-        const done = (fn: () => void) => {
-          if (finished) {
-            return
-          }
+        // `observe` runs this when the last wait on this observer leaves. It
+        // also ends this observer: a callback that is still in flight must
+        // not emit to a newer wait that starts a new observer on the same id.
+        return () => {
           finished = true
           _unwatch()
-          try {
-            fn()
-          } catch (error) {
-            // A throwing `onReplaced` still settles the wait.
-            emit.reject(error)
-          } finally {
-            // The emit settled every wait that joined this observer, so drop
-            // them all. A later wait on the same txId starts its own.
-            // Deleting the key directly is safe only because this observer's
-            // fn returns no cleanup, so there is no `cleanupCache` entry to
-            // run or remove.
-            listenersCache.delete(observerId)
-          }
         }
-
-        // The driver's timeout ends the shared wait: it stops the block
-        // watcher and settles every wait on this txId.
-        onTimeout = () =>
-          done(() =>
-            emit.reject(
-              new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
-            )
-          )
       }
     )
 
     if (timeout) {
-      timer = setTimeout(() => onTimeout(), timeout)
+      timer = setTimeout(
+        () =>
+          settle(() =>
+            reject(
+              new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
+            )
+          ),
+        timeout
+      )
     }
   })
 }

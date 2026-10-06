@@ -423,6 +423,78 @@ describe('waitForTransaction', () => {
       expect(cacheKeysOf(client)).toEqual([])
     })
 
+    it('resolves a joined wait with a longer timeout after the driver times out', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout: number) =>
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          timeout,
+        })
+
+      // A drives the observer; B joins it with a longer timeout.
+      const a = track(wait(1_500))
+      await advance(0)
+      const promiseB = wait(20_000)
+      const b = track(promiseB)
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.status).toBe('pending')
+
+      // The transaction confirms in the block that the poll at 3 s finds.
+      await advance(1_000)
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+      await expect(promiseB).resolves.toMatchObject({ txid: tx.txId })
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('resolves a joined wait without a timeout after the driver times out', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            timeout,
+          })
+        )
+
+      // A drives the observer with a timeout; B joins it with none.
+      const a = wait(1_500)
+      await advance(0)
+      const b = wait()
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.status).toBe('pending')
+      expect(listenersCache.get(id)).toHaveLength(1)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
     it('clears every timer when the retryCount timeout settles a driver and a joiner', async () => {
       const { client, state } = createMockChain()
       const tx = makeTx()
