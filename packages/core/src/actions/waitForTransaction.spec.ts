@@ -648,6 +648,52 @@ describe('waitForTransaction', () => {
       expect(vi.getTimerCount()).toBe(0)
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('does not settle a newer wait with the same options when an in-flight callback fails after the timeout', async () => {
+      // getblockhash for height 100 always fails, so A's first callback
+      // retries getBlock(100) until about 6 s.
+      const { client, state } = createMockChain({
+        fail: (method, params) =>
+          method === 'getblockhash' && params[0] === 100,
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 3,
+            retryDelay: 2_000,
+            timeout,
+          })
+        )
+
+      const a = wait(1_500)
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // A resumed run: C has A's options, so it starts a new observer on
+      // A's key. Its first callback is at height 101, so only A's callback
+      // touches block 100.
+      state.height = 101
+      const c = wait()
+      // A's getBlock(100) retries end with BlockNotFoundError.
+      await advance(8_000)
+      expect(c.error).toBeUndefined()
+      expect(c.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 
   describe('replacement', () => {
