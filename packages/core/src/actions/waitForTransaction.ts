@@ -105,7 +105,22 @@ export async function waitForTransaction<chain extends Chain | undefined>(
     timeout,
   }: WaitForTransactionReceiptParameters
 ): Promise<WaitForTransactionReceiptReturnType> {
-  const observerId = stringify(['waitForTransaction', client.uid, txId])
+  const observerId = stringify([
+    'waitForTransaction',
+    client.uid,
+    txId,
+    // The first wait's closure decides how every wait on its observer
+    // confirms, polls, retries and labels a replacement, so only waits with
+    // the same options share one. A `retryDelay` function cannot be compared
+    // and is left out. Each wait owns its `timeout`, so it is left out too.
+    {
+      confirmations,
+      pollingInterval,
+      retryCount,
+      retryDelay: typeof retryDelay === 'number' ? retryDelay : undefined,
+      senderAddress,
+    },
+  ])
 
   let count = 0
   let transaction: UTXOTransaction | undefined

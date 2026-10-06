@@ -63,8 +63,15 @@ type MockTx = { hex: string; confirmedAt?: number }
  */
 function createMockChain({
   fail,
+  growingConfirmations = false,
 }: {
   fail?: (method: string, params: unknown[]) => boolean
+  /**
+   * Count the confirmations of a transaction from its block to the tip, and
+   * let `getblockstats` return the height of that block. When off, a
+   * confirmed transaction has 1 confirmation and `getblockstats` the tip.
+   */
+  growingConfirmations?: boolean
 } = {}) {
   const state = {
     height: 100,
@@ -94,12 +101,23 @@ function createMockChain({
         }
         const confirmed =
           tx.confirmedAt !== undefined && state.height >= tx.confirmedAt
+        if (confirmed && growingConfirmations) {
+          return {
+            txid: txId,
+            hex: tx.hex,
+            // The hash carries the height, for `getblockstats`.
+            blockhash: `bh${tx.confirmedAt}`,
+            confirmations: state.height - tx.confirmedAt! + 1,
+          }
+        }
         return confirmed
           ? { txid: txId, hex: tx.hex, blockhash: 'bh', confirmations: 1 }
           : { txid: txId, hex: tx.hex, confirmations: 0 }
       }
       case 'getblockstats':
-        return { height: state.height }
+        return growingConfirmations
+          ? { height: Number((params[0] as string).slice(2)) }
+          : { height: state.height }
       case 'getblockhash':
         return 'bh'
       case 'getblock':
@@ -144,8 +162,20 @@ function cacheKeysOf(client: { uid: string }): string[] {
   )
 }
 
+/** The observer key of a wait with `SENDER` and the default options. */
 const waitId = (client: { uid: string }, txId: string) =>
-  JSON.stringify(['waitForTransaction', client.uid, txId])
+  JSON.stringify([
+    'waitForTransaction',
+    client.uid,
+    txId,
+    {
+      confirmations: 1,
+      pollingInterval: POLLING_INTERVAL,
+      retryCount: 10,
+      retryDelay: 3_000,
+      senderAddress: SENDER,
+    },
+  ])
 
 const watchId = (client: { uid: string }) =>
   JSON.stringify(['watchBlockNumber', client.uid, true, true, POLLING_INTERVAL])
@@ -334,6 +364,47 @@ describe('waitForTransaction', () => {
         key.includes('waitForTransaction')
       )
       expect(waitKeys).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
+  describe('confirmations option', () => {
+    it('waits for its own confirmations next to a wait on the same txId that needs fewer', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (confirmations: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            confirmations,
+          })
+        )
+
+      // A needs 1 confirmation; B starts after it and needs 3.
+      const a = wait(1)
+      await advance(0)
+      const b = wait(3)
+      await advance(0)
+
+      // The first confirmation.
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(b.status).toBe('pending')
+
+      // The second confirmation.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('pending')
+
+      // The third confirmation.
+      state.height = 103
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
       expect(cacheKeysOf(client)).toEqual([])
     })
   })
