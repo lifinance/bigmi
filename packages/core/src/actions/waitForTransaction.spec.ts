@@ -1,0 +1,1203 @@
+import { address, Block, Transaction } from 'bitcoinjs-lib'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BlockNotFoundError } from '../errors/block.js'
+import { WaitForTransactionReceiptTimeoutError } from '../errors/transaction.js'
+import { createClient } from '../factories/createClient.js'
+import { custom } from '../transports/custom.js'
+import { cleanupCache, listenersCache } from '../utils/observe.js'
+import { waitForTransaction } from './waitForTransaction.js'
+
+const POLLING_INTERVAL = 1_000
+const SENDER = 'bc1qsender'
+
+let txSeed = 0
+
+/**
+ * A parseable non-coinbase transaction. It spends output 0 of the outpoint
+ * `spends`, so two transactions with the same `spends` replace each other.
+ */
+function makeTx(
+  spends = ++txSeed,
+  outputByte = 0
+): { txId: string; txHex: string } {
+  const prevHash = new Uint8Array(32)
+  new DataView(prevHash.buffer).setUint32(0, spends)
+  const tx = new Transaction()
+  tx.version = 2
+  tx.addInput(prevHash, 0, 0xfffffffd)
+  tx.addOutput(
+    Uint8Array.from([0x00, 0x14, ...new Uint8Array(20).fill(outputByte)]),
+    10_000n
+  )
+  return { txId: tx.getId(), txHex: tx.toHex() }
+}
+
+/** A block with a coinbase and `txs`. */
+function makeBlockHex(txs: Transaction[] = []): string {
+  const coinbase = new Transaction()
+  coinbase.version = 1
+  coinbase.addInput(
+    new Uint8Array(32),
+    0xffffffff,
+    0xffffffff,
+    Uint8Array.from([1, 1])
+  )
+  coinbase.addOutput(Uint8Array.from([0x6a]), 0n)
+  const block = new Block()
+  block.version = 1
+  block.prevHash = new Uint8Array(32)
+  block.merkleRoot = Block.calculateMerkleRoot([coinbase, ...txs])
+  block.timestamp = 0
+  block.bits = 0
+  block.nonce = 0
+  block.transactions = [coinbase, ...txs]
+  return block.toHex()
+}
+
+type MockTx = { hex: string; confirmedAt?: number }
+
+/**
+ * A client on an in-memory chain. `state.height` is the tip, `state.txs` maps
+ * a txid to its raw hex and the height it confirms at, and `state.blockHex` is
+ * every block (only a coinbase by default, so no replacement is found).
+ */
+function createMockChain({
+  fail,
+  growingConfirmations = false,
+  omitMempoolConfirmations = false,
+  blockStatsWithoutHeight = false,
+  caseInsensitiveTxIds = false,
+}: {
+  fail?: (method: string, params: unknown[]) => boolean
+  /**
+   * Count the confirmations of a transaction from its block to the tip, and
+   * let `getblockstats` return the height of that block. When off, a
+   * confirmed transaction has 1 confirmation and `getblockstats` the tip.
+   */
+  growingConfirmations?: boolean
+  /**
+   * Answer for a transaction that is not confirmed without `confirmations`,
+   * as Bitcoin Core does for a mempool transaction. When off, the answer has
+   * `confirmations: 0`.
+   */
+  omitMempoolConfirmations?: boolean
+  /** Answer `getblockstats` without `height`. */
+  blockStatsWithoutHeight?: boolean
+  /** Find a txid in either case in `getrawtransaction`, as Bitcoin Core does. */
+  caseInsensitiveTxIds?: boolean
+} = {}) {
+  const state = {
+    height: 100,
+    txs: new Map<string, MockTx>(),
+    blockHex: makeBlockHex(),
+    calls: {} as Record<string, number>,
+  }
+  const request = async ({
+    method,
+    params,
+  }: {
+    method: string
+    params: unknown[]
+  }) => {
+    state.calls[method] = (state.calls[method] ?? 0) + 1
+    if (fail?.(method, params)) {
+      throw new Error(`${method} failed`)
+    }
+    switch (method) {
+      case 'getblockcount':
+        return state.height
+      case 'getrawtransaction': {
+        const txId = caseInsensitiveTxIds
+          ? (params[0] as string).toLowerCase()
+          : (params[0] as string)
+        const tx = state.txs.get(txId)
+        if (!tx) {
+          throw new Error('No such mempool or blockchain transaction')
+        }
+        const confirmed =
+          tx.confirmedAt !== undefined && state.height >= tx.confirmedAt
+        if (confirmed && growingConfirmations) {
+          return {
+            txid: txId,
+            hex: tx.hex,
+            // The hash carries the height, for `getblockstats`.
+            blockhash: `bh${tx.confirmedAt}`,
+            confirmations: state.height - tx.confirmedAt! + 1,
+          }
+        }
+        if (!confirmed && omitMempoolConfirmations) {
+          return { txid: txId, hex: tx.hex }
+        }
+        return confirmed
+          ? { txid: txId, hex: tx.hex, blockhash: 'bh', confirmations: 1 }
+          : { txid: txId, hex: tx.hex, confirmations: 0 }
+      }
+      case 'getblockstats':
+        if (blockStatsWithoutHeight) {
+          return {}
+        }
+        return growingConfirmations
+          ? { height: Number((params[0] as string).slice(2)) }
+          : { height: state.height }
+      case 'getblockhash':
+        return 'bh'
+      case 'getblock':
+        return state.blockHex
+      default:
+        throw new Error(`Unexpected method ${method}`)
+    }
+  }
+  const client = createClient({
+    // No transport retries: they would add timers of their own.
+    transport: custom({ request }, { retryCount: 0 }),
+    pollingInterval: POLLING_INTERVAL,
+  })
+  return { client, state }
+}
+
+type Tracked = {
+  status: 'pending' | 'resolved' | 'rejected'
+  error?: unknown
+}
+
+/** Records how a promise settles, so a test can check it without waiting. */
+function track(promise: Promise<unknown>): Tracked {
+  const tracked: Tracked = { status: 'pending' }
+  promise.then(
+    () => {
+      tracked.status = 'resolved'
+    },
+    (error) => {
+      tracked.status = 'rejected'
+      tracked.error = error
+    }
+  )
+  return tracked
+}
+
+/** Every observer key that `client` still holds in the shared caches. */
+function cacheKeysOf(client: { uid: string }): string[] {
+  const uid = JSON.stringify(client.uid)
+  return [...listenersCache.keys(), ...cleanupCache.keys()].filter((key) =>
+    key.includes(uid)
+  )
+}
+
+/** The observer key of a wait with `SENDER` and the default options. */
+const waitId = (client: { uid: string }, txId: string) =>
+  JSON.stringify([
+    'waitForTransaction',
+    client.uid,
+    txId,
+    {
+      confirmations: 1,
+      pollingInterval: POLLING_INTERVAL,
+      retryCount: 10,
+      retryDelay: 3_000,
+      senderAddress: SENDER,
+    },
+  ])
+
+const watchId = (client: { uid: string }) =>
+  JSON.stringify(['watchBlockNumber', client.uid, true, true, POLLING_INTERVAL])
+
+const advance = (ms: number) => vi.advanceTimersByTimeAsync(ms)
+
+describe('waitForTransaction', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+
+  describe('timeout branch (count > retryCount)', () => {
+    // `retryCount: 1` makes the branch come on the 3rd block callback; the
+    // default (10) reaches the same branch on the 12th.
+    it('keeps the shared block watcher alive when the timed-out transaction confirms in that block', async () => {
+      const { client, state } = createMockChain()
+      const txA = makeTx()
+      const txB = makeTx()
+      const txC = makeTx()
+      state.txs.set(txA.txId, { hex: txA.txHex })
+      state.txs.set(txB.txId, { hex: txB.txHex })
+      const wait = (tx: { txId: string; txHex: string }) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 1,
+          })
+        )
+
+      // A starts the shared block watcher: callback 1 at height 100.
+      const a = wait(txA)
+      await advance(0)
+      // Callback 2.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      // B joins the shared block watcher.
+      const b = wait(txB)
+      await advance(0)
+      expect(listenersCache.get(watchId(client))).toHaveLength(2)
+
+      // A's callback 3 times out, and A is confirmed in that same block.
+      state.txs.get(txA.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // B confirms in the next block.
+      state.txs.get(txB.txId)!.confirmedAt = 103
+      state.height = 103
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+
+      // A later wait on the same client gets its own block watcher.
+      state.txs.set(txC.txId, { hex: txC.txHex, confirmedAt: 0 })
+      const c = wait(txC)
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not settle or stop a later wait on the same txId', async () => {
+      // getblockhash for height 102 (A's timeout block) always fails.
+      const { client, state } = createMockChain({
+        fail: (method, params) =>
+          method === 'getblockhash' && params[0] === 102,
+      })
+      const tx = makeTx()
+      const txC = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (t: { txId: string; txHex: string }) =>
+        track(
+          waitForTransaction(client, {
+            ...t,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 1,
+            retryDelay: 300,
+          })
+        )
+
+      // Callbacks 1 and 2 at heights 100 and 101.
+      const a = wait(tx)
+      await advance(0)
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      // Callback 3 times out.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // The route is resumed: a wait on the same txId, inside the 300 ms in
+      // which A's timeout callback could still retry getBlock(102).
+      state.height = 103
+      const b = wait(tx)
+      await advance(400)
+      expect(b.error).not.toBeInstanceOf(BlockNotFoundError)
+      expect(b.status).toBe('pending')
+
+      // B's transaction confirms in the next block.
+      state.txs.get(tx.txId)!.confirmedAt = 104
+      state.height = 104
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+
+      // A later wait on the same client.
+      state.txs.set(txC.txId, { hex: txC.txHex, confirmedAt: 0 })
+      state.height = 105
+      const c = wait(txC)
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('rejects an unmined transaction on the 12th block with the default retryCount', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+        })
+      )
+
+      // Blocks 100 to 110: 11 callbacks, each looks the transaction up once.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+      }
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getrawtransaction).toBe(11)
+
+      // Block 111: the 12th callback is past the budget.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(state.calls.getrawtransaction).toBe(11)
+    })
+
+    it('counts the callback of a missed block while the transaction is unmined', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          retryCount: 2,
+        })
+      )
+
+      // Callback 1 at block 100.
+      await advance(0)
+      // One poll finds block 103, so 101 and 102 are missed blocks. Only the
+      // callback of 101 runs: the callbacks of 102 and 103 start while it
+      // still looks the transaction up, and return without counting.
+      state.height = 103
+      await advance(POLLING_INTERVAL)
+      expect(state.calls.getrawtransaction).toBe(2)
+      // Callback 3 at block 104 is the last one in the budget.
+      state.height = 104
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getrawtransaction).toBe(3)
+
+      state.height = 105
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+    })
+
+    it('waits for every confirmation of a mined transaction past the budget', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const tx = makeTx()
+      // Mined at block 106; the wait starts at block 100.
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 106 })
+      const promise = waitForTransaction(client, {
+        ...tx,
+        senderAddress: SENDER,
+        onReplaced: () => {},
+        confirmations: 6,
+      })
+      const wait = track(promise)
+
+      // Blocks 100 to 110: 11 callbacks, 5 of them after the transaction is
+      // mined.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+      }
+
+      // Block 111 is the sixth confirmation.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('waits for every confirmation of a mined replacement past the budget', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      state.txs.set(original.txId, { hex: original.txHex })
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress: SENDER,
+        onReplaced,
+        confirmations: 6,
+        // The lookups of a missing transaction end within one poll.
+        retryDelay: 10,
+      })
+      const wait = track(promise)
+
+      // Blocks 100 to 110: 11 callbacks. At block 106 the original leaves
+      // the mempool, and its replacement is mined in that block.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        if (height === 106) {
+          state.txs.delete(original.txId)
+          state.txs.set(replacement.txId, {
+            hex: replacement.txHex,
+            confirmedAt: 106,
+          })
+          state.blockHex = makeBlockHex([
+            Transaction.fromHex(replacement.txHex),
+          ])
+        }
+        state.height = height
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+      }
+
+      // Block 111 is the sixth confirmation of the replacement.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('keeps the budget while the height of the block of a mined transaction is unknown', async () => {
+      const { client, state } = createMockChain({
+        blockStatsWithoutHeight: true,
+      })
+      const tx = makeTx()
+      // Mined at block 101, but getblockstats does not give its height.
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 101 })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          confirmations: 3,
+        })
+      )
+
+      // Blocks 100 to 110: 11 callbacks, and all of them count.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+      }
+      expect(wait.status).toBe('pending')
+
+      // Block 111: the 12th callback is past the budget.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+    })
+  })
+
+  describe('observer cleanup', () => {
+    it('removes every wait on one txId when the transaction confirms', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = () =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+          })
+        )
+
+      // A drives the observer; B (a resumed run) joins it.
+      const a = wait()
+      await advance(0)
+      const b = wait()
+      await advance(0)
+      expect(listenersCache.get(id)).toHaveLength(2)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(b.status).toBe('resolved')
+      expect(listenersCache.has(id)).toBe(false)
+
+      // A third wait on the same txId starts its own observer and settles.
+      const c = wait()
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('leaves no key behind for waits on distinct txIds', async () => {
+      const { client, state } = createMockChain()
+      const waits: Tracked[] = []
+      for (let i = 0; i < 100; i++) {
+        const tx = makeTx()
+        state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 0 })
+        waits.push(
+          track(
+            waitForTransaction(client, {
+              ...tx,
+              senderAddress: SENDER,
+              onReplaced: () => {},
+            })
+          )
+        )
+      }
+
+      await advance(POLLING_INTERVAL)
+      expect(waits.every((wait) => wait.status === 'resolved')).toBe(true)
+
+      const waitKeys = cacheKeysOf(client).filter((key) =>
+        key.includes('waitForTransaction')
+      )
+      expect(waitKeys).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
+  describe('confirmations option', () => {
+    it('waits for its own confirmations next to a wait on the same txId that needs fewer', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (confirmations: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            confirmations,
+          })
+        )
+
+      // A needs 1 confirmation; B starts after it and needs 3.
+      const a = wait(1)
+      await advance(0)
+      const b = wait(3)
+      await advance(0)
+
+      // The first confirmation.
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(b.status).toBe('pending')
+
+      // The second confirmation.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('pending')
+
+      // The third confirmation.
+      state.height = 103
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
+  describe('timeout option', () => {
+    it('stops polling when the timeout expires', async () => {
+      const { client, state } = createMockChain({
+        fail: (method) => method === 'getblockcount',
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          // Off the polling grid, so the deadline is not on a poll tick.
+          timeout: 10_500,
+        })
+      )
+
+      await advance(10_499)
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getblockcount).toBeGreaterThan(0)
+
+      await advance(1)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      const calls = state.calls.getblockcount
+      await advance(POLLING_INTERVAL * 5)
+      expect(state.calls.getblockcount).toBe(calls)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('clears the timer when the transaction confirms first', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 0 })
+
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          timeout: 60_000,
+        })
+      )
+      await advance(POLLING_INTERVAL)
+
+      expect(wait.status).toBe('resolved')
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('rejects only the joined wait when its own timeout expires', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            timeout,
+          })
+        )
+
+      // A drives the observer with no timeout; B joins it with one.
+      const a = wait()
+      await advance(0)
+      const b = wait(5_500)
+      await advance(5_500)
+      expect(b.status).toBe('rejected')
+      expect(b.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(a.status).toBe('pending')
+      expect(listenersCache.get(id)).toHaveLength(1)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('resolves a joined wait with a longer timeout after the driver times out', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout: number) =>
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          timeout,
+        })
+
+      // A drives the observer; B joins it with a longer timeout.
+      const a = track(wait(1_500))
+      await advance(0)
+      const promiseB = wait(20_000)
+      const b = track(promiseB)
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.status).toBe('pending')
+
+      // The transaction confirms in the block that the poll at 3 s finds.
+      await advance(1_000)
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+      await expect(promiseB).resolves.toMatchObject({ txid: tx.txId })
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('resolves a joined wait without a timeout after the driver times out', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            timeout,
+          })
+        )
+
+      // A drives the observer with a timeout; B joins it with none.
+      const a = wait(1_500)
+      await advance(0)
+      const b = wait()
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.status).toBe('pending')
+      expect(listenersCache.get(id)).toHaveLength(1)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(b.status).toBe('resolved')
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('clears every timer when the retryCount timeout settles a driver and a joiner', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 1,
+            timeout,
+          })
+        )
+
+      // A drives the observer; B joins it. Both set a long timeout.
+      const a = wait(3_600_000)
+      await advance(0)
+      const b = wait(7_200_000)
+      await advance(0)
+      // A's callback 3 (count 2 > retryCount 1) rejects every wait.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not settle a newer wait on the same txId when an in-flight callback fails after the timeout', async () => {
+      // getblockhash for height 100 always fails, so A's first callback
+      // retries getBlock(100) until about 6 s.
+      const { client, state } = createMockChain({
+        fail: (method, params) =>
+          method === 'getblockhash' && params[0] === 100,
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+
+      const a = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          retryCount: 3,
+          retryDelay: 2_000,
+          timeout: 1_500,
+        })
+      )
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // A resumed run: C starts a new observer on the same txId. Its first
+      // callback is at height 101, so only A's callback touches block 100.
+      state.height = 101
+      const c = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+        })
+      )
+      // A's getBlock(100) retries end with BlockNotFoundError.
+      await advance(8_000)
+      expect(c.error).toBeUndefined()
+      expect(c.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not settle a newer wait with the same options when an in-flight callback fails after the timeout', async () => {
+      // getblockhash for height 100 always fails, so A's first callback
+      // retries getBlock(100) until about 6 s.
+      const { client, state } = createMockChain({
+        fail: (method, params) =>
+          method === 'getblockhash' && params[0] === 100,
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 3,
+            retryDelay: 2_000,
+            timeout,
+          })
+        )
+
+      const a = wait(1_500)
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // A resumed run: C has A's options, so it starts a new observer on
+      // A's key. Its first callback is at height 101, so only A's callback
+      // touches block 100.
+      state.height = 101
+      const c = wait()
+      // A's getBlock(100) retries end with BlockNotFoundError.
+      await advance(8_000)
+      expect(c.error).toBeUndefined()
+      expect(c.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
+  describe('replacement', () => {
+    it('rejects with the error that onReplaced throws', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool; its replacement is in the tip block.
+      state.txs.set(replacement.txId, {
+        hex: replacement.txHex,
+        confirmedAt: 0,
+      })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const error = new Error('onReplaced failed')
+
+      const wait = track(
+        waitForTransaction(client, {
+          ...original,
+          senderAddress: SENDER,
+          onReplaced: () => {
+            throw error
+          },
+          retryCount: 0,
+        })
+      )
+      await advance(POLLING_INTERVAL)
+
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBe(error)
+      expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not report the awaited transaction as its own replacement', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      // getrawtransaction still reports the transaction unconfirmed, but
+      // getblock already lists it.
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(tx.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...tx,
+        senderAddress: SENDER,
+        onReplaced,
+      })
+      const wait = track(promise)
+
+      await advance(0)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // getrawtransaction reports it confirmed in the next block.
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(onReplaced).not.toHaveBeenCalled()
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it.each([0, undefined])(
+      'waits until a replacement that getrawtransaction reports unconfirmed is confirmed (confirmations %s)',
+      async (mempoolConfirmations) => {
+        const { client, state } = createMockChain({
+          omitMempoolConfirmations: mempoolConfirmations === undefined,
+        })
+        const spends = ++txSeed
+        const original = makeTx(spends)
+        const replacement = makeTx(spends, 1)
+        // The original left the mempool. Its replacement is in the tip block,
+        // but getrawtransaction reports it unconfirmed.
+        state.txs.set(replacement.txId, { hex: replacement.txHex })
+        state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+        const onReplaced = vi.fn()
+        const promise = waitForTransaction(client, {
+          ...original,
+          senderAddress: SENDER,
+          onReplaced,
+          // Enough block callbacks to find the replacement, check it again and
+          // resolve; the lookups of the original end within one poll.
+          retryCount: 3,
+          retryDelay: 100,
+        })
+        const wait = track(promise)
+
+        // Callback 1 finds the replacement.
+        await advance(POLLING_INTERVAL / 2)
+        expect(wait.status).toBe('pending')
+        expect(onReplaced).not.toHaveBeenCalled()
+
+        // Callback 2: still unconfirmed.
+        state.height = 101
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+        expect(onReplaced).not.toHaveBeenCalled()
+
+        // Callback 3: confirmed.
+        state.txs.get(replacement.txId)!.confirmedAt = 102
+        state.height = 102
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('resolved')
+        await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
+        expect(onReplaced).toHaveBeenCalledTimes(1)
+        const [{ reason, replacedTransaction, transaction }] =
+          onReplaced.mock.calls[0]!
+        expect(reason).toBe('replaced')
+        expect(replacedTransaction.getId()).toBe(original.txId)
+        expect(transaction.txid).toBe(replacement.txId)
+        expect(cacheKeysOf(client)).toEqual([])
+      }
+    )
+
+    it('reports a replacement that needs more confirmations once it has them', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. Its replacement is mined in the tip
+      // block, so it has 1 of the 2 confirmations.
+      state.txs.set(replacement.txId, {
+        hex: replacement.txHex,
+        confirmedAt: 100,
+      })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const wait = track(
+        waitForTransaction(client, {
+          ...original,
+          senderAddress: SENDER,
+          onReplaced,
+          confirmations: 2,
+          // The lookups of the original end within one poll.
+          retryCount: 3,
+          retryDelay: 100,
+        })
+      )
+
+      // Callback 1 finds the replacement with 1 confirmation.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // Callback 2: the second confirmation.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      expect(onReplaced.mock.calls[0]![0].transaction.txid).toBe(
+        replacement.txId
+      )
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('compares a replacement of a replacement with the awaited transaction', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      // A cancel pays the sender, and a fee bump of the cancel pays the
+      // sender less.
+      const cancel = makeTx(spends, 2)
+      const senderAddress = address.fromOutputScript(
+        Transaction.fromHex(cancel.txHex).outs[0]!.script
+      )
+      const bump = Transaction.fromHex(cancel.txHex)
+      bump.outs[0]!.value = 9_000n
+      const bumpedCancel = { txId: bump.getId(), txHex: bump.toHex() }
+      // The original left the mempool. getblock lists the cancel in block
+      // 100, but getrawtransaction has it only in the mempool.
+      state.txs.set(cancel.txId, { hex: cancel.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(cancel.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress,
+        onReplaced,
+        // The lookups of a missing transaction end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 finds the cancel with 0 confirmations.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+
+      // Block 100 is reorged out, and the bumped cancel is mined in 101.
+      state.txs.delete(cancel.txId)
+      state.txs.set(bumpedCancel.txId, {
+        hex: bumpedCancel.txHex,
+        confirmedAt: 101,
+      })
+      state.blockHex = makeBlockHex([bump])
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: bumpedCancel.txId })
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      const [{ reason, replacedTransaction, transaction }] =
+        onReplaced.mock.calls[0]!
+      expect(reason).toBe('cancelled')
+      expect(replacedTransaction.getId()).toBe(original.txId)
+      expect(transaction.txid).toBe(bumpedCancel.txId)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not report the awaited transaction as a replacement of its replacement', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. getblock lists its replacement in
+      // block 100, but getrawtransaction has it only in the mempool.
+      state.txs.set(replacement.txId, { hex: replacement.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress: SENDER,
+        onReplaced,
+        // The lookups of a missing transaction end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 tracks the replacement with no confirmations.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+
+      // Block 100 is reorged out, and the original is mined in block 101.
+      state.txs.delete(replacement.txId)
+      state.txs.set(original.txId, { hex: original.txHex, confirmedAt: 101 })
+      state.blockHex = makeBlockHex([Transaction.fromHex(original.txHex)])
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // The next callback looks the original up again and finds it mined.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: original.txId })
+      expect(onReplaced).not.toHaveBeenCalled()
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not report the awaited transaction as a replacement of its replacement for a txId in upper case', async () => {
+      const { client, state } = createMockChain({ caseInsensitiveTxIds: true })
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. getblock lists its replacement in
+      // block 100, but getrawtransaction has it only in the mempool.
+      state.txs.set(replacement.txId, { hex: replacement.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        txId: original.txId.toUpperCase(),
+        txHex: original.txHex,
+        senderAddress: SENDER,
+        onReplaced,
+        // The lookups of a missing transaction end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 tracks the replacement with no confirmations.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+
+      // Block 100 is reorged out, and the original is mined in block 101.
+      state.txs.delete(replacement.txId)
+      state.txs.set(original.txId, { hex: original.txHex, confirmedAt: 101 })
+      state.blockHex = makeBlockHex([Transaction.fromHex(original.txHex)])
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // The next callback looks the original up again and finds it mined.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: original.txId })
+      expect(onReplaced).not.toHaveBeenCalled()
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('resolves when txHex does not parse but the node knows the transaction', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      // getrawtransaction answers with the hex of the transaction, so the
+      // wait needs txHex only to find a replacement.
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const promise = waitForTransaction(client, {
+        txId: tx.txId,
+        txHex: 'zz',
+        senderAddress: SENDER,
+        onReplaced: () => {},
+      })
+      const wait = track(promise)
+
+      // Callback 1: in the mempool, and the search finds no replacement.
+      await advance(0)
+      expect(wait.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+})

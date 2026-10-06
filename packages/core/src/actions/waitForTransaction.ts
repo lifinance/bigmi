@@ -56,12 +56,17 @@ export type WaitForTransactionReceiptParameters = {
    */
   pollingInterval?: number | undefined
   /**
-   * Number of times to retry if the transaction or block is not found.
-   * @default 6 (exponential backoff)
+   * Number of times to retry a failed lookup of the transaction or of a block.
+   * It is also the block budget: once `retryCount + 1` block callbacks have
+   * counted, the next one rejects with `WaitForTransactionReceiptTimeoutError`.
+   * A callback counts while the transaction is not mined or the height of its
+   * block is unknown.
+   * @default 10
    */
   retryCount?: number
   /**
-   * Time to wait (in ms) between retries.
+   * Time to wait (in ms) between the retries of a lookup.
+   * @default 3_000
    */
   retryDelay?: ((config: { count: number; error: Error }) => number) | number
   /** Optional timeout (in milliseconds) to wait before stopping polling. */
@@ -105,28 +110,82 @@ export async function waitForTransaction<chain extends Chain | undefined>(
     timeout,
   }: WaitForTransactionReceiptParameters
 ): Promise<WaitForTransactionReceiptReturnType> {
-  const observerId = stringify(['waitForTransaction', client.uid, txId])
+  const observerId = stringify([
+    'waitForTransaction',
+    client.uid,
+    txId,
+    // The first wait's closure decides how every wait on its observer
+    // confirms, polls, retries and labels a replacement, so only waits with
+    // the same options share one. A `retryDelay` function cannot be compared
+    // and is left out. Each wait owns its `timeout`, so it is left out too.
+    {
+      confirmations,
+      pollingInterval,
+      retryCount,
+      retryDelay: typeof retryDelay === 'number' ? retryDelay : undefined,
+      senderAddress,
+    },
+  ])
 
+  // `getId()` gives a txid in lower case; the node takes `txId` in either case.
+  const awaitedTxId = txId.toLowerCase()
   let count = 0
   let transaction: UTXOTransaction | undefined
+  // The height of the block of `transaction`, once `getblockstats` gives it.
+  let minedHeight: number | undefined
   let replacedTransaction: Transaction | undefined
+  // The replacement that `transaction` tracks once one is found. It is
+  // reported when `transaction` has enough confirmations, which can be in a
+  // later block.
+  let replacement: Omit<ReplacementReturnType, 'transaction'> | undefined
   let retrying = false
 
   return new Promise((resolve, reject) => {
-    if (timeout) {
-      setTimeout(
-        () =>
-          reject(
-            new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
-          ),
-        timeout
-      )
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // Every way a wait settles goes through here: it clears its own timer and
+    // removes only its own listener. When the last wait leaves, `observe` runs
+    // the cleanup returned below, which unwatches the shared block watcher.
+    const settle = (fn: () => void) => {
+      clearTimeout(timer)
+      _unobserve()
+      fn()
     }
 
     const _unobserve = observe(
       observerId,
-      { onReplaced, resolve, reject },
+      {
+        onReplaced,
+        resolve: (transaction: WaitForTransactionReceiptReturnType) =>
+          settle(() => resolve(transaction)),
+        reject: (error: unknown) => settle(() => reject(error)),
+      },
       (emit) => {
+        // Settles the waits at most once. A callback that is still in flight
+        // must not emit a second time.
+        let finished = false
+        const done = (fn: () => void) => {
+          if (finished) {
+            return
+          }
+          finished = true
+          try {
+            fn()
+          } catch (error) {
+            // A throwing `onReplaced` still settles the wait.
+            emit.reject(error)
+          }
+        }
+
+        // Resolves with the tracked transaction, and first reports the
+        // replacement it tracks, if any.
+        const resolveWith = (transaction: UTXOTransaction) =>
+          done(() => {
+            if (replacement) {
+              emit.onReplaced?.({ ...replacement, transaction })
+            }
+            emit.resolve(transaction)
+          })
+
         const _unwatch = getAction(
           client,
           watchBlockNumber,
@@ -136,12 +195,6 @@ export async function waitForTransaction<chain extends Chain | undefined>(
           emitOnBegin: true,
           pollingInterval,
           async onBlockNumber(blockNumber_) {
-            const done = (fn: () => void) => {
-              _unwatch()
-              fn()
-              _unobserve()
-            }
-
             let blockNumber = blockNumber_
 
             if (retrying) {
@@ -155,6 +208,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   })
                 )
               )
+              return
             }
 
             try {
@@ -169,6 +223,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   blockHash: transaction.blockhash,
                   stats: ['height'],
                 })
+                minedHeight = blockStats.height || undefined
                 if (
                   confirmations > 1 &&
                   (!blockStats.height ||
@@ -176,7 +231,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 ) {
                   return
                 }
-                done(() => emit.resolve(transaction!))
+                resolveWith(transaction)
                 return
               }
 
@@ -206,6 +261,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   blockHash: transaction.blockhash,
                   stats: ['height'],
                 })
+                minedHeight = blockStats.height || undefined
                 if (blockStats.height) {
                   blockNumber = blockStats.height
                 }
@@ -224,7 +280,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 return
               }
 
-              done(() => emit.resolve(transaction!))
+              resolveWith(transaction)
             } catch (err) {
               // If the receipt is not found, the transaction will be pending.
               // We need to check if it has potentially been replaced.
@@ -273,6 +329,8 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   }
 
                   let replacementTransaction: Transaction | undefined
+                  let originalTransactionInBlock = false
+                  const replacedTransactionId = replacedTransaction.getId()
 
                   for (const tx of block.transactions!) {
                     if (tx.isCoinbase()) {
@@ -288,13 +346,33 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                       const vout = input.index
                       const inputId = `${txid}:${vout}`
                       if (replacedTransactionInputs.has(inputId)) {
-                        replacementTransaction = tx
+                        // The tracked and the awaited transaction spend the
+                        // same inputs, and a provider can list one in a block
+                        // before getrawtransaction reports it mined. Neither
+                        // is a replacement: a later callback finds it mined.
+                        // `awaitedTxId` is the awaited one; the tracked one
+                        // differs from it once a replacement is tracked.
+                        const id = tx.getId()
+                        if (id === awaitedTxId) {
+                          originalTransactionInBlock = true
+                        } else if (id !== replacedTransactionId) {
+                          replacementTransaction = tx
+                        }
                         break
                       }
                     }
-                    if (replacementTransaction) {
+                    if (replacementTransaction || originalTransactionInBlock) {
                       break
                     }
+                  }
+
+                  // The awaited transaction is back after its tracked
+                  // replacement left the chain: track the awaited one again,
+                  // so the next callback looks it up by `txId`.
+                  if (originalTransactionInBlock) {
+                    transaction = undefined
+                    replacement = undefined
+                    return
                   }
 
                   // If we couldn't find a replacement transaction, continue polling.
@@ -310,14 +388,6 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   )({
                     txId: replacementTransaction.getId(),
                   })
-
-                  // Check if we have enough confirmations. If not, continue polling.
-                  if (
-                    transaction.confirmations &&
-                    transaction.confirmations < confirmations
-                  ) {
-                    return
-                  }
 
                   let reason: ReplacementReason = 'replaced'
 
@@ -337,9 +407,12 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                     return addresses
                   }
 
-                  // Get the recipient addresses from the original transaction
+                  // Get the recipient addresses from the original transaction.
+                  // That is the awaited one, also when the tracked transaction
+                  // is an earlier replacement that left the chain.
+                  const originalTransaction = Transaction.fromHex(txHex)
                   const originalOutputAddresses =
-                    getOutputAddresses(replacedTransaction)
+                    getOutputAddresses(originalTransaction)
 
                   // Get the recipient addresses from the replacement transaction
                   const replacementOutputAddresses = getOutputAddresses(
@@ -362,14 +435,22 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                     reason = 'cancelled'
                   }
 
-                  done(() => {
-                    emit.onReplaced?.({
-                      reason,
-                      replacedTransaction: replacedTransaction!,
-                      transaction: transaction!,
-                    })
-                    emit.resolve(transaction!)
-                  })
+                  replacement = {
+                    reason,
+                    replacedTransaction: originalTransaction,
+                  }
+
+                  // Check if we have enough confirmations. If not, continue
+                  // polling. A replacement with no confirmations is not mined
+                  // yet, so a later callback checks it again.
+                  if (
+                    !transaction.confirmations ||
+                    transaction.confirmations < confirmations
+                  ) {
+                    return
+                  }
+
+                  resolveWith(transaction)
                 } catch (err_) {
                   done(() => emit.reject(err_))
                 }
@@ -377,11 +458,37 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 done(() => emit.reject(err))
               }
             } finally {
-              count++
+              // The budget counts only blocks in which the tracked transaction
+              // is not mined, or the height of its block is unknown. A mined
+              // one waits for its confirmations, which can take more blocks
+              // than `retryCount`.
+              if (!transaction?.blockhash || !minedHeight) {
+                count++
+              }
             }
           },
         })
+
+        // `observe` runs this when the last wait on this observer leaves. It
+        // also ends this observer: a callback that is still in flight must
+        // not emit to a newer wait that starts a new observer on the same id.
+        return () => {
+          finished = true
+          _unwatch()
+        }
       }
     )
+
+    if (timeout) {
+      timer = setTimeout(
+        () =>
+          settle(() =>
+            reject(
+              new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
+            )
+          ),
+        timeout
+      )
+    }
   })
 }
