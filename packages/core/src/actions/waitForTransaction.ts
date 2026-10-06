@@ -127,6 +127,8 @@ export async function waitForTransaction<chain extends Chain | undefined>(
     },
   ])
 
+  // `getId()` gives a txid in lower case; the node takes `txId` in either case.
+  const awaitedTxId = txId.toLowerCase()
   let count = 0
   let transaction: UTXOTransaction | undefined
   // The height of the block of `transaction`, once `getblockstats` gives it.
@@ -348,10 +350,10 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                         // same inputs, and a provider can list one in a block
                         // before getrawtransaction reports it mined. Neither
                         // is a replacement: a later callback finds it mined.
-                        // `txId` is the awaited one; the tracked one differs
-                        // from it once a replacement is tracked.
+                        // `awaitedTxId` is the awaited one; the tracked one
+                        // differs from it once a replacement is tracked.
                         const id = tx.getId()
-                        if (id === txId) {
+                        if (id === awaitedTxId) {
                           originalTransactionInBlock = true
                         } else if (id !== replacedTransactionId) {
                           replacementTransaction = tx
