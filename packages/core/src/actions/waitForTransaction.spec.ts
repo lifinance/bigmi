@@ -64,6 +64,7 @@ type MockTx = { hex: string; confirmedAt?: number }
 function createMockChain({
   fail,
   growingConfirmations = false,
+  omitMempoolConfirmations = false,
 }: {
   fail?: (method: string, params: unknown[]) => boolean
   /**
@@ -72,6 +73,12 @@ function createMockChain({
    * confirmed transaction has 1 confirmation and `getblockstats` the tip.
    */
   growingConfirmations?: boolean
+  /**
+   * Answer for a transaction that is not confirmed without `confirmations`,
+   * as Bitcoin Core does for a mempool transaction. When off, the answer has
+   * `confirmations: 0`.
+   */
+  omitMempoolConfirmations?: boolean
 } = {}) {
   const state = {
     height: 100,
@@ -109,6 +116,9 @@ function createMockChain({
             blockhash: `bh${tx.confirmedAt}`,
             confirmations: state.height - tx.confirmedAt! + 1,
           }
+        }
+        if (!confirmed && omitMempoolConfirmations) {
+          return { txid: txId, hex: tx.hex }
         }
         return confirmed
           ? { txid: txId, hex: tx.hex, blockhash: 'bh', confirmations: 1 }
@@ -849,52 +859,57 @@ describe('waitForTransaction', () => {
       expect(cacheKeysOf(client)).toEqual([])
     })
 
-    it('waits until a replacement that getrawtransaction reports unconfirmed is confirmed', async () => {
-      const { client, state } = createMockChain()
-      const spends = ++txSeed
-      const original = makeTx(spends)
-      const replacement = makeTx(spends, 1)
-      // The original left the mempool. Its replacement is in the tip block,
-      // but getrawtransaction reports it with 0 confirmations.
-      state.txs.set(replacement.txId, { hex: replacement.txHex })
-      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
-      const onReplaced = vi.fn()
-      const promise = waitForTransaction(client, {
-        ...original,
-        senderAddress: SENDER,
-        onReplaced,
-        // Enough block callbacks to find the replacement, check it again and
-        // resolve; the lookups of the original end within one poll.
-        retryCount: 3,
-        retryDelay: 100,
-      })
-      const wait = track(promise)
+    it.each([0, undefined])(
+      'waits until a replacement that getrawtransaction reports unconfirmed is confirmed (confirmations %s)',
+      async (mempoolConfirmations) => {
+        const { client, state } = createMockChain({
+          omitMempoolConfirmations: mempoolConfirmations === undefined,
+        })
+        const spends = ++txSeed
+        const original = makeTx(spends)
+        const replacement = makeTx(spends, 1)
+        // The original left the mempool. Its replacement is in the tip block,
+        // but getrawtransaction reports it unconfirmed.
+        state.txs.set(replacement.txId, { hex: replacement.txHex })
+        state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+        const onReplaced = vi.fn()
+        const promise = waitForTransaction(client, {
+          ...original,
+          senderAddress: SENDER,
+          onReplaced,
+          // Enough block callbacks to find the replacement, check it again and
+          // resolve; the lookups of the original end within one poll.
+          retryCount: 3,
+          retryDelay: 100,
+        })
+        const wait = track(promise)
 
-      // Callback 1 finds the replacement.
-      await advance(POLLING_INTERVAL / 2)
-      expect(wait.status).toBe('pending')
-      expect(onReplaced).not.toHaveBeenCalled()
+        // Callback 1 finds the replacement.
+        await advance(POLLING_INTERVAL / 2)
+        expect(wait.status).toBe('pending')
+        expect(onReplaced).not.toHaveBeenCalled()
 
-      // Callback 2: still 0 confirmations.
-      state.height = 101
-      await advance(POLLING_INTERVAL)
-      expect(wait.status).toBe('pending')
-      expect(onReplaced).not.toHaveBeenCalled()
+        // Callback 2: still unconfirmed.
+        state.height = 101
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+        expect(onReplaced).not.toHaveBeenCalled()
 
-      // Callback 3: confirmed.
-      state.txs.get(replacement.txId)!.confirmedAt = 102
-      state.height = 102
-      await advance(POLLING_INTERVAL)
-      expect(wait.status).toBe('resolved')
-      await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
-      expect(onReplaced).toHaveBeenCalledTimes(1)
-      const [{ reason, replacedTransaction, transaction }] =
-        onReplaced.mock.calls[0]!
-      expect(reason).toBe('replaced')
-      expect(replacedTransaction.getId()).toBe(original.txId)
-      expect(transaction.txid).toBe(replacement.txId)
-      expect(cacheKeysOf(client)).toEqual([])
-    })
+        // Callback 3: confirmed.
+        state.txs.get(replacement.txId)!.confirmedAt = 102
+        state.height = 102
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('resolved')
+        await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
+        expect(onReplaced).toHaveBeenCalledTimes(1)
+        const [{ reason, replacedTransaction, transaction }] =
+          onReplaced.mock.calls[0]!
+        expect(reason).toBe('replaced')
+        expect(replacedTransaction.getId()).toBe(original.txId)
+        expect(transaction.txid).toBe(replacement.txId)
+        expect(cacheKeysOf(client)).toEqual([])
+      }
+    )
 
     it('reports a replacement that needs more confirmations once it has them', async () => {
       const { client, state } = createMockChain({ growingConfirmations: true })
