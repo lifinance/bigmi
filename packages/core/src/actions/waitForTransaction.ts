@@ -56,12 +56,17 @@ export type WaitForTransactionReceiptParameters = {
    */
   pollingInterval?: number | undefined
   /**
-   * Number of times to retry if the transaction or block is not found.
-   * @default 6 (exponential backoff)
+   * Number of times to retry a failed lookup of the transaction or of a block.
+   * It is also the block budget: once `retryCount + 1` block callbacks have
+   * counted, the next one rejects with `WaitForTransactionReceiptTimeoutError`.
+   * A callback counts while the transaction is not mined or the height of its
+   * block is unknown.
+   * @default 10
    */
   retryCount?: number
   /**
-   * Time to wait (in ms) between retries.
+   * Time to wait (in ms) between the retries of a lookup.
+   * @default 3_000
    */
   retryDelay?: ((config: { count: number; error: Error }) => number) | number
   /** Optional timeout (in milliseconds) to wait before stopping polling. */
