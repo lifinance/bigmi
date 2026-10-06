@@ -426,7 +426,12 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 done(() => emit.reject(err))
               }
             } finally {
-              count++
+              // The budget counts only blocks in which the tracked transaction
+              // is not mined. A mined one waits for its confirmations, which
+              // can take more blocks than `retryCount`.
+              if (!transaction?.blockhash) {
+                count++
+              }
             }
           },
         })

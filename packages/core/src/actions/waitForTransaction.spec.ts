@@ -301,6 +301,98 @@ describe('waitForTransaction', () => {
       expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('rejects an unmined transaction on the 12th block with the default retryCount', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+        })
+      )
+
+      // Blocks 100 to 110: 11 callbacks, each looks the transaction up once.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+      }
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getrawtransaction).toBe(11)
+
+      // Block 111: the 12th callback is past the budget.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(state.calls.getrawtransaction).toBe(11)
+    })
+
+    it('counts the callback of a missed block while the transaction is unmined', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          retryCount: 2,
+        })
+      )
+
+      // Callback 1 at block 100.
+      await advance(0)
+      // One poll finds block 103, so 101 and 102 are missed blocks. Only the
+      // callback of 101 runs: the callbacks of 102 and 103 start while it
+      // still looks the transaction up, and return without counting.
+      state.height = 103
+      await advance(POLLING_INTERVAL)
+      expect(state.calls.getrawtransaction).toBe(2)
+      // Callback 3 at block 104 is the last one in the budget.
+      state.height = 104
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getrawtransaction).toBe(3)
+
+      state.height = 105
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+    })
+
+    it('waits for every confirmation of a mined transaction past the budget', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const tx = makeTx()
+      // Mined at block 106; the wait starts at block 100.
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 106 })
+      const promise = waitForTransaction(client, {
+        ...tx,
+        senderAddress: SENDER,
+        onReplaced: () => {},
+        confirmations: 6,
+      })
+      const wait = track(promise)
+
+      // Blocks 100 to 110: 11 callbacks, 5 of them after the transaction is
+      // mined.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+      }
+
+      // Block 111 is the sixth confirmation.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 
   describe('observer cleanup', () => {
