@@ -327,7 +327,12 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   }
 
                   let replacementTransaction: Transaction | undefined
+                  let originalTransactionInBlock = false
                   const replacedTransactionId = replacedTransaction.getId()
+                  // The awaited transaction. The tracked one differs from it
+                  // once a replacement is tracked.
+                  const originalTransaction = Transaction.fromHex(txHex)
+                  const originalTransactionId = originalTransaction.getId()
 
                   for (const tx of block.transactions!) {
                     if (tx.isCoinbase()) {
@@ -343,19 +348,31 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                       const vout = input.index
                       const inputId = `${txid}:${vout}`
                       if (replacedTransactionInputs.has(inputId)) {
-                        // The awaited transaction spends the same inputs, and
-                        // a provider can list it in a block before
-                        // getrawtransaction reports it mined. It is not its
-                        // own replacement: a later callback finds it mined.
-                        if (tx.getId() !== replacedTransactionId) {
+                        // The tracked and the awaited transaction spend the
+                        // same inputs, and a provider can list one in a block
+                        // before getrawtransaction reports it mined. Neither
+                        // is a replacement: a later callback finds it mined.
+                        const id = tx.getId()
+                        if (id === originalTransactionId) {
+                          originalTransactionInBlock = true
+                        } else if (id !== replacedTransactionId) {
                           replacementTransaction = tx
                         }
                         break
                       }
                     }
-                    if (replacementTransaction) {
+                    if (replacementTransaction || originalTransactionInBlock) {
                       break
                     }
+                  }
+
+                  // The awaited transaction is back after its tracked
+                  // replacement left the chain: track the awaited one again,
+                  // so the next callback looks it up by `txId`.
+                  if (originalTransactionInBlock) {
+                    transaction = undefined
+                    replacement = undefined
+                    return
                   }
 
                   // If we couldn't find a replacement transaction, continue polling.
@@ -393,7 +410,6 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   // Get the recipient addresses from the original transaction.
                   // That is the awaited one, also when the tracked transaction
                   // is an earlier replacement that left the chain.
-                  const originalTransaction = Transaction.fromHex(txHex)
                   const originalOutputAddresses =
                     getOutputAddresses(originalTransaction)
 

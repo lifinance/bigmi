@@ -1040,5 +1040,46 @@ describe('waitForTransaction', () => {
       expect(transaction.txid).toBe(bumpedCancel.txId)
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('does not report the awaited transaction as a replacement of its replacement', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. getblock lists its replacement in
+      // block 100, but getrawtransaction has it only in the mempool.
+      state.txs.set(replacement.txId, { hex: replacement.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress: SENDER,
+        onReplaced,
+        // The lookups of a missing transaction end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 tracks the replacement with no confirmations.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+
+      // Block 100 is reorged out, and the original is mined in block 101.
+      state.txs.delete(replacement.txId)
+      state.txs.set(original.txId, { hex: original.txHex, confirmedAt: 101 })
+      state.blockHex = makeBlockHex([Transaction.fromHex(original.txHex)])
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // The next callback looks the original up again and finds it mined.
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: original.txId })
+      expect(onReplaced).not.toHaveBeenCalled()
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 })
