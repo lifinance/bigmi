@@ -124,6 +124,8 @@ export async function waitForTransaction<chain extends Chain | undefined>(
 
   let count = 0
   let transaction: UTXOTransaction | undefined
+  // The height of the block of `transaction`, once `getblockstats` gives it.
+  let minedHeight: number | undefined
   let replacedTransaction: Transaction | undefined
   // The replacement that `transaction` tracks once one is found. It is
   // reported when `transaction` has enough confirmations, which can be in a
@@ -214,6 +216,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   blockHash: transaction.blockhash,
                   stats: ['height'],
                 })
+                minedHeight = blockStats.height || undefined
                 if (
                   confirmations > 1 &&
                   (!blockStats.height ||
@@ -251,6 +254,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   blockHash: transaction.blockhash,
                   stats: ['height'],
                 })
+                minedHeight = blockStats.height || undefined
                 if (blockStats.height) {
                   blockNumber = blockStats.height
                 }
@@ -433,9 +437,10 @@ export async function waitForTransaction<chain extends Chain | undefined>(
               }
             } finally {
               // The budget counts only blocks in which the tracked transaction
-              // is not mined. A mined one waits for its confirmations, which
-              // can take more blocks than `retryCount`.
-              if (!transaction?.blockhash) {
+              // is not mined, or the height of its block is unknown. A mined
+              // one waits for its confirmations, which can take more blocks
+              // than `retryCount`.
+              if (!transaction?.blockhash || !minedHeight) {
                 count++
               }
             }

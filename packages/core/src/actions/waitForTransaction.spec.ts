@@ -65,6 +65,7 @@ function createMockChain({
   fail,
   growingConfirmations = false,
   omitMempoolConfirmations = false,
+  blockStatsWithoutHeight = false,
 }: {
   fail?: (method: string, params: unknown[]) => boolean
   /**
@@ -79,6 +80,8 @@ function createMockChain({
    * `confirmations: 0`.
    */
   omitMempoolConfirmations?: boolean
+  /** Answer `getblockstats` without `height`. */
+  blockStatsWithoutHeight?: boolean
 } = {}) {
   const state = {
     height: 100,
@@ -125,6 +128,9 @@ function createMockChain({
           : { txid: txId, hex: tx.hex, confirmations: 0 }
       }
       case 'getblockstats':
+        if (blockStatsWithoutHeight) {
+          return {}
+        }
         return growingConfirmations
           ? { height: Number((params[0] as string).slice(2)) }
           : { height: state.height }
@@ -402,6 +408,37 @@ describe('waitForTransaction', () => {
       expect(wait.status).toBe('resolved')
       await expect(promise).resolves.toMatchObject({ txid: tx.txId })
       expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('keeps the budget while the height of the block of a mined transaction is unknown', async () => {
+      const { client, state } = createMockChain({
+        blockStatsWithoutHeight: true,
+      })
+      const tx = makeTx()
+      // Mined at block 101, but getblockstats does not give its height.
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 101 })
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          confirmations: 3,
+        })
+      )
+
+      // Blocks 100 to 110: 11 callbacks, and all of them count.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        state.height = height
+        await advance(POLLING_INTERVAL)
+      }
+      expect(wait.status).toBe('pending')
+
+      // Block 111: the 12th callback is past the budget.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
     })
   })
 
