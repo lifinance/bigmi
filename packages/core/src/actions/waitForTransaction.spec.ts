@@ -1126,5 +1126,31 @@ describe('waitForTransaction', () => {
       expect(onReplaced).not.toHaveBeenCalled()
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('resolves when txHex does not parse but the node knows the transaction', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      // getrawtransaction answers with the hex of the transaction, so the
+      // wait needs txHex only to find a replacement.
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const promise = waitForTransaction(client, {
+        txId: tx.txId,
+        txHex: 'zz',
+        senderAddress: SENDER,
+        onReplaced: () => {},
+      })
+      const wait = track(promise)
+
+      // Callback 1: in the mempool, and the search finds no replacement.
+      await advance(0)
+      expect(wait.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 })
