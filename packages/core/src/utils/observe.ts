@@ -38,6 +38,11 @@ export function observe<callbacks extends Callbacks>(
   }
 
   const unwatch = () => {
+    // A late or repeated call must not run the cleanup of the observers that
+    // are still listening.
+    if (!getListeners().some((cb) => cb.id === callbackId)) {
+      return
+    }
     const cleanup = cleanupCache.get(observerId)
     if (getListeners().length === 1 && cleanup) {
       cleanup()

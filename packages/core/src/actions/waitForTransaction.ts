@@ -136,12 +136,6 @@ export async function waitForTransaction<chain extends Chain | undefined>(
           emitOnBegin: true,
           pollingInterval,
           async onBlockNumber(blockNumber_) {
-            const done = (fn: () => void) => {
-              _unwatch()
-              fn()
-              _unobserve()
-            }
-
             let blockNumber = blockNumber_
 
             if (retrying) {
@@ -155,6 +149,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   })
                 )
               )
+              return
             }
 
             try {
@@ -381,6 +376,25 @@ export async function waitForTransaction<chain extends Chain | undefined>(
             }
           },
         })
+
+        // Settles the wait at most once. A callback that is still in flight
+        // must not unwatch the shared block watcher a second time.
+        let finished = false
+        const done = (fn: () => void) => {
+          if (finished) {
+            return
+          }
+          finished = true
+          _unwatch()
+          try {
+            fn()
+          } catch (error) {
+            // A throwing `onReplaced` still settles the wait.
+            emit.reject(error)
+          } finally {
+            _unobserve()
+          }
+        }
       }
     )
   })
