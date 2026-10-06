@@ -9,7 +9,7 @@ import type { Client } from '../types/client.js'
 import type { UTXOTransaction } from '../types/transaction.js'
 import type { Transport } from '../types/transport.js'
 import { getAction } from '../utils/getAction.js'
-import { observe } from '../utils/observe.js'
+import { listenersCache, observe } from '../utils/observe.js'
 import { stringify } from '../utils/stringify.js'
 import { withRetry } from '../utils/withRetry.js'
 import { getBlock } from './getBlock.js'
@@ -378,7 +378,8 @@ export async function waitForTransaction<chain extends Chain | undefined>(
         })
 
         // Settles the wait at most once. A callback that is still in flight
-        // must not unwatch the shared block watcher a second time.
+        // must not unwatch the shared block watcher a second time, and a late
+        // emit must not reach a newer wait on the same txId.
         let finished = false
         const done = (fn: () => void) => {
           if (finished) {
@@ -392,7 +393,9 @@ export async function waitForTransaction<chain extends Chain | undefined>(
             // A throwing `onReplaced` still settles the wait.
             emit.reject(error)
           } finally {
-            _unobserve()
+            // The emit settled every wait that joined this observer, so drop
+            // them all. A later wait on the same txId starts its own.
+            listenersCache.delete(observerId)
           }
         }
       }

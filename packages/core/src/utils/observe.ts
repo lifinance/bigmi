@@ -29,25 +29,24 @@ export function observe<callbacks extends Callbacks>(
 
   const getListeners = () => listenersCache.get(observerId) || []
 
-  const unsubscribe = () => {
-    const listeners = getListeners()
-    listenersCache.set(
-      observerId,
-      listeners.filter((cb: any) => cb.id !== callbackId)
-    )
-  }
-
   const unwatch = () => {
+    const listeners = getListeners()
     // A late or repeated call must not run the cleanup of the observers that
     // are still listening.
-    if (!getListeners().some((cb) => cb.id === callbackId)) {
+    if (!listeners.some((cb) => cb.id === callbackId)) {
       return
     }
-    const cleanup = cleanupCache.get(observerId)
-    if (getListeners().length === 1 && cleanup) {
-      cleanup()
+    const remaining = listeners.filter((cb) => cb.id !== callbackId)
+    if (remaining.length > 0) {
+      listenersCache.set(observerId, remaining)
+      return
     }
-    unsubscribe()
+    // The last listener is gone: drop the key and its cleanup, so neither
+    // map keeps one entry per finished observer.
+    const cleanup = cleanupCache.get(observerId)
+    listenersCache.delete(observerId)
+    cleanupCache.delete(observerId)
+    cleanup?.()
   }
 
   const listeners = getListeners()

@@ -4,7 +4,7 @@ import { BlockNotFoundError } from '../errors/block.js'
 import { WaitForTransactionReceiptTimeoutError } from '../errors/transaction.js'
 import { createClient } from '../factories/createClient.js'
 import { custom } from '../transports/custom.js'
-import { listenersCache } from '../utils/observe.js'
+import { cleanupCache, listenersCache } from '../utils/observe.js'
 import { waitForTransaction } from './waitForTransaction.js'
 
 const POLLING_INTERVAL = 1_000
@@ -136,6 +136,17 @@ function track(promise: Promise<unknown>): Tracked {
   return tracked
 }
 
+/** Every observer key that `client` still holds in the shared caches. */
+function cacheKeysOf(client: { uid: string }): string[] {
+  const uid = JSON.stringify(client.uid)
+  return [...listenersCache.keys(), ...cleanupCache.keys()].filter((key) =>
+    key.includes(uid)
+  )
+}
+
+const waitId = (client: { uid: string }, txId: string) =>
+  JSON.stringify(['waitForTransaction', client.uid, txId])
+
 const watchId = (client: { uid: string }) =>
   JSON.stringify(['watchBlockNumber', client.uid, true, true, POLLING_INTERVAL])
 
@@ -202,6 +213,7 @@ describe('waitForTransaction', () => {
       expect(c.status).toBe('resolved')
 
       expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
     })
 
     it('does not settle or stop a later wait on the same txId', async () => {
@@ -257,6 +269,72 @@ describe('waitForTransaction', () => {
       expect(c.status).toBe('resolved')
 
       expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
+  describe('observer cleanup', () => {
+    it('removes every wait on one txId when the transaction confirms', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = () =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+          })
+        )
+
+      // A drives the observer; B (a resumed run) joins it.
+      const a = wait()
+      await advance(0)
+      const b = wait()
+      await advance(0)
+      expect(listenersCache.get(id)).toHaveLength(2)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(b.status).toBe('resolved')
+      expect(listenersCache.has(id)).toBe(false)
+
+      // A third wait on the same txId starts its own observer and settles.
+      const c = wait()
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('leaves no key behind for waits on distinct txIds', async () => {
+      const { client, state } = createMockChain()
+      const waits: Tracked[] = []
+      for (let i = 0; i < 100; i++) {
+        const tx = makeTx()
+        state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 0 })
+        waits.push(
+          track(
+            waitForTransaction(client, {
+              ...tx,
+              senderAddress: SENDER,
+              onReplaced: () => {},
+            })
+          )
+        )
+      }
+
+      await advance(POLLING_INTERVAL)
+      expect(waits.every((wait) => wait.status === 'resolved')).toBe(true)
+
+      const waitKeys = cacheKeysOf(client).filter((key) =>
+        key.includes('waitForTransaction')
+      )
+      expect(waitKeys).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
     })
   })
 
@@ -289,6 +367,7 @@ describe('waitForTransaction', () => {
       expect(wait.status).toBe('rejected')
       expect(wait.error).toBe(error)
       expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
+      expect(cacheKeysOf(client)).toEqual([])
     })
   })
 })
