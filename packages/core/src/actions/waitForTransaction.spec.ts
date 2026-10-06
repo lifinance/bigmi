@@ -727,5 +727,122 @@ describe('waitForTransaction', () => {
       expect(listenersCache.get(watchId(client)) ?? []).toEqual([])
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('does not report the awaited transaction as its own replacement', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      // getrawtransaction still reports the transaction unconfirmed, but
+      // getblock already lists it.
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(tx.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...tx,
+        senderAddress: SENDER,
+        onReplaced,
+      })
+      const wait = track(promise)
+
+      await advance(0)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // getrawtransaction reports it confirmed in the next block.
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: tx.txId })
+      expect(onReplaced).not.toHaveBeenCalled()
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('waits until a replacement that getrawtransaction reports unconfirmed is confirmed', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. Its replacement is in the tip block,
+      // but getrawtransaction reports it with 0 confirmations.
+      state.txs.set(replacement.txId, { hex: replacement.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress: SENDER,
+        onReplaced,
+        // Enough block callbacks to find the replacement, check it again and
+        // resolve; the lookups of the original end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 finds the replacement.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // Callback 2: still 0 confirmations.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // Callback 3: confirmed.
+      state.txs.get(replacement.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      const [{ reason, replacedTransaction, transaction }] =
+        onReplaced.mock.calls[0]!
+      expect(reason).toBe('replaced')
+      expect(replacedTransaction.getId()).toBe(original.txId)
+      expect(transaction.txid).toBe(replacement.txId)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('reports a replacement that needs more confirmations once it has them', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      // The original left the mempool. Its replacement is mined in the tip
+      // block, so it has 1 of the 2 confirmations.
+      state.txs.set(replacement.txId, {
+        hex: replacement.txHex,
+        confirmedAt: 100,
+      })
+      state.blockHex = makeBlockHex([Transaction.fromHex(replacement.txHex)])
+      const onReplaced = vi.fn()
+      const wait = track(
+        waitForTransaction(client, {
+          ...original,
+          senderAddress: SENDER,
+          onReplaced,
+          confirmations: 2,
+          // The lookups of the original end within one poll.
+          retryCount: 3,
+          retryDelay: 100,
+        })
+      )
+
+      // Callback 1 finds the replacement with 1 confirmation.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+      expect(onReplaced).not.toHaveBeenCalled()
+
+      // Callback 2: the second confirmation.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      expect(onReplaced.mock.calls[0]![0].transaction.txid).toBe(
+        replacement.txId
+      )
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 })

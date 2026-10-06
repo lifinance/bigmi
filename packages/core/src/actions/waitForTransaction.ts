@@ -125,6 +125,10 @@ export async function waitForTransaction<chain extends Chain | undefined>(
   let count = 0
   let transaction: UTXOTransaction | undefined
   let replacedTransaction: Transaction | undefined
+  // The replacement that `transaction` tracks once one is found. It is
+  // reported when `transaction` has enough confirmations, which can be in a
+  // later block.
+  let replacement: Omit<ReplacementReturnType, 'transaction'> | undefined
   let retrying = false
 
   return new Promise((resolve, reject) => {
@@ -162,6 +166,16 @@ export async function waitForTransaction<chain extends Chain | undefined>(
             emit.reject(error)
           }
         }
+
+        // Resolves with the tracked transaction, and first reports the
+        // replacement it tracks, if any.
+        const resolveWith = (transaction: UTXOTransaction) =>
+          done(() => {
+            if (replacement) {
+              emit.onReplaced?.({ ...replacement, transaction })
+            }
+            emit.resolve(transaction)
+          })
 
         const _unwatch = getAction(
           client,
@@ -207,7 +221,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 ) {
                   return
                 }
-                done(() => emit.resolve(transaction!))
+                resolveWith(transaction)
                 return
               }
 
@@ -255,7 +269,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                 return
               }
 
-              done(() => emit.resolve(transaction!))
+              resolveWith(transaction)
             } catch (err) {
               // If the receipt is not found, the transaction will be pending.
               // We need to check if it has potentially been replaced.
@@ -304,6 +318,7 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   }
 
                   let replacementTransaction: Transaction | undefined
+                  const replacedTransactionId = replacedTransaction.getId()
 
                   for (const tx of block.transactions!) {
                     if (tx.isCoinbase()) {
@@ -319,7 +334,13 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                       const vout = input.index
                       const inputId = `${txid}:${vout}`
                       if (replacedTransactionInputs.has(inputId)) {
-                        replacementTransaction = tx
+                        // The awaited transaction spends the same inputs, and
+                        // a provider can list it in a block before
+                        // getrawtransaction reports it mined. It is not its
+                        // own replacement: a later callback finds it mined.
+                        if (tx.getId() !== replacedTransactionId) {
+                          replacementTransaction = tx
+                        }
                         break
                       }
                     }
@@ -341,14 +362,6 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                   )({
                     txId: replacementTransaction.getId(),
                   })
-
-                  // Check if we have enough confirmations. If not, continue polling.
-                  if (
-                    transaction.confirmations &&
-                    transaction.confirmations < confirmations
-                  ) {
-                    return
-                  }
 
                   let reason: ReplacementReason = 'replaced'
 
@@ -393,14 +406,19 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                     reason = 'cancelled'
                   }
 
-                  done(() => {
-                    emit.onReplaced?.({
-                      reason,
-                      replacedTransaction: replacedTransaction!,
-                      transaction: transaction!,
-                    })
-                    emit.resolve(transaction!)
-                  })
+                  replacement = { reason, replacedTransaction }
+
+                  // Check if we have enough confirmations. If not, continue
+                  // polling. A replacement with no confirmations is not mined
+                  // yet, so a later callback checks it again.
+                  if (
+                    !transaction.confirmations ||
+                    transaction.confirmations < confirmations
+                  ) {
+                    return
+                  }
+
+                  resolveWith(transaction)
                 } catch (err_) {
                   done(() => emit.reject(err_))
                 }
