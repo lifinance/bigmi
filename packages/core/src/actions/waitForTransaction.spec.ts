@@ -1,4 +1,4 @@
-import { Block, Transaction } from 'bitcoinjs-lib'
+import { address, Block, Transaction } from 'bitcoinjs-lib'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BlockNotFoundError } from '../errors/block.js'
 import { WaitForTransactionReceiptTimeoutError } from '../errors/transaction.js'
@@ -934,6 +934,58 @@ describe('waitForTransaction', () => {
       expect(onReplaced.mock.calls[0]![0].transaction.txid).toBe(
         replacement.txId
       )
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('compares a replacement of a replacement with the awaited transaction', async () => {
+      const { client, state } = createMockChain()
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      // A cancel pays the sender, and a fee bump of the cancel pays the
+      // sender less.
+      const cancel = makeTx(spends, 2)
+      const senderAddress = address.fromOutputScript(
+        Transaction.fromHex(cancel.txHex).outs[0]!.script
+      )
+      const bump = Transaction.fromHex(cancel.txHex)
+      bump.outs[0]!.value = 9_000n
+      const bumpedCancel = { txId: bump.getId(), txHex: bump.toHex() }
+      // The original left the mempool. getblock lists the cancel in block
+      // 100, but getrawtransaction has it only in the mempool.
+      state.txs.set(cancel.txId, { hex: cancel.txHex })
+      state.blockHex = makeBlockHex([Transaction.fromHex(cancel.txHex)])
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress,
+        onReplaced,
+        // The lookups of a missing transaction end within one poll.
+        retryCount: 3,
+        retryDelay: 100,
+      })
+      const wait = track(promise)
+
+      // Callback 1 finds the cancel with 0 confirmations.
+      await advance(POLLING_INTERVAL / 2)
+      expect(wait.status).toBe('pending')
+
+      // Block 100 is reorged out, and the bumped cancel is mined in 101.
+      state.txs.delete(cancel.txId)
+      state.txs.set(bumpedCancel.txId, {
+        hex: bumpedCancel.txHex,
+        confirmedAt: 101,
+      })
+      state.blockHex = makeBlockHex([bump])
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: bumpedCancel.txId })
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      const [{ reason, replacedTransaction, transaction }] =
+        onReplaced.mock.calls[0]!
+      expect(reason).toBe('cancelled')
+      expect(replacedTransaction.getId()).toBe(original.txId)
+      expect(transaction.txid).toBe(bumpedCancel.txId)
       expect(cacheKeysOf(client)).toEqual([])
     })
   })

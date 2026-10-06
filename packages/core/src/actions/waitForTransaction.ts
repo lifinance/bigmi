@@ -381,9 +381,12 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                     return addresses
                   }
 
-                  // Get the recipient addresses from the original transaction
+                  // Get the recipient addresses from the original transaction.
+                  // That is the awaited one, also when the tracked transaction
+                  // is an earlier replacement that left the chain.
+                  const originalTransaction = Transaction.fromHex(txHex)
                   const originalOutputAddresses =
-                    getOutputAddresses(replacedTransaction)
+                    getOutputAddresses(originalTransaction)
 
                   // Get the recipient addresses from the replacement transaction
                   const replacementOutputAddresses = getOutputAddresses(
@@ -406,7 +409,10 @@ export async function waitForTransaction<chain extends Chain | undefined>(
                     reason = 'cancelled'
                   }
 
-                  replacement = { reason, replacedTransaction }
+                  replacement = {
+                    reason,
+                    replacedTransaction: originalTransaction,
+                  }
 
                   // Check if we have enough confirmations. If not, continue
                   // polling. A replacement with no confirmations is not mined
