@@ -410,6 +410,51 @@ describe('waitForTransaction', () => {
       expect(cacheKeysOf(client)).toEqual([])
     })
 
+    it('waits for every confirmation of a mined replacement past the budget', async () => {
+      const { client, state } = createMockChain({ growingConfirmations: true })
+      const spends = ++txSeed
+      const original = makeTx(spends)
+      const replacement = makeTx(spends, 1)
+      state.txs.set(original.txId, { hex: original.txHex })
+      const onReplaced = vi.fn()
+      const promise = waitForTransaction(client, {
+        ...original,
+        senderAddress: SENDER,
+        onReplaced,
+        confirmations: 6,
+        // The lookups of a missing transaction end within one poll.
+        retryDelay: 10,
+      })
+      const wait = track(promise)
+
+      // Blocks 100 to 110: 11 callbacks. At block 106 the original leaves
+      // the mempool, and its replacement is mined in that block.
+      await advance(0)
+      for (let height = 101; height <= 110; height++) {
+        if (height === 106) {
+          state.txs.delete(original.txId)
+          state.txs.set(replacement.txId, {
+            hex: replacement.txHex,
+            confirmedAt: 106,
+          })
+          state.blockHex = makeBlockHex([
+            Transaction.fromHex(replacement.txHex),
+          ])
+        }
+        state.height = height
+        await advance(POLLING_INTERVAL)
+        expect(wait.status).toBe('pending')
+      }
+
+      // Block 111 is the sixth confirmation of the replacement.
+      state.height = 111
+      await advance(POLLING_INTERVAL)
+      expect(wait.status).toBe('resolved')
+      await expect(promise).resolves.toMatchObject({ txid: replacement.txId })
+      expect(onReplaced).toHaveBeenCalledTimes(1)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
     it('keeps the budget while the height of the block of a mined transaction is unknown', async () => {
       const { client, state } = createMockChain({
         blockStatsWithoutHeight: true,
