@@ -390,6 +390,12 @@ export async function waitForTransaction<chain extends Chain | undefined>(
         // Settles the wait at most once. A callback that is still in flight
         // must not unwatch the shared block watcher a second time, and a late
         // emit must not reach a newer wait on the same txId.
+        //
+        // `onBlockNumber` above uses `done` before this declaration. That is
+        // safe: the watcher calls `onBlockNumber` only after a `getblockcount`
+        // request resolves, never synchronously, and the timer that calls
+        // `onTimeout` is set only after `observe` returns. Both run after
+        // `done` is initialized.
         let finished = false
         const done = (fn: () => void) => {
           if (finished) {
@@ -405,6 +411,9 @@ export async function waitForTransaction<chain extends Chain | undefined>(
           } finally {
             // The emit settled every wait that joined this observer, so drop
             // them all. A later wait on the same txId starts its own.
+            // Deleting the key directly is safe only because this observer's
+            // fn returns no cleanup, so there is no `cleanupCache` entry to
+            // run or remove.
             listenersCache.delete(observerId)
           }
         }

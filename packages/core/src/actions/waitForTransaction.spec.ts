@@ -422,6 +422,89 @@ describe('waitForTransaction', () => {
       expect(a.status).toBe('resolved')
       expect(cacheKeysOf(client)).toEqual([])
     })
+
+    it('clears every timer when the retryCount timeout settles a driver and a joiner', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const wait = (timeout: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            retryCount: 1,
+            timeout,
+          })
+        )
+
+      // A drives the observer; B joins it. Both set a long timeout.
+      const a = wait(3_600_000)
+      await advance(0)
+      const b = wait(7_200_000)
+      await advance(0)
+      // A's callback 3 (count 2 > retryCount 1) rejects every wait.
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(b.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // Let the stopped poll's last sleep run out.
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('does not settle a newer wait on the same txId when an in-flight callback fails after the timeout', async () => {
+      // getblockhash for height 100 always fails, so A's first callback
+      // retries getBlock(100) until about 6 s.
+      const { client, state } = createMockChain({
+        fail: (method, params) =>
+          method === 'getblockhash' && params[0] === 100,
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+
+      const a = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          retryCount: 3,
+          retryDelay: 2_000,
+          timeout: 1_500,
+        })
+      )
+      await advance(1_500)
+      expect(a.status).toBe('rejected')
+      expect(a.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      // A resumed run: C starts a new observer on the same txId. Its first
+      // callback is at height 101, so only A's callback touches block 100.
+      state.height = 101
+      const c = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+        })
+      )
+      // A's getBlock(100) retries end with BlockNotFoundError.
+      await advance(8_000)
+      expect(c.error).toBeUndefined()
+      expect(c.status).toBe('pending')
+
+      state.txs.get(tx.txId)!.confirmedAt = 102
+      state.height = 102
+      await advance(POLLING_INTERVAL)
+      expect(c.status).toBe('resolved')
+
+      await advance(POLLING_INTERVAL * 3)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
   })
 
   describe('replacement', () => {
