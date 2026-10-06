@@ -338,6 +338,92 @@ describe('waitForTransaction', () => {
     })
   })
 
+  describe('timeout option', () => {
+    it('stops polling when the timeout expires', async () => {
+      const { client, state } = createMockChain({
+        fail: (method) => method === 'getblockcount',
+      })
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          // Off the polling grid, so the deadline is not on a poll tick.
+          timeout: 10_500,
+        })
+      )
+
+      await advance(10_499)
+      expect(wait.status).toBe('pending')
+      expect(state.calls.getblockcount).toBeGreaterThan(0)
+
+      await advance(1)
+      expect(wait.status).toBe('rejected')
+      expect(wait.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+
+      const calls = state.calls.getblockcount
+      await advance(POLLING_INTERVAL * 5)
+      expect(state.calls.getblockcount).toBe(calls)
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('clears the timer when the transaction confirms first', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex, confirmedAt: 0 })
+
+      const wait = track(
+        waitForTransaction(client, {
+          ...tx,
+          senderAddress: SENDER,
+          onReplaced: () => {},
+          timeout: 60_000,
+        })
+      )
+      await advance(POLLING_INTERVAL)
+
+      expect(wait.status).toBe('resolved')
+      expect(vi.getTimerCount()).toBe(0)
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+
+    it('rejects only the joined wait when its own timeout expires', async () => {
+      const { client, state } = createMockChain()
+      const tx = makeTx()
+      state.txs.set(tx.txId, { hex: tx.txHex })
+      const id = waitId(client, tx.txId)
+      const wait = (timeout?: number) =>
+        track(
+          waitForTransaction(client, {
+            ...tx,
+            senderAddress: SENDER,
+            onReplaced: () => {},
+            timeout,
+          })
+        )
+
+      // A drives the observer with no timeout; B joins it with one.
+      const a = wait()
+      await advance(0)
+      const b = wait(5_500)
+      await advance(5_500)
+      expect(b.status).toBe('rejected')
+      expect(b.error).toBeInstanceOf(WaitForTransactionReceiptTimeoutError)
+      expect(a.status).toBe('pending')
+      expect(listenersCache.get(id)).toHaveLength(1)
+
+      state.txs.get(tx.txId)!.confirmedAt = 101
+      state.height = 101
+      await advance(POLLING_INTERVAL)
+      expect(a.status).toBe('resolved')
+      expect(cacheKeysOf(client)).toEqual([])
+    })
+  })
+
   describe('replacement', () => {
     it('rejects with the error that onReplaced throws', async () => {
       const { client, state } = createMockChain()

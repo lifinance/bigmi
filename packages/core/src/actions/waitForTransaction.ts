@@ -113,19 +113,29 @@ export async function waitForTransaction<chain extends Chain | undefined>(
   let retrying = false
 
   return new Promise((resolve, reject) => {
-    if (timeout) {
-      setTimeout(
-        () =>
-          reject(
-            new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
-          ),
-        timeout
-      )
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // A wait that joined another wait on the same txId removes only itself
+    // when its timeout expires. The wait that drives the observer replaces
+    // this below.
+    let onTimeout = () => {
+      _unobserve()
+      reject(new WaitForTransactionReceiptTimeoutError({ hash: txId as never }))
     }
 
     const _unobserve = observe(
       observerId,
-      { onReplaced, resolve, reject },
+      {
+        onReplaced,
+        // Every way a wait settles goes through these, so they clear its timer.
+        resolve: (transaction: WaitForTransactionReceiptReturnType) => {
+          clearTimeout(timer)
+          resolve(transaction)
+        },
+        reject: (error: unknown) => {
+          clearTimeout(timer)
+          reject(error)
+        },
+      },
       (emit) => {
         const _unwatch = getAction(
           client,
@@ -398,7 +408,20 @@ export async function waitForTransaction<chain extends Chain | undefined>(
             listenersCache.delete(observerId)
           }
         }
+
+        // The driver's timeout ends the shared wait: it stops the block
+        // watcher and settles every wait on this txId.
+        onTimeout = () =>
+          done(() =>
+            emit.reject(
+              new WaitForTransactionReceiptTimeoutError({ hash: txId as never })
+            )
+          )
       }
     )
+
+    if (timeout) {
+      timer = setTimeout(() => onTimeout(), timeout)
+    }
   })
 }
