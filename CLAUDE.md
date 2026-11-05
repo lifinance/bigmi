@@ -21,6 +21,7 @@ pnpm check:write              # Biome lint + format with auto-fix
 pnpm check:types              # tsc --noEmit across all packages
 pnpm check:circular-deps      # madge circular dependency check
 pnpm test                     # vitest (only @bigmi/core has tests)
+pnpm test:affected            # vitest run --since-last-run (only tests affected by changes since the last run)
 pnpm knip:check               # Check for unused deps/files
 
 # Single package
@@ -33,6 +34,9 @@ Pre-commit hook runs: `check` → `check:types` → `check:circular-deps` → `k
 Pre-push hook runs: `test`
 
 Run `pnpm check:write` before committing — the pre-commit hook runs `pnpm check` (read-only) and will reject unformatted code.
+
+After a change, run `pnpm test:affected` (`vitest run --since-last-run`) to test only what the change affects.
+Before you finish, run `vitest run` once for the whole suite (`pnpm test`).
 
 ## Build System
 
