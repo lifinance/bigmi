@@ -20,6 +20,7 @@
     "check:types": "pnpm -r --parallel check:types",
     "check:circular-deps": "pnpm -r --parallel check:circular-deps",
     "test": "pnpm -r --parallel test",
+    "test:affected": "pnpm -r --parallel test:affected",
     "coverage": "pnpm -r --parallel coverage",
     "link:all": "pnpm -r exec pnpm link --global",
     "unlink:all": "pnpm -r exec pnpm unlink --global",
