@@ -1,10 +1,10 @@
 import type { Compute } from '@bigmi/core'
 import type { MutateOptions, MutationOptions } from '@tanstack/query-core'
 import {
+  connect,
   type ConnectErrorType,
   type ConnectParameters,
   type ConnectReturnType,
-  connect,
 } from '../actions/connect.js'
 import type { Config } from '../factories/createConfig.js'
 import type { Connector, CreateConnectorFn } from '../types/connector.js'

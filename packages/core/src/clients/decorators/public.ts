@@ -1,41 +1,41 @@
 import {
+  getBalance,
   type GetBalanceParameters,
   type GetBalanceReturnType,
-  getBalance,
 } from '../../actions/getBalance.js'
 import {
+  getBlock,
   type GetBlockParameters,
   type GetBlockReturnType,
-  getBlock,
 } from '../../actions/getBlock.js'
 import {
-  type GetBlockCountReturnType,
   getBlockCount,
+  type GetBlockCountReturnType,
 } from '../../actions/getBlockCount.js'
 import {
+  getBlockStats,
   type GetBlockStatsParameters,
   type GetBlockStatsReturnType,
-  getBlockStats,
 } from '../../actions/getBlockStats.js'
 import {
+  getTransactionFee,
   type GetTransactionFeeParameters,
   type GetTransactionFeeReturnType,
-  getTransactionFee,
 } from '../../actions/getTransactionFee.js'
 import {
+  getTransactions,
   type GetTransactionsParameters,
   type GetTransactionsReturnType,
-  getTransactions,
 } from '../../actions/getTransactions.js'
 import {
+  getUTXOs,
   type GetUTXOsParameters,
   type GetUTXOsReturnType,
-  getUTXOs,
 } from '../../actions/getUTXOs.js'
 import {
+  getUTXOTransaction,
   type GetUTXOTransactionParameters,
   type GetUTXOTransactionReturnType,
-  getUTXOTransaction,
 } from '../../actions/getUTXOTransaction.js'
 
 import type { Client } from '../../factories/createClient.js'

@@ -2,8 +2,8 @@
 
 import {
   type Config,
-  type GetConnectorsReturnType,
   getConnectors,
+  type GetConnectorsReturnType,
   watchConnectors,
 } from '@bigmi/client'
 import { useSyncExternalStore } from 'react'

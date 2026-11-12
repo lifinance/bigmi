@@ -5,7 +5,7 @@ import { getAction } from '../utils/getAction.js'
 import { observe } from '../utils/observe.js'
 import { poll } from '../utils/poll.js'
 import { stringify } from '../utils/stringify.js'
-import { type GetBlockCountReturnType, getBlockCount } from './getBlockCount.js'
+import { getBlockCount, type GetBlockCountReturnType } from './getBlockCount.js'
 
 export type OnBlockNumberParameter = GetBlockCountReturnType
 export type OnBlockNumberFn = (

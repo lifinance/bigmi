@@ -1,8 +1,8 @@
 import {
   type Account,
-  type BtcRpcRequestFn,
   type ClientConfig as base_ClientConfig,
   type Transport as base_Transport,
+  type BtcRpcRequestFn,
   type Chain,
   type ChainId,
   type Client,

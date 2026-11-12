@@ -1,7 +1,7 @@
 import {
+  sendUTXOTransaction,
   type SendUTXOTransactionParameters,
   type SendUTXOTransactionReturnType,
-  sendUTXOTransaction,
 } from '../../actions/sendUTXOTransaction.js'
 import { signPsbt } from '../../actions/signPsbt.js'
 import type {
