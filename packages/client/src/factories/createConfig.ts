@@ -488,8 +488,8 @@ export type CreateConfigParameters<
     chains[number]['id'],
     Transport
   >,
-  connectorFns extends
-    readonly CreateConnectorFn[] = readonly CreateConnectorFn[],
+  connectorFns extends readonly CreateConnectorFn[] =
+    readonly CreateConnectorFn[],
 > = Compute<
   {
     chains: chains
@@ -519,8 +519,8 @@ export type Config<
     chains[number]['id'],
     Transport
   >,
-  connectorFns extends
-    readonly CreateConnectorFn[] = readonly CreateConnectorFn[],
+  connectorFns extends readonly CreateConnectorFn[] =
+    readonly CreateConnectorFn[],
 > = {
   readonly chains: chains
   readonly connectors: readonly Connector<connectorFns[number]>[]

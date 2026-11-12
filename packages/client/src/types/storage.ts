@@ -22,6 +22,9 @@ export type Storage<
   setItem<
     key extends keyof storageItemMap,
     value extends storageItemMap[key] | null,
-  >(key: key, value: value): void | Promise<void>
+  >(
+    key: key,
+    value: value
+  ): void | Promise<void>
   removeItem(key: keyof storageItemMap): void | Promise<void>
 }

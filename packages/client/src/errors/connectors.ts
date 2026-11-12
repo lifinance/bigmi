@@ -73,13 +73,7 @@ export type ConnectorAccountNotFoundErrorType =
   }
 export class ConnectorAccountNotFoundError extends BaseError {
   override name = 'ConnectorAccountNotFoundError'
-  constructor({
-    address,
-    connector,
-  }: {
-    address: Address
-    connector: string
-  }) {
+  constructor({ address, connector }: { address: Address; connector: string }) {
     super(`Account "${address}" not found for connector "${connector}".`)
   }
 }

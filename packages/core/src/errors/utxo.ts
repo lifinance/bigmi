@@ -9,7 +9,11 @@ export class InsufficientUTXOBalanceError extends BaseError {
     minValue,
     address,
     balance,
-  }: { minValue: number; address?: string; balance?: number }) {
+  }: {
+    minValue: number
+    address?: string
+    balance?: number
+  }) {
     super(`Not enough UTXOs required for ${minValue}`, {
       metaMessages: [
         `${address && balance && `Address ${address} has a balance of ${balance}.`}`,
