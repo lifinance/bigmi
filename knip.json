@@ -2,7 +2,8 @@
   "ignore": [
     "packages/react/src/version.ts",
     "packages/client/src/version.ts",
-    "packages/core/src/vite-env.d.ts"
+    "packages/core/src/vite-env.d.ts",
+    "scripts/oxc-migrate-branch.mjs"
   ],
   "ignoreDependencies": [
     "react-dom",
