@@ -18,7 +18,7 @@ export type UseConfigReturnType<config extends Config = Config> = config
 export function useConfig<C extends Config = ResolvedRegister['config']>(
   parameters: UseConfigParameters<C> = {}
 ): UseConfigReturnType<C> {
-  // biome-ignore lint/correctness/useHookAtTopLevel: part of the hook
+  // oxlint-disable-next-line react/rules-of-hooks -- part of the hook
   const config = parameters.config ?? useContext(BigmiContext)
   if (!config) {
     throw new BigmiProviderNotFoundError()

@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noConsole: allowed in scripts */
+/* oxlint-disable no-console -- allowed in scripts */
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
