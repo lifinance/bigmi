@@ -15,7 +15,11 @@ import {
   uid,
   version,
 } from '@bigmi/core'
-import { persist, subscribeWithSelector } from 'zustand/middleware'
+import {
+  persist,
+  type PersistStorage,
+  subscribeWithSelector,
+} from 'zustand/middleware'
 import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
 import { ChainNotConfiguredError } from '../errors/config.js'
 import type {
@@ -248,7 +252,10 @@ export function createConfig<
               }
             },
             skipHydration: ssr,
-            storage: storage as Storage<Record<string, unknown>>,
+            // `Storage.getItem` is generic and returns `Promise`, while zustand >= 5.1
+            // types `PersistStorage.getItem` as `PromiseLike`. TS cannot infer the generic
+            // across the two, so cast through `unknown`. The runtime shapes match.
+            storage: storage as unknown as PersistStorage<PartializedState>,
             version: currentVersion,
           })
         : getInitialState
