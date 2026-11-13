@@ -12,9 +12,8 @@ import { getAddress } from './getAddress.js'
 
 export type ChainIdParameter<
   config extends Config,
-  chainId extends
-    | config['chains'][number]['id']
-    | undefined = config['chains'][number]['id'],
+  chainId extends config['chains'][number]['id'] | undefined =
+    config['chains'][number]['id'],
 > = {
   chainId?:
     | (chainId extends config['chains'][number]['id'] ? chainId : undefined)
@@ -24,8 +23,8 @@ export type ChainIdParameter<
 
 export type GetConnectorClientReturnType<
   config extends Config = Config,
-  chainId extends
-    config['chains'][number]['id'] = config['chains'][number]['id'],
+  chainId extends config['chains'][number]['id'] =
+    config['chains'][number]['id'],
 > = Compute<
   Client<
     config['_internal']['transports'][chainId],
@@ -40,8 +39,8 @@ export type ConnectorParameter = {
 
 export type GetConnectorClientParameters<
   config extends Config = Config,
-  chainId extends
-    config['chains'][number]['id'] = config['chains'][number]['id'],
+  chainId extends config['chains'][number]['id'] =
+    config['chains'][number]['id'],
 > = Compute<
   ChainIdParameter<config, chainId> &
     ConnectorParameter & {

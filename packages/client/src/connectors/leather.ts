@@ -207,7 +207,7 @@ export function leather(
           return false
         }
 
-        const timestamp = parseInt(lastConnected, 10)
+        const timestamp = Number.parseInt(lastConnected, 10)
         if (Number.isNaN(timestamp) || timestamp <= 0) {
           // Invalid timestamp, clean up storage
           await Promise.all([

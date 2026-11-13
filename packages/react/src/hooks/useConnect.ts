@@ -6,8 +6,8 @@ import {
   type ConnectErrorType,
   type ConnectMutate,
   type ConnectMutateAsync,
-  type ConnectVariables,
   connectMutationOptions,
+  type ConnectVariables,
 } from '@bigmi/client'
 import type { Compute } from '@bigmi/core'
 import { useMutation } from '@tanstack/react-query'
@@ -18,7 +18,7 @@ import type {
   UseMutationReturnType,
 } from '../utils/query.js'
 import { type ConfigParameter, useConfig } from './useConfig.js'
-import { type UseConnectorsReturnType, useConnectors } from './useConnectors.js'
+import { useConnectors, type UseConnectorsReturnType } from './useConnectors.js'
 
 export type UseConnectParameters<
   config extends Config = Config,

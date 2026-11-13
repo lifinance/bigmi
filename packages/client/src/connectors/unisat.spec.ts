@@ -9,7 +9,7 @@ import { ConnectorNotConnectedError } from '../errors/connectors.js'
 import { createEmitter } from '../factories/createEmitter.js'
 import { createStorage } from '../factories/createStorage.js'
 import type { ConnectorEventMap } from '../types/connector.js'
-import { UnisatBitcoinChainEnum, unisat } from './unisat.js'
+import { unisat, UnisatBitcoinChainEnum } from './unisat.js'
 
 const address = 'bc1q8h8s4zd9y0lkrx334aqnj4ykqs220ss735a3gh' as Address
 const publicKey =

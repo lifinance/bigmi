@@ -16,8 +16,8 @@ Dependency chain: `core` ← `client` ← `react` (react also depends directly o
 
 ```bash
 pnpm build                    # Build all packages in parallel (tsdown)
-pnpm check                    # Biome lint + format check
-pnpm check:write              # Biome lint + format with auto-fix
+pnpm check                    # Oxlint + Oxfmt check
+pnpm check:write              # Oxlint fix + Oxfmt write
 pnpm check:types              # tsc --noEmit across all packages
 pnpm check:circular-deps      # madge circular dependency check
 pnpm test                     # vitest (only @bigmi/core has tests)
@@ -56,7 +56,7 @@ The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/act
 - Published packages come from the `CHANGESETS_OUTPUT` file, not stdout. Custom publish scripts must let that env var reach the `changeset publish` call (plain `pnpm run` chains do).
 - `changeset version` **exits 1 when there are no changesets**. `preview-publish` checks for `.changeset/*.md` before versioning, so a PR without a changeset reports a warning instead of failing.
 - `changeset tag` is now `changeset git-tag`; `--sinceMaster` is now `--since <branch>`.
-- `format: "auto"` (the v4 config default) auto-detects `biome.json`, so Changesets formats changelogs with Biome itself.
+- `format: false` in `.changeset/config.json`: Changesets does not format the changelogs. `changeset:version` runs `pnpm check:write` after the version step.
 
 **Per-PR rule: every PR with a publishable change MUST include a changeset.** Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. `changeset-bot` comments a reminder on any PR that touches publishable source without one (a nudge, not a hard block — the maintainer-reviewed Version PR is the real gate). Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
 
@@ -81,7 +81,7 @@ The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/act
 
 ## Code Style
 
-- **Biome** for formatting and linting (not ESLint/Prettier)
+- **Oxlint** and **Oxfmt** for linting and formatting (not ESLint/Prettier). `pnpm check:write:unsafe` removes unused imports.
 - Single quotes, no semicolons, 2-space indent, trailing commas (es5)
 - `console.log`/`console.info` are errors — use `console.warn`/`console.error` only
 - Imports use `.js` extensions for all local imports (Node ESM convention)

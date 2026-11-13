@@ -8,5 +8,6 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],
-  "snapshot": { "prereleaseTemplate": "{tag}" }
+  "snapshot": { "prereleaseTemplate": "{tag}" },
+  "format": false
 }
