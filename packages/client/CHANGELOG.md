@@ -1,5 +1,18 @@
 # @bigmi/client
 
+## 0.10.6
+
+### Patch Changes
+
+- [#90](https://github.com/lifinance/bigmi/pull/90) [`2c06ec2`](https://github.com/lifinance/bigmi/commit/2c06ec20124a30f3e8a6bd72611708ef02ad2187) Thanks [@chybisov](https://github.com/chybisov)! - Bump runtime dependencies: `bitcoinjs-lib` 7.0.2 → 7.0.5 and `zustand` 5.0.15 → 5.1.0.
+  
+  `@noble/hashes` stays on `^1.8.0`. `bitcoinjs-lib@7.0.5` and `bs58check@4.0.0` still
+  declare `@noble/hashes: ^1.2.0`. If `@bigmi/core` moves to v2, every consumer gets two
+  copies of the library. Version 2 also removes the `./sha256`, `./sha1` and `./ripemd160`
+  subpaths that `bitcoinjs-lib` imports. Revisit when `bitcoinjs-lib` widens its range.
+- Updated dependencies [[`2c06ec2`](https://github.com/lifinance/bigmi/commit/2c06ec20124a30f3e8a6bd72611708ef02ad2187)]:
+  - @bigmi/core@0.9.4
+
 ## 0.10.5
 
 ### Patch Changes
