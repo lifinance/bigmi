@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file gives guidance to AI coding agents that work in this repository.
 
 ## Project Overview
 
@@ -58,7 +58,7 @@ The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/act
 - `changeset tag` is now `changeset git-tag`; `--sinceMaster` is now `--since <branch>`.
 - `format: false` in `.changeset/config.json`: Changesets does not format the changelogs. `changeset:version` runs `pnpm check:write` after the version step.
 
-**Per-PR rule: every PR with a publishable change MUST include a changeset.** Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. `changeset-bot` comments a reminder on any PR that touches publishable source without one (a nudge, not a hard block — the maintainer-reviewed Version PR is the real gate). Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
+**Per-PR rule: every PR with a publishable change MUST include a changeset.** The `changeset` skill (`.claude/skills/changeset/SKILL.md`) gives the steps. If your agent does not load skills, read that file. Run `pnpm changeset`, pick the affected packages (`@bigmi/core` / `@bigmi/client` / `@bigmi/react`) and bump level (patch/minor/major), and commit the generated `.changeset/*.md`. `changeset-bot` comments a reminder on any PR that touches publishable source without one (a nudge, not a hard block — the maintainer-reviewed Version PR is the real gate). Docs-only / chore-only PRs (markdown, `.github/`, dotfiles, lockfile) are exempt; for a deliberately release-less change use `pnpm changeset --empty`.
 
 **Flow (all automated on push to `main` via `publish.yaml`):**
 1. PRs land with changeset files.
@@ -73,9 +73,9 @@ The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/act
 - `pnpm changeset:prepublish` — `pnpm build` then per-package `build:prerelease`. **This is where `scripts/formatPackageJson.js` runs** (via each package's `build:prerelease`), synthesizing the real publishable `package.json` (`main: ./dist/esm/index.js`, `exports` map; `@bigmi/core` gets a dual CJS+ESM `exports`). `changeset publish` does NOT run `build:prerelease`, so the transform MUST live here.
 - `pnpm changeset:publish` — `pnpm changeset:prepublish && changeset publish`.
 
-**Versioning / channels:** latest is stable (`0.8.0` → `0.8.x`/`0.9.0` published to the `latest` dist-tag). There is **no pre-mode** (`.changeset/pre.json` does not exist). For alpha/beta, enter pre-mode explicitly with `pnpm changeset pre enter alpha` (or `beta`), version/publish, then `pnpm changeset pre exit`.
+**Versioning / channels:** latest is stable (each release publishes to the `latest` dist-tag). There is **no pre-mode** (`.changeset/pre.json` does not exist). For alpha/beta, enter pre-mode explicitly with `pnpm changeset pre enter alpha` (or `beta`), version/publish, then `pnpm changeset pre exit`.
 
-**npm auth:** OIDC trusted publishing (no `NPM_TOKEN`); the trusted publisher on npmjs.com is bound to this repo **and** the `publish.yaml` filename (PR #52). Do not rename `publish.yaml`. Provenance is enabled via `NPM_CONFIG_PROVENANCE: true` in `publish.yaml` and the `preview-publish` action (works under pnpm 11; the repo has no `.npmrc` — pnpm settings live in `pnpm-workspace.yaml`).
+**npm auth:** OIDC trusted publishing (no `NPM_TOKEN`); the trusted publisher on npmjs.com is bound to this repo **and** the `publish.yaml` filename (PR #52). Do not rename `publish.yaml`. Provenance is enabled via `NPM_CONFIG_PROVENANCE: true` in `publish.yaml` and the `preview-publish` action (works under pnpm 11 and later; the repo has no `.npmrc` — pnpm settings live in `pnpm-workspace.yaml`).
 
 **Linear anchor:** the release is synced when `@bigmi/react` is among the published packages — it sits atop the dependency graph (publishes nearly every cycle) and is what consumers install, giving maximum coverage. A cycle that publishes only `@bigmi/core`/`@bigmi/client` without a react bump is **skipped**; reconcile that release in Linear manually if it ever happens.
 
