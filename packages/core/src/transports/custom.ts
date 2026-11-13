@@ -23,7 +23,7 @@ export type CustomTransportConfig = {
 
 export type CustomTransport = Transport<
   'custom',
-  // biome-ignore lint/complexity/noBannedTypes: part of the types
+  // oxlint-disable-next-line typescript/no-empty-object-type -- part of the types
   {},
   BitcoinProvider['request']
 >

@@ -68,7 +68,6 @@ export function Hydrate(parameters: React.PropsWithChildren<HydrateProps>) {
 
   // Hydrate for SSR
   const active = useRef(true)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: `queryKey` not required
   useEffect(() => {
     if (!active.current) {
       return
@@ -80,6 +79,7 @@ export function Hydrate(parameters: React.PropsWithChildren<HydrateProps>) {
     return () => {
       active.current = false
     }
+    // oxlint-disable-next-line react/exhaustive-deps -- `queryKey` not required
   }, [])
 
   return children as ReactElement

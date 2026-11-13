@@ -25,8 +25,8 @@ import getUTXOsPaginatedResponse from './__mocks__/getUTXOs/validPaginated.json'
 import getXPubAddressesResponse from './__mocks__/getXPubAddresses/valid.json'
 import { blockchair } from './blockchair.js'
 import type {
-  BlockChairDashboardAddressResponse,
   BlockchairAddressBalanceData,
+  BlockChairDashboardAddressResponse,
   BlockchairResponse,
   BlockchairXpubResponse,
 } from './blockchair.types.js'

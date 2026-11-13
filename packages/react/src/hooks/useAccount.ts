@@ -2,8 +2,8 @@
 
 import {
   type Config,
-  type GetAccountReturnType,
   getAccount,
+  type GetAccountReturnType,
   watchAccount,
 } from '@bigmi/client'
 

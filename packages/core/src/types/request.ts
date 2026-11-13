@@ -54,9 +54,8 @@ export type BtcRpcRequestFn<
   rpcSchema extends RpcSchema | undefined = undefined,
   raw extends boolean = false,
 > = <
-  _parameters extends RpcParameters<
-    DerivedRpcSchema<rpcSchema>
-  > = RpcParameters<DerivedRpcSchema<rpcSchema>>,
+  _parameters extends RpcParameters<DerivedRpcSchema<rpcSchema>> =
+    RpcParameters<DerivedRpcSchema<rpcSchema>>,
   _returnType = DerivedRpcSchema<rpcSchema> extends RpcSchema
     ? raw extends true
       ? OneOf<

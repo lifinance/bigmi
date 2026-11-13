@@ -176,10 +176,7 @@ export type {
   RpcSchema,
   RpcSchemaOverride,
 } from './types/request.js'
-export type {
-  BitcoinRpcMethods,
-  WalletRpcSchema,
-} from './types/rpc.js'
+export type { BitcoinRpcMethods, WalletRpcSchema } from './types/rpc.js'
 export type { UTXOTransaction } from './types/transaction.js'
 export type { Transport } from './types/transport.js'
 export type {
