@@ -95,3 +95,8 @@ The pipeline is on **Changesets v3** (`@changesets/cli` 3.x) + **`changesets/act
 - **Publishing** uses `scripts/formatPackageJson.js` (run via each package's `build:prerelease`, invoked by `changeset:prepublish` — see **## Release**) to synthesize the published `package.json`: injects `exports`, rewrites `main`/`types` to `./dist/esm/...`, and removes `scripts`/`devDependencies`. `@bigmi/core` is special-cased to a **dual CJS+ESM `exports`** (`import` → `dist/esm`, `default` → `dist/cjs`) with `module` deleted; the other two packages get ESM-only exports. The dev-time `main`/`types` fields point to `./src/index.ts`.
 - **Dev-time package.json has no `exports` field** — pnpm resolves workspace packages via `main: ./src/index.ts` directly. The `exports` map only exists ephemerally during publish (synthesized by `changeset:prepublish`, never committed).
 - **React package** has `'use client'` directives on hook files for Next.js App Router compatibility.
+
+## Ownership
+
+Jumper squad, reviewer Eugene (`@chybisov`). Review requests: request the
+reviewer above on the PR.
