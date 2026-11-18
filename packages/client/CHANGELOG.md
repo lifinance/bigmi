@@ -1,5 +1,12 @@
 # @bigmi/client
 
+## 0.10.7
+
+### Patch Changes
+
+- Updated dependencies [[`58a8ea6`](https://github.com/lifinance/bigmi/commit/58a8ea6eca345c16e018ee04348f05c073f11e14)]:
+  - @bigmi/core@0.9.5
+
 ## 0.10.6
 
 ### Patch Changes
