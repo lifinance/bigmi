@@ -20,7 +20,10 @@ export async function signPsbt<
       method: 'signPsbt',
       params: params,
     },
-    { dedupe: true }
+    // No retries: each one opens the wallet prompt again. A wallet error that
+    // bigmi does not know, such as a cancel, has no numeric code, so the
+    // client would retry it.
+    { dedupe: true, retryCount: 0 }
   )
   return data
 }
