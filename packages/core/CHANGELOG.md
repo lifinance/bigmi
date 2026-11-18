@@ -1,5 +1,11 @@
 # @bigmi/core
 
+## 0.9.5
+
+### Patch Changes
+
+- [#95](https://github.com/lifinance/bigmi/pull/95) [`58a8ea6`](https://github.com/lifinance/bigmi/commit/58a8ea6eca345c16e018ee04348f05c073f11e14) Thanks [@chybisov](https://github.com/chybisov)! - `signPsbt` now asks the wallet only once. Before, bigmi retried the request after an unknown wallet error, for example a cancel without a code. A client with the default `retryCount` then opened the wallet prompt up to 4 times.
+
 ## 0.9.4
 
 ### Patch Changes
