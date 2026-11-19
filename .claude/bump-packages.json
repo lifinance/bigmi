@@ -1,0 +1,8 @@
+{
+  "heldMajors": [
+    {
+      "name": "@noble/hashes",
+      "reason": "bitcoinjs-lib 7.0.5 and bs58check 4.0.0 ask for @noble/hashes ^1.2.0, so version 2 adds a second copy. Version 2 also removes the ./sha256, ./sha1 and ./ripemd160 subpaths that bitcoinjs-lib imports. Remove this entry when bitcoinjs-lib and bs58check accept @noble/hashes 2."
+    }
+  ]
+}
